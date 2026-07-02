@@ -34,6 +34,7 @@ export function PageSearchToolbar<T extends string>({
         />
       </div>
       <FilterChips
+        className="w-full lg:w-auto"
         options={filterOptions as readonly { id: T; label: string }[]}
         value={filter}
         onChange={onFilterChange}
