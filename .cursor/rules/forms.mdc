@@ -1,0 +1,28 @@
+---
+description: Form patterns — FormCommon + react-hook-form
+globs: **/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Forms (Required)
+
+Use `react-hook-form` for state. **Never** build one-off field wrappers — use `FormCommon` from `@/components/common/FormCommon`.
+
+```tsx
+import { useForm } from "react-hook-form";
+import { FormCommon, Input, Select } from "@/components/common/FormCommon";
+
+const form = useForm<FormValues>({ defaultValues: { … } });
+
+<FormCommon form={form} onSubmit={onSubmit}>
+  <Input control={form.control} name="email" label="Email" required />
+  <Select control={form.control} name="role" label="Role" options={…} />
+</FormCommon>
+```
+
+**Available fields:** `Input`, `Textarea`, `Select`, `RadioGroup`, `Checkbox`, `DatePicker`, `ImagePicker`.
+
+- Pass `control`, `name`, `label`; use `required` for required fields.
+- Labels/descriptions use `Typography` internally — don't add raw labels.
+- Need a new field type? Extend `FormCommon.tsx`, don't duplicate elsewhere.
+- Missing `@/components/ui/form`? Install via shadcn — FormCommon depends on it.

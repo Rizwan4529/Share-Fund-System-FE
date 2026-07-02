@@ -1,0 +1,30 @@
+---
+description: shadcn/ui and Typography usage for Murlova frontend
+globs: **/*.{tsx,ts}
+alwaysApply: false
+---
+
+# shadcn/ui (Required)
+
+If shadcn has a component for the job, **always use it** — never build a custom substitute.
+
+1. Check `src/components/ui/` first.
+2. If missing: find it at [ui.shadcn.com](https://ui.shadcn.com) and install:
+   `npx shadcn@latest add <component>`
+3. Import from `@/components/ui/<name>`.
+4. Style: `radix-nova` (see `components.json`). Icons: `lucide-react`.
+
+# Typography (Required)
+
+**Never** use raw `<h1>`–`<h6>`, `<p>`, or ad-hoc text classes for visible text.
+
+Always use `Typography` from `@/components/common/Typography`:
+
+```tsx
+import { Typography } from "@/components/common/Typography";
+
+<Typography variant="h2">Title</Typography>
+<Typography variant="body" color="muted">Description</Typography>
+```
+
+Variants: `display`, `h1`–`h6`, `section-title`, `body`, `body-sm`, `caption`, `label`, etc. Use `as` only when semantics require a different element.

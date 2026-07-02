@@ -1,0 +1,64 @@
+---
+description: API — React Query + Axios (Axios never in components)
+globs: **/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Stack
+
+**React Query** (`@tanstack/react-query`) in components. **Axios** only in the API layer — never imported in components/pages.
+
+# Layering
+
+```
+components/pages  →  React Query hooks  →  API functions  →  Axios client
+```
+
+| Layer | Location | Allowed |
+|-------|----------|---------|
+| Axios instance | `src/lib/api/client.ts` | Axios config, interceptors, base URL |
+| API functions | `src/lib/api/<domain>.ts` | Axios calls only (`api.get`, `api.post`, …) |
+| Query hooks | `src/hooks/queries/` | `useQuery`, `useMutation`, `useQueryClient` |
+| Components | `src/components/`, `src/pages/` | Query hooks only — **no Axios, no fetch** |
+
+```ts
+// src/lib/api/client.ts
+import axios from "axios";
+
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+```
+
+```ts
+// src/lib/api/users.ts
+import { api } from "./client";
+export const getUsers = () => api.get<User[]>("/users").then((r) => r.data);
+```
+
+```ts
+// src/hooks/queries/useUsers.ts
+import { useQuery } from "@tanstack/react-query";
+import { getUsers } from "@/lib/api/users";
+
+export function useUsers() {
+  return useQuery({ queryKey: ["users"], queryFn: getUsers });
+}
+```
+
+```tsx
+// component — hooks only
+const { data, isLoading, isError } = useUsers();
+```
+
+- Endpoints → `src/utils/constants.ts`. Env → `VITE_*` only. Type all shapes; no `any`.
+- Mutations: `useMutation` in `src/hooks/queries/`, invalidate related keys on success.
+
+# Loading & Empty States
+
+| State | Use |
+|-------|-----|
+| Loading | `isLoading` / `isPending` → `LoadingStates` skeletons or `ButtonSpinner` |
+| Empty / error | `EmptyState` (`variant="error"` for errors) |
+
+Components read query state (`isLoading`, `isError`, `data`) — never manage fetch logic themselves.

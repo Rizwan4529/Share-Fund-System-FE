@@ -1,0 +1,27 @@
+---
+description: Core Murlova frontend standards — explore, DRY, theming
+alwaysApply: true
+---
+
+# Before Writing Code
+
+If you lack context on project style, explore first:
+- `src/components/common/` — shared patterns (Typography, FormCommon, EmptyState, etc.)
+- `src/components/ui/` — installed shadcn primitives
+- `src/index.css` — theme tokens and radius scale
+- Match existing naming, imports (`@/…`), and file structure.
+
+# DRY (Strict)
+
+If the same UI/logic appears in **2+** components or pages:
+1. Extract to `src/components/common/` (or `src/components/ui/` if it's a primitive).
+2. Make it reusable via props — don't copy-paste.
+3. Replace all duplicates with the shared component.
+
+# Theming & Consistency
+
+Follow the existing theme in `src/index.css`. Use CSS variables and Tailwind theme tokens — never hardcode one-off values.
+
+**Border radius:** use the project radius scale only (`rounded-md`, `rounded-lg`, `rounded-xl` from `--radius-*`). Never mix arbitrary values (e.g. `rounded-[6px]` on cards and `rounded-[8px]` on buttons). Check sibling components and match them.
+
+**Colors/spacing:** use semantic tokens (`bg-card`, `text-muted-foreground`, `border-border`, etc.) — not raw hex/oklch in components.
