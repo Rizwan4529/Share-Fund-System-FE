@@ -74,7 +74,7 @@ export default function DashboardProgressPage() {
             variant="dark"
             subLabel="toward goal"
           />
-          <div className="min-w-[260px] flex-1">
+          <div className="min-w-0 flex-1 lg:min-w-[260px]">
             <div className="mb-3 flex items-center gap-3">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-gold/34 bg-gold/13">
                 <Icon className="size-5 text-gold" strokeWidth={1.9} />

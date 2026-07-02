@@ -63,17 +63,17 @@ export default function CampaignActivatePage() {
   };
 
   const footer = (
-    <div className="flex gap-3">
+    <div className="flex flex-col-reverse gap-3 sm:flex-row">
       {step > 0 ? (
-        <GoldButton variant="ghost-outline" onClick={() => setStep(step - 1)}>
+        <GoldButton variant="ghost-outline" className="w-full sm:w-auto" onClick={() => setStep(step - 1)}>
           Back
         </GoldButton>
       ) : (
-        <div />
+        <div className="hidden sm:block" />
       )}
       {step < 2 ? (
         <GoldButton
-          className="ml-auto flex-1"
+          className="w-full sm:ml-auto sm:flex-1"
           onClick={() => {
             if (step === 0) {
               void form.handleSubmit(() => setStep(1))();
@@ -86,7 +86,7 @@ export default function CampaignActivatePage() {
         </GoldButton>
       ) : (
         <GoldButton
-          className="ml-auto flex-1"
+          className="w-full sm:ml-auto sm:flex-1"
           onClick={() => void onConfirm()}
           disabled={activate.isPending}
         >
@@ -97,14 +97,14 @@ export default function CampaignActivatePage() {
   );
 
   return (
-    <div className="mx-auto max-w-[720px] space-y-5">
+    <div className="mx-auto max-w-[720px] min-w-0 space-y-5">
       <BackNavLink to={`/campaigns/${categoryId}`}>Cancel</BackNavLink>
-      <h1 className="font-display text-[26px] font-bold text-ink-heading">
+      <h1 className="font-display text-xl font-bold text-ink-heading sm:text-[26px]">
         Activate {category?.name ?? "campaign"}
       </h1>
 
       <ActivationWizardShell step={step} totalSteps={3} footer={footer}>
-        <h2 className="font-display text-[22px] font-bold text-ink-heading">
+        <h2 className="font-display text-lg font-bold text-ink-heading sm:text-[22px]">
           {STEP_TITLES[step]}
         </h2>
         <p className="mt-1 text-[14.5px] text-muted-soft">{STEP_DESCS[step]}</p>
@@ -128,7 +128,7 @@ export default function CampaignActivatePage() {
           <div className="mt-6 space-y-6">
             <div>
               <div className="mb-2 text-[13px] font-semibold text-muted-soft">Target amount</div>
-              <div className="font-display text-[40px] font-bold tracking-tight text-ink-heading">
+              <div className="font-display text-[32px] font-bold tracking-tight text-ink-heading sm:text-[40px]">
                 ${target.toLocaleString()}
               </div>
               <Slider
@@ -142,14 +142,14 @@ export default function CampaignActivatePage() {
             </div>
             <div>
               <div className="mb-3 text-[13px] font-semibold text-muted-soft">Timeline</div>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-3">
                 {TIMELINE_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
                     onClick={() => setTimeline(opt.value)}
                     className={cn(
-                      "flex-1 rounded-brand border py-2.5 text-sm font-semibold",
+                      "flex-1 rounded-brand border px-2 py-2.5 text-[13px] font-semibold sm:text-sm",
                       timeline === opt.value
                         ? "border-gold-dark bg-bg-gold text-gold-dark"
                         : "border-line bg-white text-muted-soft",
@@ -160,9 +160,9 @@ export default function CampaignActivatePage() {
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-3 rounded-lg border border-border-gold bg-gradient-to-br from-bg-gold to-bg-gold-alt px-4 py-3">
-              <TrendingUp className="size-5 text-gold-dark" />
-              <span className="text-[14.5px] text-muted-soft">
+            <div className="flex flex-wrap items-start gap-3 rounded-lg border border-border-gold bg-gradient-to-br from-bg-gold to-bg-gold-alt px-4 py-3">
+              <TrendingUp className="size-5 shrink-0 text-gold-dark" />
+              <span className="min-w-0 text-[14px] leading-snug text-muted-soft sm:text-[14.5px]">
                 Estimated monthly pace:{" "}
                 <strong className="text-ink-heading">${monthly.toLocaleString()}/mo</strong>
               </span>

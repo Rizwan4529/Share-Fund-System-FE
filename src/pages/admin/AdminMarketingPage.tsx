@@ -5,6 +5,7 @@ import {
   AdminPageHeader,
   AdminStatusPill,
   AdminSurfaceCard,
+  AdminTableScroll,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,7 +28,7 @@ export default function AdminMarketingPage() {
         subtitle="Centralized marketing support SFS runs on members' behalf."
       />
 
-      <div className="mb-4 grid grid-cols-4 gap-3.5">
+      <div className="mb-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         {data.kpis.map((kpi) => (
           <AdminSurfaceCard key={kpi.label} className="p-[18px]">
             <Typography variant="label" className="text-[12.5px] font-semibold text-[#7386a8]">
@@ -52,6 +53,7 @@ export default function AdminMarketingPage() {
             High-level view
           </span>
         </div>
+        <AdminTableScroll minWidth="640px">
         <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
           <span>Effort</span>
           <span>Channel</span>
@@ -79,6 +81,7 @@ export default function AdminMarketingPage() {
             <AdminStatusPill status={effort.status} />
           </div>
         ))}
+        </AdminTableScroll>
       </AdminSurfaceCard>
 
       <div className="flex items-center gap-3 rounded-lg border border-[#e0e7f1] bg-[#eef2f8] px-5 py-4">

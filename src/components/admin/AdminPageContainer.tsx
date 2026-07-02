@@ -8,7 +8,12 @@ export function AdminPageContainer({
   className?: string;
 }) {
   return (
-    <div className={cn("mx-auto max-w-admin px-[30px] pb-[60px] pt-7", className)}>
+    <div
+      className={cn(
+        "mx-auto max-w-admin px-4 pb-10 pt-5 lg:px-[30px] lg:pb-[60px] lg:pt-7",
+        className,
+      )}
+    >
       {children}
     </div>
   );

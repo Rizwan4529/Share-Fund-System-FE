@@ -6,12 +6,14 @@ type MemberNavLinkProps = {
   to: string;
   label: string;
   icon: React.ReactNode;
+  onNavigate?: () => void;
 };
 
-export function MemberNavLink({ to, label, icon }: MemberNavLinkProps) {
+export function MemberNavLink({ to, label, icon, onNavigate }: MemberNavLinkProps) {
   return (
     <NavLink
       to={to}
+      onClick={onNavigate}
       className={({ isActive }) =>
         cn(
           "flex w-full items-center gap-3 rounded-lg border-none px-3.5 py-3 text-[15px] transition-all",

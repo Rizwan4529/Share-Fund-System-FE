@@ -22,13 +22,13 @@ export function UserMenuDropdown() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2.5 rounded-full border border-line bg-white py-1.5 pr-2 pl-1.5 transition-colors hover:bg-bg-card"
+          className="flex items-center gap-2 rounded-full border border-line bg-white py-1.5 pr-1.5 pl-1.5 transition-colors hover:bg-bg-card sm:gap-2.5 sm:pr-2"
         >
           <GoldAvatar initials={user.avatarInitials} size="sm" />
-          <span className="text-[14.5px] font-semibold text-ink-heading">
+          <span className="hidden max-w-[88px] truncate text-[14.5px] font-semibold text-ink-heading sm:inline md:max-w-none">
             {user.name}
           </span>
-          <ChevronDown className="size-4 text-[#8496b7]" strokeWidth={2} />
+          <ChevronDown className="hidden size-4 text-[#8496b7] sm:block" strokeWidth={2} />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

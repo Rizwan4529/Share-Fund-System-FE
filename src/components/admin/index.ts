@@ -14,6 +14,8 @@ export { AdminNavIcon } from "./AdminNavIcons";
 export { AdminPageContainer, AdminSurfaceCard } from "./AdminPageContainer";
 export { AdminPageHeader } from "./AdminPageHeader";
 export { AdminSegmentedControl } from "./AdminSegmentedControl";
+export { AdminSearchModal } from "./AdminSearchModal";
 export { AdminSidebar } from "./AdminSidebar";
 export { AdminStatusPill } from "./AdminStatusPill";
+export { AdminTableScroll } from "./AdminTableScroll";
 export { AdminTopBar } from "./AdminTopBar";

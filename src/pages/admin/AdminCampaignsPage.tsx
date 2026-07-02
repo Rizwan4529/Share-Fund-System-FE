@@ -9,6 +9,7 @@ import {
   AdminSegmentedControl,
   AdminStatusPill,
   AdminSurfaceCard,
+  AdminTableScroll,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -72,7 +73,7 @@ export default function AdminCampaignsPage() {
         }
       />
 
-      <div className="mb-4 grid grid-cols-7 gap-2.5">
+      <div className="mb-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
         {Object.keys(ADMIN_CAT_LABELS).map((id) => {
           const active = categoryFilter === id;
           const count = ADMIN_CAT_TOTALS[id] ?? 0;
@@ -127,6 +128,7 @@ export default function AdminCampaignsPage() {
       </div>
 
       <AdminSurfaceCard>
+        <AdminTableScroll minWidth="720px">
         <div className="grid grid-cols-[2.2fr_1.2fr_1fr_1.6fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
           <span>Campaign</span>
           <span>Owner</span>
@@ -180,6 +182,7 @@ export default function AdminCampaignsPage() {
             <ChevronRight className="size-4 justify-self-end text-[#c3cee0]" />
           </div>
         ))}
+        </AdminTableScroll>
       </AdminSurfaceCard>
     </div>
   );

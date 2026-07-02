@@ -19,7 +19,7 @@ export function NotificationDropdown() {
         <button
           type="button"
           aria-label="Notifications"
-          className="relative flex size-[42px] items-center justify-center rounded-lg border border-line bg-white text-muted-soft transition-colors hover:bg-bg-card"
+          className="relative flex size-9 shrink-0 items-center justify-center rounded-lg border border-line bg-white text-muted-soft transition-colors hover:bg-bg-card sm:size-[42px]"
         >
           <Bell className="size-5" strokeWidth={1.8} />
           {unread > 0 ? (
@@ -29,7 +29,7 @@ export function NotificationDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-[360px] overflow-hidden rounded-[14px] border-line p-0 shadow-[0_30px_60px_-24px_rgba(12,31,68,0.4)]"
+        className="w-[min(100vw-2rem,360px)] overflow-hidden rounded-[14px] border-line p-0 shadow-[0_30px_60px_-24px_rgba(12,31,68,0.4)]"
       >
         <div className="flex items-center justify-between border-b border-line/80 px-[18px] py-4">
           <span className="font-display text-[15px] font-bold text-ink-heading">

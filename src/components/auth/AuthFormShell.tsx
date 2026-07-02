@@ -4,7 +4,7 @@ import { ASSETS } from "@/utils/assets";
 
 export function AuthFormShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-col bg-white px-8 py-10 lg:px-10 lg:py-12">
+    <div className="flex min-h-svh flex-col bg-white px-5 py-10 sm:px-8 lg:px-10 lg:py-12">
       <img
         src={ASSETS.logo}
         alt="SFS"

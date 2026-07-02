@@ -56,13 +56,13 @@ type LearnHighlightSectionProps = {
 
 export function LearnHighlightSection({ items }: LearnHighlightSectionProps) {
   return (
-    <AppSurfaceCard>
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <div>
+    <AppSurfaceCard className="overflow-hidden">
+      <div className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
           <SectionLabel>From the Learn center</SectionLabel>
           <Typography
             variant="h4"
-            className="mt-2 text-xl font-bold tracking-tight text-ink-heading"
+            className="mt-2 text-lg font-bold tracking-tight text-ink-heading sm:text-xl"
           >
             Guides picked for you
           </Typography>
@@ -70,7 +70,7 @@ export function LearnHighlightSection({ items }: LearnHighlightSectionProps) {
         <Button
           variant="ghost-outline"
           size="sm"
-          className="rounded-md px-4 py-2 text-[13.5px]"
+          className="w-full shrink-0 rounded-md px-4 py-2 text-[13.5px] sm:w-auto"
           asChild
         >
           <Link to={ROUTES.LEARN}>Open Learn</Link>

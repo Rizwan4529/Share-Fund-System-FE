@@ -23,22 +23,23 @@ export function ActiveCampaignCard({ campaign, percent }: ActiveCampaignCardProp
   const Icon = getCategoryIcon(campaign.cat);
 
   return (
-    <AppSurfaceCard>
-      <div className="mb-5 flex items-center justify-between">
+    <AppSurfaceCard className="overflow-hidden">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:mb-5">
         <SectionLabel>Your active campaign</SectionLabel>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#cbe8d4] bg-success-bg px-2.5 py-1 text-[12.5px] font-bold text-success">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#cbe8d4] bg-success-bg px-2.5 py-1 text-[12.5px] font-bold text-success">
           Active
         </span>
       </div>
-      <div className="flex flex-wrap items-center gap-7">
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6 lg:gap-7">
         <ProgressRing
           percent={percent}
           preset="md"
           variant="light"
           subLabel="of goal"
+          className="mx-auto sm:mx-0"
         />
-        <div className="min-w-[220px] flex-1">
-          <div className="mb-1.5 flex items-center gap-3">
+        <div className="w-full min-w-0 flex-1 text-center sm:text-left">
+          <div className="mb-1.5 flex items-center justify-center gap-3 sm:justify-start">
             <span className="flex size-[38px] shrink-0 items-center justify-center rounded-lg border border-border-gold bg-bg-icon">
               <Icon className="size-[18px] text-gold-dark" strokeWidth={1.9} />
             </span>
@@ -48,12 +49,12 @@ export function ActiveCampaignCard({ campaign, percent }: ActiveCampaignCardProp
           </div>
           <Typography
             variant="h3"
-            className="text-[23px] font-bold tracking-tight text-ink-heading"
+            className="text-xl font-bold tracking-tight text-ink-heading sm:text-[23px]"
           >
             {campaign.name}
           </Typography>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="font-display text-[22px] font-bold text-ink-heading">
+          <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2 sm:gap-y-1">
+            <span className="font-display text-xl font-bold text-ink-heading sm:text-[22px]">
               {formatCurrency(campaign.saved)}
             </span>
             <span className="text-sm text-[#8496b7]">
@@ -61,7 +62,7 @@ export function ActiveCampaignCard({ campaign, percent }: ActiveCampaignCardProp
               {formatTimelineLabel(Number(campaign.timeline))}
             </span>
           </div>
-          <GoldButton size="app" className="mt-4" asChild>
+          <GoldButton size="app" className="mt-4 w-full sm:w-auto" asChild>
             <Link to={ROUTES.DASHBOARD_PROGRESS}>
               View progress
               <ArrowRight className="size-[15px]" strokeWidth={2.3} />
@@ -75,7 +76,7 @@ export function ActiveCampaignCard({ campaign, percent }: ActiveCampaignCardProp
 
 export function EmptyFirstGoalCard() {
   return (
-    <div className="relative overflow-hidden rounded-panel border border-dashed border-[#d3dcea] bg-white px-10 py-11 text-center">
+    <div className="relative overflow-hidden rounded-panel border border-dashed border-[#d3dcea] bg-white px-5 py-9 text-center sm:px-10 sm:py-11">
       <div className="mx-auto mb-5 flex size-[66px] items-center justify-center rounded-panel border border-border-gold bg-gradient-to-br from-[#fdf6e6] to-[#faf0d8] shadow-[0_16px_36px_-18px_rgba(207,159,52,0.5)]">
         <Star className="size-8 text-gold-dark" strokeWidth={1.7} />
       </div>

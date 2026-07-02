@@ -17,7 +17,7 @@ export function AppSurfaceCard({
     <div
       className={cn(
         "rounded-panel border border-line bg-white shadow-app-card",
-        padding === "lg" ? "p-7 px-8" : "p-6",
+        padding === "lg" ? "p-4 sm:p-6 lg:p-7 lg:px-8" : "p-4 sm:p-6",
         className,
       )}
     >

@@ -252,8 +252,8 @@ export function getCategoryLabel(id: string): string {
 export function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/dashboard/progress")) return "Campaign progress";
   if (pathname.startsWith("/dashboard")) return "Dashboard";
-  if (pathname.includes("/activate")) return "Activate campaign";
-  if (pathname.includes("/campaigns/")) return "Campaign details";
+  if (pathname.includes("/activate")) return "Activate";
+  if (pathname.includes("/campaigns/")) return "Campaign";
   if (pathname.startsWith("/campaigns")) return "Campaigns";
   if (pathname.startsWith("/rewards")) return "Rewards";
   if (pathname.startsWith("/learn")) return "Learn";

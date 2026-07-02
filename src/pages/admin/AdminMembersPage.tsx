@@ -12,6 +12,7 @@ import {
   AdminSegmentedControl,
   AdminStatusPill,
   AdminSurfaceCard,
+  AdminTableScroll,
   type AdminModalKind,
 } from "@/components/admin";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -151,7 +152,7 @@ export default function AdminMembersPage() {
 
       <AdminSurfaceCard>
         {showPopulated ? (
-          <>
+          <AdminTableScroll minWidth="720px">
             <div className="grid grid-cols-[38px_2.4fr_1fr_1.1fr_1fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
               <span>
                 <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
@@ -226,7 +227,7 @@ export default function AdminMembersPage() {
                 <AdminGhostButton className="h-8 min-w-8 px-2.5">Next</AdminGhostButton>
               </div>
             </div>
-          </>
+          </AdminTableScroll>
         ) : null}
 
         {showLoading ? (

@@ -25,8 +25,8 @@ export function RedeemCreditsModal({
 }: RedeemCreditsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-hidden rounded-panel border-line p-0 shadow-[0_30px_60px_-24px_rgba(12,31,68,0.4)]">
-        <div className="border-b border-line bg-bg-gold px-6 py-5 text-center">
+      <DialogContent className="max-h-[min(92vh,720px)] max-w-[min(100vw-1rem,32rem)] overflow-hidden rounded-panel border-line p-0 shadow-[0_30px_60px_-24px_rgba(12,31,68,0.4)] sm:max-w-lg">
+        <div className="border-b border-line bg-bg-gold px-4 py-4 text-center sm:px-6 sm:py-5">
           <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl border border-border-gold bg-white">
             <Award className="size-6 text-gold-dark" />
           </div>
@@ -37,14 +37,14 @@ export function RedeemCreditsModal({
             Choose how to use your balance
           </Typography>
         </div>
-        <div className="space-y-2 p-5">
+        <div className="max-h-[min(50vh,360px)] space-y-2 overflow-y-auto p-4 sm:p-5">
           {options.map((opt) => (
             <button
               key={opt.id}
               type="button"
               onClick={() => onSelect(opt.id)}
               className={cn(
-                "flex w-full items-start gap-4 rounded-lg border p-4 text-left transition-colors",
+                "flex w-full flex-col gap-2 rounded-lg border p-3.5 text-left transition-colors sm:flex-row sm:items-start sm:gap-4 sm:p-4",
                 selected === opt.id
                   ? "border-gold-dark bg-bg-gold"
                   : "border-line bg-input-bg hover:border-gold-chip",
@@ -58,29 +58,35 @@ export function RedeemCreditsModal({
                 >
                   {opt.title}
                 </Typography>
-                <Typography as="p" variant="body-sm" color="muted">
+                <Typography as="p" variant="body-sm" color="muted" className="leading-snug">
                   {opt.description}
                 </Typography>
               </div>
               <Typography
                 as="p"
                 variant="label"
-                className="shrink-0 pt-0.5 font-semibold text-gold-dark"
+                className="shrink-0 font-semibold text-gold-dark sm:pt-0.5"
               >
                 {opt.cost} credits
               </Typography>
             </button>
           ))}
         </div>
-        <DialogFooter className="mx-0 mb-0 flex flex-row justify-end gap-3 border-t border-line bg-transparent px-5 pt-4 pb-5">
+        <DialogFooter className="mx-0 mb-0 flex flex-col-reverse gap-2 border-t border-line bg-transparent px-4 pt-3 pb-4 sm:flex-row sm:justify-end sm:gap-3 sm:px-5 sm:pt-4 sm:pb-5">
           <GoldButton
             variant="ghost-outline"
             size="app"
+            className="w-full sm:w-auto"
             onClick={() => onOpenChange(false)}
           >
             Cancel
           </GoldButton>
-          <GoldButton size="app" onClick={onConfirm} disabled={!selected}>
+          <GoldButton
+            size="app"
+            className="w-full sm:w-auto"
+            onClick={onConfirm}
+            disabled={!selected}
+          >
             Confirm
           </GoldButton>
         </DialogFooter>

@@ -7,6 +7,7 @@ import {
   AdminPageHeader,
   AdminSegmentedControl,
   AdminSurfaceCard,
+  AdminTableScroll,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -61,6 +62,7 @@ export default function AdminSettingsPage() {
             </Typography>
             <AdminGhostButton className="h-[34px] text-[13px]">Invite teammate</AdminGhostButton>
           </div>
+          <AdminTableScroll minWidth="560px">
           <div className="grid grid-cols-[2fr_1.3fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
             <span>Member</span>
             <span>Role</span>
@@ -97,11 +99,12 @@ export default function AdminSettingsPage() {
               <MoreHorizontal className="size-[18px] justify-self-end text-[#c3cee0]" />
             </div>
           ))}
+          </AdminTableScroll>
         </AdminSurfaceCard>
       ) : null}
 
       {tab === "platform" ? (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {data.platformCards.map((card) => (
             <AdminSurfaceCard key={card.title} className="p-5">
               <div className="mb-1.5 flex items-center gap-2.5">

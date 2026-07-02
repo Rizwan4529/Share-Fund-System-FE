@@ -15,14 +15,14 @@ export function RewardsSummaryCard({
   hint = "Earn credits every time you check in, hit a milestone, or finish a guide.",
 }: RewardsSummaryCardProps) {
   return (
-    <div className="relative overflow-hidden rounded-panel border border-navy-border-alt bg-gradient-navy-rewards p-7 shadow-app-hero">
+    <div className="relative overflow-hidden rounded-panel border border-navy-border-alt bg-gradient-navy-rewards p-5 shadow-app-hero sm:p-7">
       <div className="pointer-events-none absolute top-[-30%] right-[-10%] size-[220px] animate-glow-pulse rounded-full bg-[radial-gradient(closest-side,rgba(207,159,52,0.26),transparent_72%)]" />
       <div className="relative mb-3.5 flex items-center gap-2.5">
         <Award className="size-[18px] text-gold" strokeWidth={1.8} />
         <SectionLabel tone="light">Rewards credits</SectionLabel>
       </div>
-      <div className="relative flex items-baseline gap-2">
-        <span className="font-display text-[44px] font-extrabold tracking-tight text-shimmer-gold">
+      <div className="relative flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span className="font-display text-[36px] font-extrabold tracking-tight text-shimmer-gold sm:text-[44px]">
           {balance.toLocaleString()}
         </span>
         <span className="text-sm text-white/70">credits</span>

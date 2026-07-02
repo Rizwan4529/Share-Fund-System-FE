@@ -7,6 +7,7 @@ import {
   AdminPageHeader,
   AdminStatusPill,
   AdminSurfaceCard,
+  AdminTableScroll,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,6 +44,7 @@ export default function AdminContentPage() {
       />
 
       <AdminSurfaceCard>
+        <AdminTableScroll minWidth="640px">
         <div className="grid grid-cols-[2.6fr_1fr_1fr_1.1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
           <span>Title</span>
           <span>Type</span>
@@ -93,6 +95,7 @@ export default function AdminContentPage() {
             </div>
           );
         })}
+        </AdminTableScroll>
       </AdminSurfaceCard>
     </div>
   );

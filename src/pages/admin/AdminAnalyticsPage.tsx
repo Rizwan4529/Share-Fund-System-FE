@@ -40,7 +40,7 @@ export default function AdminAnalyticsPage() {
         }
       />
 
-      <div className="mb-4 grid grid-cols-4 gap-3.5">
+      <div className="mb-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         {data.kpis.map((kpi) => (
           <AdminKpiCard
             key={kpi.label}
@@ -52,7 +52,7 @@ export default function AdminAnalyticsPage() {
         ))}
       </div>
 
-      <div className="mb-4 grid grid-cols-[1.5fr_1fr] gap-4">
+      <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
         <AdminSurfaceCard className="p-5">
           <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
             Signups & waitlist over time
@@ -84,7 +84,7 @@ export default function AdminAnalyticsPage() {
         </AdminSurfaceCard>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <AdminSurfaceCard className="p-5">
           <Typography variant="label" className="mb-3.5 font-display text-base font-bold text-ink-heading">
             Category interest

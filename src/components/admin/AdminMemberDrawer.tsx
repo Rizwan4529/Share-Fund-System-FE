@@ -48,7 +48,7 @@ export function AdminMemberDrawer({
         aria-label="Close drawer"
         onClick={onClose}
       />
-      <aside className="admin-scroll absolute top-0 right-0 flex h-svh w-[440px] animate-draw-in flex-col overflow-y-auto bg-white shadow-[-30px_0_70px_-30px_rgba(9,18,42,0.5)]">
+      <aside className="admin-scroll absolute top-0 right-0 flex h-svh w-full max-w-full animate-draw-in flex-col overflow-y-auto bg-white shadow-[-30px_0_70px_-30px_rgba(9,18,42,0.5)] sm:w-[440px]">
         <div className="relative bg-gradient-to-br from-navy-deep to-[#122c5c] px-6 py-6 text-white">
           <Button
             type="button"

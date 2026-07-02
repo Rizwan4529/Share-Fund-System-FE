@@ -20,7 +20,7 @@ export function NavyHeroCard({
     <div
       className={cn(
         "relative overflow-hidden rounded-panel border border-navy-border-alt bg-gradient-navy-hero-card shadow-app-hero",
-        padding === "lg" ? "px-10 py-9" : "px-10 py-8",
+        padding === "lg" ? "px-5 py-7 sm:px-8 lg:px-10 lg:py-9" : "px-5 py-6 sm:px-8 lg:px-10 lg:py-8",
         className,
       )}
     >

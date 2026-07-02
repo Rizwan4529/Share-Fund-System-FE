@@ -35,23 +35,23 @@ export default function CampaignDetailPage() {
       <BackNavLink to={ROUTES.CAMPAIGNS}>All campaigns</BackNavLink>
 
       <NavyHeroCard padding="lg">
-        <div className="flex flex-wrap items-start gap-5">
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-xl border border-gold/34 bg-gold/13">
-            <Icon className="size-8 text-gold" />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-gold/34 bg-gold/13 sm:size-16">
+            <Icon className="size-7 text-gold sm:size-8" />
           </span>
-          <div className="min-w-[260px] flex-1">
+          <div className="min-w-0 flex-1">
             {category.tag ? (
               <span className="mb-2 inline-flex rounded-full border border-gold/30 bg-gold/10 px-2.5 py-0.5 text-[11.5px] font-bold uppercase tracking-wide text-gold-chip">
                 {category.tag}
               </span>
             ) : null}
-            <h1 className="font-display text-[32px] font-bold tracking-tight text-white">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-[32px]">
               {category.name}
             </h1>
-            <p className="mt-3 max-w-2xl text-[15.5px] leading-relaxed text-white/75">
+            <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-white/75 sm:text-[15.5px]">
               {category.long}
             </p>
-            <GoldButton size="app" className="mt-6" asChild>
+            <GoldButton size="app" className="mt-5 w-full sm:mt-6 sm:w-auto" asChild>
               <Link to={`/campaigns/${categoryId}/activate`}>
                 Activate this campaign
                 <ArrowRight className="size-4" />

@@ -16,7 +16,7 @@ export function AppPageContainer({
   return (
     <div
       className={cn(
-        "mx-auto w-full",
+        "mx-auto w-full min-w-0",
         maxWidth === "page" ? "max-w-page" : "max-w-[1120px]",
         className,
       )}

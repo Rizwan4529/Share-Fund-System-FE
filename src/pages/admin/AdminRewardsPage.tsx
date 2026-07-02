@@ -9,6 +9,7 @@ import {
   AdminSegmentedControl,
   AdminStatusPill,
   AdminSurfaceCard,
+  AdminTableScroll,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,7 +47,7 @@ export default function AdminRewardsPage() {
         subtitle="Run the rewards credits system — issuance, rules, and history."
       />
 
-      <div className="mb-4 grid grid-cols-3 gap-3.5">
+      <div className="mb-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg bg-gradient-to-br from-navy-deep to-[#122c5c] p-5 text-white">
           <Typography variant="label" className="text-[12.5px] font-semibold text-[#9fb4dc]">
             Credits issued
@@ -94,6 +95,7 @@ export default function AdminRewardsPage() {
 
       {showLedger ? (
         <AdminSurfaceCard>
+          <AdminTableScroll minWidth="640px">
           <div className="grid grid-cols-[1.6fr_1.4fr_1fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
             <span>Member</span>
             <span>Reason</span>
@@ -133,11 +135,12 @@ export default function AdminRewardsPage() {
               </AdminGhostButton>
             </div>
           ))}
+          </AdminTableScroll>
         </AdminSurfaceCard>
       ) : null}
 
       {showRules ? (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <AdminSurfaceCard className="p-5">
             <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
               Earning rules
