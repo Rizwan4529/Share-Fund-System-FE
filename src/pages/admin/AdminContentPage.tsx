@@ -31,7 +31,7 @@ export default function AdminContentPage() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div className="min-w-0 animate-fade-up">
       <AdminPageHeader
         title="Content"
         subtitle="Guides, videos, and FAQs in the member knowledge center."

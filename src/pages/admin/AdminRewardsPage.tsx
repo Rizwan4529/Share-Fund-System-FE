@@ -41,7 +41,7 @@ export default function AdminRewardsPage() {
   const showMarketplace = tab === "marketplace";
 
   return (
-    <div className="animate-fade-up">
+    <div className="min-w-0 animate-fade-up">
       <AdminPageHeader
         title="Rewards"
         subtitle="Run the rewards credits system — issuance, rules, and history."
@@ -87,7 +87,7 @@ export default function AdminRewardsPage() {
       </div>
 
       <AdminSegmentedControl
-        className="mb-4"
+        className="mb-4 w-full"
         options={TABS}
         value={tab}
         onChange={setTab}

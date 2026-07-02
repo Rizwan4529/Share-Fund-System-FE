@@ -28,7 +28,7 @@ export function AdminKpiCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-line bg-white p-[17px] shadow-[0_1px_0_rgba(12,31,68,0.03)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_14px_34px_-20px_rgba(12,31,68,0.35)]",
+        "rounded-lg border border-line bg-white p-3.5 shadow-[0_1px_0_rgba(12,31,68,0.03)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_14px_34px_-20px_rgba(12,31,68,0.35)] sm:p-[17px]",
         className,
       )}
     >
@@ -49,7 +49,7 @@ export function AdminKpiCard({
       </div>
       <Typography
         variant="h3"
-        className="font-display text-[27px] font-bold leading-none tracking-[-0.6px] text-ink-heading"
+        className="font-display text-2xl font-bold leading-none tracking-[-0.6px] text-ink-heading sm:text-[27px]"
       >
         {value}
       </Typography>

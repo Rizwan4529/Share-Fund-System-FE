@@ -28,7 +28,7 @@ export default function AdminAnalyticsPage() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div className="min-w-0 animate-fade-up">
       <AdminPageHeader
         title="Analytics & market data"
         subtitle={`Whether the platform and its marketing are working · ${ADMIN_RANGE_LABELS[range]}`}

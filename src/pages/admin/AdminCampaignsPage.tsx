@@ -61,14 +61,17 @@ export default function AdminCampaignsPage() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div className="min-w-0 animate-fade-up">
       <AdminPageHeader
         title="Campaigns"
         subtitle={`Across all seven categories · ${data.campaigns.length} total`}
         actions={
-          <AdminGhostButton onClick={() => toast.message("Category management coming soon")}>
-            <Cog className="size-4" />
-            Manage categories
+          <AdminGhostButton
+            className="w-full sm:w-auto"
+            onClick={() => toast.message("Category management coming soon")}
+          >
+            <Cog className="size-4 shrink-0" />
+            <span className="truncate">Manage categories</span>
           </AdminGhostButton>
         }
       />
@@ -83,7 +86,7 @@ export default function AdminCampaignsPage() {
               type="button"
               onClick={() => setCategoryFilter(active ? "all" : id)}
               className={cn(
-                "rounded-lg border p-3.5 text-left transition-colors",
+                "rounded-lg border p-3 text-left transition-colors sm:p-3.5",
                 active
                   ? "border-gold-dark bg-[#fdf9ee]"
                   : "border-line bg-white hover:border-gold-chip",
@@ -111,15 +114,12 @@ export default function AdminCampaignsPage() {
         })}
       </div>
 
-      <div className="mb-3.5 flex items-center gap-2.5">
+      <div className="mb-3.5 flex min-w-0 w-full flex-col gap-2">
         <AdminSegmentedControl
           options={STATUS_FILTERS}
           value={statusFilter}
           onChange={setStatusFilter}
         />
-        <Typography variant="caption" className="text-[#93a3c2]">
-          ·
-        </Typography>
         <Typography variant="label" className="text-[13px] font-semibold text-muted-soft">
           {categoryFilter === "all"
             ? "All categories"
@@ -127,7 +127,7 @@ export default function AdminCampaignsPage() {
         </Typography>
       </div>
 
-      <AdminSurfaceCard>
+      <AdminSurfaceCard className="min-w-0">
         <AdminTableScroll minWidth="720px">
         <div className="grid grid-cols-[2.2fr_1.2fr_1fr_1.6fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
           <span>Campaign</span>

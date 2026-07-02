@@ -21,11 +21,11 @@ export function AdminPageHeader({
   return (
     <div
       className={cn(
-        "mb-5 flex items-end justify-between gap-4",
+        "mb-5 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4",
         className,
       )}
     >
-      <div>
+      <div className="min-w-0">
         {overline ? (
           <Typography
             variant="overline"
@@ -37,7 +37,7 @@ export function AdminPageHeader({
         <Typography
           as="h1"
           variant="h3"
-          className="font-display text-[27px] font-bold tracking-[-0.6px] text-ink-heading"
+          className="font-display text-xl font-bold tracking-[-0.6px] text-ink-heading sm:text-[27px]"
         >
           {title}
         </Typography>
@@ -47,7 +47,11 @@ export function AdminPageHeader({
           </Typography>
         ) : null}
       </div>
-      {actions ? <div className="flex shrink-0 gap-2">{actions}</div> : null}
+      {actions ? (
+        <div className="flex w-full min-w-0 flex-wrap gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
+          {actions}
+        </div>
+      ) : null}
     </div>
   );
 }

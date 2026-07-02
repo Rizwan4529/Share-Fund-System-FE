@@ -14,8 +14,10 @@ export function AdminTableScroll({
   minWidth = "640px",
 }: AdminTableScrollProps) {
   return (
-    <div className={cn("overflow-x-auto", className)}>
-      <div style={{ minWidth }}>{children}</div>
+    <div className={cn("max-w-full overflow-x-auto", className)}>
+      <div className="w-max min-w-full" style={{ minWidth }}>
+        {children}
+      </div>
     </div>
   );
 }

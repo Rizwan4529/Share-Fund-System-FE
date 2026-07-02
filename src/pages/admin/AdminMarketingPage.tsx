@@ -22,7 +22,7 @@ export default function AdminMarketingPage() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div className="min-w-0 animate-fade-up">
       <AdminPageHeader
         title="Marketing"
         subtitle="Centralized marketing support SFS runs on members' behalf."

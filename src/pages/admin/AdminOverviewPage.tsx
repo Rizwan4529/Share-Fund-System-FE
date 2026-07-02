@@ -69,7 +69,7 @@ export default function AdminOverviewPage() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div className="min-w-0 animate-fade-up">
       <AdminPageHeader
         overline="Control room"
         title="Platform overview"
@@ -101,8 +101,8 @@ export default function AdminOverviewPage() {
       </div>
 
       <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <AdminSurfaceCard className="p-5">
-          <div className="mb-1 flex items-center justify-between">
+        <AdminSurfaceCard className="p-4 sm:p-5">
+          <div className="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
                 Signups over time
@@ -123,7 +123,7 @@ export default function AdminOverviewPage() {
           <AdminSignupChart data={data.signups} />
         </AdminSurfaceCard>
 
-        <AdminSurfaceCard className="p-5">
+        <AdminSurfaceCard className="p-4 sm:p-5">
           <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
             Traffic sources
           </Typography>

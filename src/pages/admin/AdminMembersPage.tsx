@@ -8,7 +8,9 @@ import {
   AdminGhostButton,
   AdminGoldButton,
   AdminMemberDrawer,
+  AdminMembersMobileList,
   AdminPageHeader,
+  AdminPagination,
   AdminSegmentedControl,
   AdminStatusPill,
   AdminSurfaceCard,
@@ -81,6 +83,15 @@ export default function AdminMembersPage() {
     setSelected(next);
   };
 
+  const toggleMember = (id: string) => {
+    setSelected((prev) => {
+      const next = { ...prev };
+      if (next[id]) delete next[id];
+      else next[id] = true;
+      return next;
+    });
+  };
+
   const cycleState = () => {
     const order: ViewState[] = ["populated", "loading", "empty", "error"];
     setViewState((current) => order[(order.indexOf(current) + 1) % order.length]);
@@ -96,29 +107,34 @@ export default function AdminMembersPage() {
   const showError = viewState === "error";
 
   return (
-    <div className="animate-fade-up">
+    <div className="min-w-0 animate-fade-up">
       <AdminPageHeader
         title="Members"
         subtitle={`${data.total.toLocaleString()} members on the platform`}
         actions={
           <>
-            <AdminGhostButton onClick={() => toast.success("Exported member list")}>
-              <Download className="size-4" />
-              Export CSV
+            <AdminGhostButton
+              className="min-w-0 flex-1 sm:flex-none"
+              onClick={() => toast.success("Exported member list")}
+            >
+              <Download className="size-4 shrink-0" />
+              <span className="truncate">Export CSV</span>
             </AdminGhostButton>
-            <AdminGoldButton onClick={() => toast.success("Invite sent")}>
-              <Plus className="size-4" />
-              Invite member
+            <AdminGoldButton
+              className="min-w-0 flex-1 sm:flex-none"
+              onClick={() => toast.success("Invite sent")}
+            >
+              <Plus className="size-4 shrink-0" />
+              <span className="truncate">Invite member</span>
             </AdminGoldButton>
           </>
         }
       />
 
-      <div className="mb-3.5 flex flex-wrap items-center gap-2.5">
+      <div className="mb-3.5 flex min-w-0 w-full flex-col gap-2.5">
         <AdminSegmentedControl options={FILTERS} value={filter} onChange={setFilter} />
-        <div className="flex-1" />
         {selectedCount > 0 ? (
-          <div className="flex animate-fade-in items-center gap-2.5 rounded-md bg-navy-deep px-3.5 py-1.5">
+          <div className="flex w-full flex-wrap items-center gap-2 rounded-md bg-navy-deep px-3 py-2 sm:ml-auto sm:w-auto sm:px-3.5 sm:py-1.5">
             <Typography variant="label" className="text-[13px] font-semibold text-[#dbe6fa]">
               {selectedCount} selected
             </Typography>
@@ -142,7 +158,7 @@ export default function AdminMembersPage() {
           </div>
         ) : null}
         <AdminGhostButton
-          className="h-9 border-dashed text-[12.5px] text-[#7386a8]"
+          className="h-9 w-full border-dashed text-[12.5px] text-[#7386a8] sm:w-auto"
           onClick={cycleState}
         >
           <Layers className="size-3.5" />
@@ -150,84 +166,76 @@ export default function AdminMembersPage() {
         </AdminGhostButton>
       </div>
 
-      <AdminSurfaceCard>
+      <AdminSurfaceCard className="min-w-0">
         {showPopulated ? (
-          <AdminTableScroll minWidth="720px">
-            <div className="grid grid-cols-[38px_2.4fr_1fr_1.1fr_1fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
-              <span>
-                <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
-              </span>
-              <span>Member</span>
-              <span>Status</span>
-              <span>Campaigns</span>
-              <span>Credits</span>
-              <span>Source</span>
-              <span />
-            </div>
-            {members.map((member) => (
-              <div
-                key={member.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setDrawerMember(member)}
-                onKeyDown={(e) => e.key === "Enter" && setDrawerMember(member)}
-                className="grid cursor-pointer grid-cols-[38px_2.4fr_1fr_1.1fr_1fr_1fr_40px] items-center gap-3 border-b border-[#f2f5fa] px-5 py-3 transition-colors hover:bg-bg-card"
-              >
-                <span
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                >
-                  <Checkbox
-                    checked={!!selected[member.id]}
-                    onCheckedChange={() =>
-                      setSelected((prev) => {
-                        const next = { ...prev };
-                        if (next[member.id]) delete next[member.id];
-                        else next[member.id] = true;
-                        return next;
-                      })
-                    }
-                  />
-                </span>
-                <div className="flex min-w-0 items-center gap-3">
-                  <GoldAvatar initials={getMemberInitials(member.name)} size="md" />
-                  <div className="min-w-0">
-                    <Typography variant="label" className="truncate text-sm font-semibold text-[#1a2c4e]">
-                      {member.name}
-                    </Typography>
-                    <Typography variant="caption" className="truncate text-[#93a3c2]">
-                      {member.email}
-                    </Typography>
-                  </div>
+          <>
+            <AdminMembersMobileList
+              members={members}
+              selected={selected}
+              onToggle={toggleMember}
+              onSelect={setDrawerMember}
+            />
+            <div className="hidden md:block">
+              <AdminTableScroll minWidth="720px">
+                <div className="grid grid-cols-[38px_2.4fr_1fr_1.1fr_1fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
+                  <span>
+                    <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+                  </span>
+                  <span>Member</span>
+                  <span>Status</span>
+                  <span>Campaigns</span>
+                  <span>Credits</span>
+                  <span>Source</span>
+                  <span />
                 </div>
-                <AdminStatusPill status={member.status} />
-                <Typography variant="body-sm" className="text-[#33425f]">
-                  {member.campaigns}
-                </Typography>
-                <Typography variant="label" className="font-display font-semibold text-[#1a2c4e]">
-                  {member.credits.toLocaleString()}
-                </Typography>
-                <Typography variant="body-sm" className="text-muted-soft">
-                  {member.source}
-                </Typography>
-                <ChevronRight className="size-4 justify-self-end text-[#c3cee0]" />
-              </div>
-            ))}
-            <div className="flex items-center justify-between px-5 py-3">
-              <Typography variant="body-sm" className="text-[#8496b7]">
-                Showing {members.length} of {data.total.toLocaleString()} members
-              </Typography>
-              <div className="flex gap-1.5">
-                <AdminGhostButton className="h-8 min-w-8 px-2.5 text-[#8496b7]">Prev</AdminGhostButton>
-                <button type="button" className="h-8 min-w-8 rounded-md border border-gold-dark bg-bg-gold px-2.5 text-[13px] font-bold text-[#8a6413]">
-                  1
-                </button>
-                <AdminGhostButton className="h-8 min-w-8 px-2.5">2</AdminGhostButton>
-                <AdminGhostButton className="h-8 min-w-8 px-2.5">3</AdminGhostButton>
-                <AdminGhostButton className="h-8 min-w-8 px-2.5">Next</AdminGhostButton>
-              </div>
+                {members.map((member) => (
+                  <div
+                    key={member.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setDrawerMember(member)}
+                    onKeyDown={(e) => e.key === "Enter" && setDrawerMember(member)}
+                    className="grid cursor-pointer grid-cols-[38px_2.4fr_1fr_1.1fr_1fr_1fr_40px] items-center gap-3 border-b border-[#f2f5fa] px-5 py-3 transition-colors hover:bg-bg-card"
+                  >
+                    <span
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
+                      <Checkbox
+                        checked={!!selected[member.id]}
+                        onCheckedChange={() => toggleMember(member.id)}
+                      />
+                    </span>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <GoldAvatar initials={getMemberInitials(member.name)} size="md" />
+                      <div className="min-w-0">
+                        <Typography variant="label" className="truncate text-sm font-semibold text-[#1a2c4e]">
+                          {member.name}
+                        </Typography>
+                        <Typography variant="caption" className="truncate text-[#93a3c2]">
+                          {member.email}
+                        </Typography>
+                      </div>
+                    </div>
+                    <AdminStatusPill status={member.status} />
+                    <Typography variant="body-sm" className="text-[#33425f]">
+                      {member.campaigns}
+                    </Typography>
+                    <Typography variant="label" className="font-display font-semibold text-[#1a2c4e]">
+                      {member.credits.toLocaleString()}
+                    </Typography>
+                    <Typography variant="body-sm" className="text-muted-soft">
+                      {member.source}
+                    </Typography>
+                    <ChevronRight className="size-4 justify-self-end text-[#c3cee0]" />
+                  </div>
+                ))}
+              </AdminTableScroll>
             </div>
-          </AdminTableScroll>
+            <AdminPagination
+              summary={`Showing ${members.length} of ${data.total.toLocaleString()} members`}
+            />
+          </>
         ) : null}
 
         {showLoading ? (

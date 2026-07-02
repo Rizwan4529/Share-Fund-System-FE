@@ -46,13 +46,13 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="animate-fade-up">
+    <div className="min-w-0 animate-fade-up">
       <AdminPageHeader
         title="Settings & roles"
         subtitle="Team access, platform configuration, and the admin audit log."
       />
 
-      <AdminSegmentedControl className="mb-4" options={TABS} value={tab} onChange={setTab} />
+      <AdminSegmentedControl className="mb-4 w-full" options={TABS} value={tab} onChange={setTab} />
 
       {tab === "team" ? (
         <AdminSurfaceCard>
