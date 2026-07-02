@@ -523,11 +523,39 @@ function Input<TFieldValues extends FieldValues>({
   showMessage = true,
   ...props
 }: InputProps<TFieldValues>) {
+  const isDebugFullName = name === "fullName";
+
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
+      render={({ field }) => {
+        if (isDebugFullName) {
+          // #region agent log
+          fetch("http://127.0.0.1:7907/ingest/227e1692-4ea7-4e34-8def-aa35903da88f", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Debug-Session-Id": "70cf5c",
+            },
+            body: JSON.stringify({
+              sessionId: "70cf5c",
+              runId: "pre-fix",
+              hypothesisId: "B,D",
+              location: "FormCommon.tsx:Input:render",
+              message: "fullName field render",
+              data: {
+                value: field.value,
+                disabled: !!disabled,
+                type: props.type ?? "text",
+              },
+              timestamp: Date.now(),
+            }),
+          }).catch(() => {});
+          // #endregion
+        }
+
+        return (
         <FormItem className={itemClassName}>
           {label ? (
             <FormLabel>
@@ -542,6 +570,101 @@ function Input<TFieldValues extends FieldValues>({
               placeholder={placeholder}
               disabled={disabled}
               className={className}
+              onFocus={
+                isDebugFullName
+                  ? (event) => {
+                      // #region agent log
+                      fetch(
+                        "http://127.0.0.1:7907/ingest/227e1692-4ea7-4e34-8def-aa35903da88f",
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "X-Debug-Session-Id": "70cf5c",
+                          },
+                          body: JSON.stringify({
+                            sessionId: "70cf5c",
+                            runId: "pre-fix",
+                            hypothesisId: "C",
+                            location: "FormCommon.tsx:Input:onFocus",
+                            message: "fullName focused",
+                            data: {
+                              readOnly: event.currentTarget.readOnly,
+                              disabled: event.currentTarget.disabled,
+                              pointerEvents:
+                                getComputedStyle(event.currentTarget).pointerEvents,
+                            },
+                            timestamp: Date.now(),
+                          }),
+                        },
+                      ).catch(() => {});
+                      // #endregion
+                    }
+                  : undefined
+              }
+              onChange={
+                isDebugFullName
+                  ? (event) => {
+                      // #region agent log
+                      fetch(
+                        "http://127.0.0.1:7907/ingest/227e1692-4ea7-4e34-8def-aa35903da88f",
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "X-Debug-Session-Id": "70cf5c",
+                          },
+                          body: JSON.stringify({
+                            sessionId: "70cf5c",
+                            runId: "pre-fix",
+                            hypothesisId: "A",
+                            location: "FormCommon.tsx:Input:onChange",
+                            message: "fullName onChange fired",
+                            data: {
+                              nextValue: event.target.value,
+                              prevValue: field.value,
+                            },
+                            timestamp: Date.now(),
+                          }),
+                        },
+                      ).catch(() => {});
+                      // #endregion
+                      field.onChange(event);
+                    }
+                  : field.onChange
+              }
+              onKeyDown={
+                isDebugFullName
+                  ? (event) => {
+                      // #region agent log
+                      fetch(
+                        "http://127.0.0.1:7907/ingest/227e1692-4ea7-4e34-8def-aa35903da88f",
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "X-Debug-Session-Id": "70cf5c",
+                          },
+                          body: JSON.stringify({
+                            sessionId: "70cf5c",
+                            runId: "pre-fix",
+                            hypothesisId: "C",
+                            location: "FormCommon.tsx:Input:onKeyDown",
+                            message: "fullName keydown",
+                            data: {
+                              key: event.key,
+                              activeTag:
+                                document.activeElement?.tagName ?? null,
+                              inputValue: event.currentTarget.value,
+                            },
+                            timestamp: Date.now(),
+                          }),
+                        },
+                      ).catch(() => {});
+                      // #endregion
+                    }
+                  : undefined
+              }
             />
           </FormControl>
           {description ? (
@@ -549,7 +672,8 @@ function Input<TFieldValues extends FieldValues>({
           ) : null}
           {showMessage ? <FormMessage /> : null}
         </FormItem>
-      )}
+        );
+      }}
     />
   );
 }
@@ -1055,7 +1179,7 @@ function ImagePickerControl({
           ) : null}
           <Button
             type="button"
-            variant="primary-outline"
+            variant="ghost-outline"
             disabled={disabled}
             onClick={() => inputRef.current?.click()}
             className="h-9 w-full rounded-[8px] text-[13px] font-medium"
