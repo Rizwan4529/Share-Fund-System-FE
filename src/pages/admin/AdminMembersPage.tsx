@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Download, Layers, Plus } from "lucide-react";
+import { ChevronRight, Download, Inbox, Layers, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -238,15 +238,23 @@ export default function AdminMembersPage() {
         ) : null}
 
         {showEmpty ? (
-          <EmptyState
-            title="No members match these filters"
-            description="Try clearing filters or adjusting your search."
-            actionLabel="Clear filters"
-            onAction={() => {
-              setFilter("all");
-              setViewState("populated");
-            }}
-          />
+          <div className="p-8">
+            <EmptyState
+              icon={Inbox}
+              title="No members match these filters"
+              description="Try clearing filters or adjusting your search."
+              action={
+                <AdminGhostButton
+                  onClick={() => {
+                    setFilter("all");
+                    setViewState("populated");
+                  }}
+                >
+                  Clear filters
+                </AdminGhostButton>
+              }
+            />
+          </div>
         ) : null}
 
         {showError ? (

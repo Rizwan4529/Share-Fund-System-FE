@@ -114,7 +114,21 @@ export async function completeOnboarding(
 
 export async function getSession(): Promise<AuthUser | null> {
   await delay(100);
-  return getStore().user;
+  const user = getStore().user;
+  if (!user) return null;
+  if (!user.role) {
+    const role = isAdminEmail(user.email) ? "admin" : "member";
+    const updated: AuthUser = {
+      ...user,
+      role,
+      ...(role === "admin"
+        ? { verified: true, onboardingComplete: true }
+        : {}),
+    };
+    setStore({ user: updated });
+    return updated;
+  }
+  return user;
 }
 
 export async function logoutUser(): Promise<void> {

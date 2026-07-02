@@ -1,8 +1,9 @@
 import { lazy } from "react";
 import { Navigate, type RouteObject } from "react-router-dom";
 
-import { ProtectedRoute, GuestRoute } from "@/components/common/ProtectedRoute";
+import { AdminRoute, GuestRoute, ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { AppShellLayout } from "@/layouts/AppShellLayout";
+import { AdminShellLayout } from "@/layouts/AdminShellLayout";
 import { AuthSplitLayout } from "@/layouts/AuthSplitLayout";
 import { ROUTES } from "@/utils/constants";
 
@@ -21,6 +22,14 @@ const LearnLibraryPage = lazy(() => import("@/pages/learn/LearnLibraryPage"));
 const LearnArticlePage = lazy(() => import("@/pages/learn/LearnArticlePage"));
 const LearnVideoPage = lazy(() => import("@/pages/learn/LearnVideoPage"));
 const AccountPage = lazy(() => import("@/pages/account/AccountPage"));
+const AdminOverviewPage = lazy(() => import("@/pages/admin/AdminOverviewPage"));
+const AdminMembersPage = lazy(() => import("@/pages/admin/AdminMembersPage"));
+const AdminCampaignsPage = lazy(() => import("@/pages/admin/AdminCampaignsPage"));
+const AdminRewardsPage = lazy(() => import("@/pages/admin/AdminRewardsPage"));
+const AdminContentPage = lazy(() => import("@/pages/admin/AdminContentPage"));
+const AdminAnalyticsPage = lazy(() => import("@/pages/admin/AdminAnalyticsPage"));
+const AdminMarketingPage = lazy(() => import("@/pages/admin/AdminMarketingPage"));
+const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
 
 export const routes: RouteObject[] = [
   {
@@ -67,6 +76,23 @@ export const routes: RouteObject[] = [
         <OnboardingPage />
       </ProtectedRoute>
     ),
+  },
+  {
+    element: (
+      <AdminRoute>
+        <AdminShellLayout />
+      </AdminRoute>
+    ),
+    children: [
+      { path: ROUTES.ADMIN, element: <AdminOverviewPage /> },
+      { path: ROUTES.ADMIN_MEMBERS, element: <AdminMembersPage /> },
+      { path: ROUTES.ADMIN_CAMPAIGNS, element: <AdminCampaignsPage /> },
+      { path: ROUTES.ADMIN_REWARDS, element: <AdminRewardsPage /> },
+      { path: ROUTES.ADMIN_CONTENT, element: <AdminContentPage /> },
+      { path: ROUTES.ADMIN_ANALYTICS, element: <AdminAnalyticsPage /> },
+      { path: ROUTES.ADMIN_MARKETING, element: <AdminMarketingPage /> },
+      { path: ROUTES.ADMIN_SETTINGS, element: <AdminSettingsPage /> },
+    ],
   },
   {
     element: (

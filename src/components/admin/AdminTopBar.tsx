@@ -10,7 +10,7 @@ import { useAdminShell } from "@/context/AdminShellContext";
 import { useAuth } from "@/context/AuthContext";
 import type { AdminViewRole } from "@/lib/auth/roles";
 import { fetchAdminNotifications } from "@/lib/api/admin";
-import { ADMIN_DATE_RANGES, ADMIN_RANGE_LABELS, ROUTES } from "@/utils/constants";
+import { ADMIN_DATE_RANGES, ROUTES } from "@/utils/constants";
 import type { AdminDateRange } from "@/utils/constants";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";

@@ -9,7 +9,14 @@ import { ROUTES } from "@/utils/constants";
 import { ASSETS } from "@/utils/assets";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: Array<{
+  to: string;
+  label: string;
+  icon: string;
+  end?: boolean;
+  badge?: string;
+  ownerOnly?: boolean;
+}> = [
   { to: ROUTES.ADMIN, label: "Overview", icon: "overview", end: true },
   { to: ROUTES.ADMIN_MEMBERS, label: "Members", icon: "members", badge: "3" },
   { to: ROUTES.ADMIN_CAMPAIGNS, label: "Campaigns", icon: "campaigns", badge: "1" },
@@ -18,7 +25,7 @@ const NAV_ITEMS = [
   { to: ROUTES.ADMIN_ANALYTICS, label: "Analytics", icon: "analytics" },
   { to: ROUTES.ADMIN_MARKETING, label: "Marketing", icon: "marketing" },
   { to: ROUTES.ADMIN_SETTINGS, label: "Settings", icon: "settings", ownerOnly: true },
-] as const;
+];
 
 export function AdminSidebar() {
   const { user } = useAuth();
