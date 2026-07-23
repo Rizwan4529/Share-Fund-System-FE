@@ -93,6 +93,15 @@ export type PlatformRules = {
     maxRecommendedBudget: number;
     minMonthlySetAside: number;
   };
+  /** Admin-defined numeric rules beyond the built-in set. */
+  customRules: CustomPlatformRule[];
+};
+
+export type CustomPlatformRule = {
+  id: string;
+  label: string;
+  value: number;
+  description?: string;
 };
 
 export type EnrollmentPlan =

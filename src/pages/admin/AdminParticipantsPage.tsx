@@ -1,19 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  BadgeCheck,
+  Copy,
+  Eye,
+  Layers,
+  UserRoundX,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  AdminPageContainer,
+  ADMIN_TABLE_SECTION,
+  ADMIN_TABLE_SLOT,
   AdminPageHeader,
-  AdminTableScroll,
+  AdminTableIconAction,
+  AdminTableToolbar,
 } from "@/components/admin";
+import { DataTableColumnHeaderCommon } from "@/components/common/DataTableColumnHeaderCommon";
+import { DataTableCommon } from "@/components/common/DataTableCommon";
 import { GoldButton } from "@/components/common/GoldButton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { filterRowsBySearch } from "@/hooks/useAdminTableSearch";
+import { useClientTablePage } from "@/hooks/useClientTablePage";
 import {
   fetchAdminParticipants,
   updateParticipantFoundingStatus,
@@ -23,6 +30,20 @@ import type { AuthUser, FoundingStatus } from "@/types";
 
 export default function AdminParticipantsPage() {
   const [rows, setRows] = useState<AuthUser[]>([]);
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(
+    () =>
+      filterRowsBySearch(
+        rows,
+        search,
+        (r) =>
+          `${r.name} ${r.email} ${foundingStatusLabel(r.foundingStatus)}`,
+      ),
+    [rows, search],
+  );
+  const { pageRows, totalDataCount, onFetchData } =
+    useClientTablePage(filtered);
 
   const reload = () => void fetchAdminParticipants().then(setRows);
   useEffect(() => {
@@ -35,77 +56,141 @@ export default function AdminParticipantsPage() {
     reload();
   };
 
+  const columns = useMemo<ColumnDef<AuthUser>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon
+            column={column}
+            title="Name"
+            className="ml-1"
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="font-semibold text-ink-heading">
+            {row.original.name}
+          </span>
+        ),
+        enableSorting: true,
+      },
+      {
+        accessorKey: "email",
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Email" />
+        ),
+        enableSorting: true,
+      },
+      {
+        id: "status",
+        accessorFn: (r) => foundingStatusLabel(r.foundingStatus),
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Status" />
+        ),
+        enableSorting: true,
+      },
+      {
+        id: "centers",
+        accessorFn: (r) => `${r.selectedCenterIds.length}/${r.centerLimit}`,
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Centers" />
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "questionnaire",
+        accessorFn: (r) => (r.questionnaireComplete ? "Yes" : "No"),
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon
+            column={column}
+            title="Questionnaire"
+          />
+        ),
+        enableSorting: true,
+      },
+      {
+        id: "actions",
+        enableSorting: false,
+        enableHiding: false,
+        header: () => <span>Actions</span>,
+        cell: ({ row }) => {
+          const r = row.original;
+          return (
+            <div className="flex items-center justify-end gap-0.5">
+              <AdminTableIconAction
+                label="View details"
+                icon={Eye}
+                tone="info"
+                onClick={() =>
+                  toast.message(r.name, {
+                    description: `${r.email} · ${foundingStatusLabel(r.foundingStatus)}`,
+                  })
+                }
+              />
+              <AdminTableIconAction
+                label="Copy email"
+                icon={Copy}
+                onClick={() => {
+                  void navigator.clipboard.writeText(r.email);
+                  toast.success("Email copied.");
+                }}
+              />
+              <AdminTableIconAction
+                label="Set not enrolled"
+                icon={UserRoundX}
+                disabled={r.foundingStatus === "none"}
+                onClick={() => void onStatus(r.id, "none")}
+              />
+              <AdminTableIconAction
+                label="Set Founding Participant"
+                icon={BadgeCheck}
+                tone="success"
+                disabled={r.foundingStatus === "founding_participant"}
+                onClick={() => void onStatus(r.id, "founding_participant")}
+              />
+              <AdminTableIconAction
+                label="Set Founder Stack"
+                icon={Layers}
+                tone="info"
+                disabled={r.foundingStatus === "founder_stack"}
+                onClick={() => void onStatus(r.id, "founder_stack")}
+              />
+            </div>
+          );
+        },
+      },
+    ],
+    [],
+  );
+
   return (
-    <AdminPageContainer>
+    <section className={ADMIN_TABLE_SECTION}>
       <AdminPageHeader
         title="Participants"
         subtitle="View participants and manage Founding / Founder Stack status."
+        actions={
+          <GoldButton size="sm" variant="outline" onClick={reload}>
+            Refresh
+          </GoldButton>
+        }
       />
-      <AdminTableScroll>
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead>
-            <tr className="border-b border-line bg-bg-card text-[11.5px] font-bold tracking-wide text-muted-soft uppercase">
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Centers</th>
-              <th className="px-4 py-3">Questionnaire</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-muted-foreground">
-                  No participants yet. Sign up as a non-admin user to populate.
-                </td>
-              </tr>
-            ) : (
-              rows.map((r) => (
-                <tr key={r.id} className="border-b border-[#f2f5fa] hover:bg-bg-card">
-                  <td className="px-4 py-3 font-semibold">{r.name}</td>
-                  <td className="px-4 py-3">{r.email}</td>
-                  <td className="px-4 py-3">
-                    {foundingStatusLabel(r.foundingStatus)}
-                  </td>
-                  <td className="px-4 py-3">
-                    {r.selectedCenterIds.length}/{r.centerLimit}
-                  </td>
-                  <td className="px-4 py-3">
-                    {r.questionnaireComplete ? "Yes" : "No"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Select
-                      value={r.foundingStatus}
-                      onValueChange={(v) =>
-                        void onStatus(r.id, v as FoundingStatus)
-                      }
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Not enrolled</SelectItem>
-                        <SelectItem value="founding_participant">
-                          Founding Participant
-                        </SelectItem>
-                        <SelectItem value="founder_stack">
-                          Founder Stack
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </AdminTableScroll>
-      <div className="mt-4">
-        <GoldButton size="sm" variant="outline" onClick={reload}>
-          Refresh
-        </GoldButton>
+      <AdminTableToolbar
+        search={search}
+        onSearchChange={setSearch}
+        placeholder="Search name, email, or status…"
+        resultCount={filtered.length}
+      />
+      <div className={ADMIN_TABLE_SLOT}>
+        <DataTableCommon
+          columns={columns}
+          data={pageRows}
+          totalDataCount={totalDataCount}
+          onFetchData={onFetchData}
+          fillViewport={false}
+          className="min-h-0 flex-1"
+          emptyMessage="No participants yet. Sign up as a non-admin user to populate."
+        />
       </div>
-    </AdminPageContainer>
+    </section>
   );
 }

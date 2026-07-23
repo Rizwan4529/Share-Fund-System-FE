@@ -27,14 +27,19 @@ const NAV_ITEMS: Array<{
     icon: "campaigns",
   },
   { to: ROUTES.ADMIN_PRICING, label: "Pricing", icon: "analytics" },
-  { to: ROUTES.ADMIN_RULES, label: "Rules", icon: "settings" },
+  { to: ROUTES.ADMIN_RULES, label: "Rules", icon: "rules" },
   {
     to: ROUTES.ADMIN_RECOMMENDATIONS,
     label: "Recommendations",
-    icon: "content",
+    icon: "recommendations",
   },
-  { to: ROUTES.ADMIN_DISCLOSURES, label: "Disclosures", icon: "content" },
-  { to: ROUTES.ADMIN_SETTINGS, label: "Settings", icon: "settings", ownerOnly: true },
+  { to: ROUTES.ADMIN_DISCLOSURES, label: "Disclosures", icon: "disclosures" },
+  {
+    to: ROUTES.ADMIN_SETTINGS,
+    label: "Settings",
+    icon: "settings",
+    ownerOnly: true,
+  },
 ];
 
 /*
@@ -76,9 +81,9 @@ export function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
               end={item.end}
               onClick={onNavigate}
               className={cn(
-                "flex w-full items-center gap-3 rounded-[7px] border-none px-[13px] py-2.5 text-left text-sm font-semibold transition-colors",
+                "flex w-full cursor-pointer items-center gap-3 rounded-[7px] border-none px-[13px] py-2.5 text-left text-sm font-semibold transition-colors",
                 active
-                  ? "bg-gradient-to-r from-gold/18 to-gold/6 text-gold-pale shadow-[inset_3px_0_0_#cf9f34]"
+                  ? "bg-gradient-to-r from-gold/18 to-gold/6 text-gold-pale shadow-[inset_3px_0_0_var(--color-gold-dark)]"
                   : "text-[#aebfdf] hover:bg-white/5",
               )}
             >
@@ -107,7 +112,10 @@ export function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
               >
                 {user.name}
               </Typography>
-              <Typography variant="caption" className="text-[11.5px] text-[#8ba0c6]">
+              <Typography
+                variant="caption"
+                className="text-[11.5px] text-[#8ba0c6]"
+              >
                 {viewRole}
               </Typography>
             </div>

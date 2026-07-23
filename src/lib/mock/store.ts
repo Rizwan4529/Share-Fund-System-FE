@@ -112,6 +112,9 @@ function readStore(): Phase1Store {
             ...DEFAULT_PRICING_SETTINGS.rules.caps,
             ...(parsed.settings?.rules?.caps ?? {}),
           },
+          customRules:
+            parsed.settings?.rules?.customRules ??
+            DEFAULT_PRICING_SETTINGS.rules.customRules,
         },
       },
     };

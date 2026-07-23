@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { AdminPageContainer, AdminPageHeader } from "@/components/admin";
+import {
+  AdminPageHeader,
+  AdminSectionTitle,
+  AdminSurfaceCard,
+} from "@/components/admin";
 import { GoldButton } from "@/components/common/GoldButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,11 +25,7 @@ export default function AdminPricingPage() {
   }, []);
 
   if (!settings) {
-    return (
-      <AdminPageContainer>
-        <div className="h-40 animate-pulse rounded-xl bg-muted" />
-      </AdminPageContainer>
-    );
+    return <div className="h-40 animate-pulse rounded-xl bg-muted" />;
   }
 
   const p = settings.pricing;
@@ -36,7 +36,7 @@ export default function AdminPricingPage() {
   };
 
   return (
-    <AdminPageContainer>
+    <>
       <AdminPageHeader
         title="Pricing"
         subtitle="Administrator-configurable Founding and Founder Stack pricing."
@@ -47,9 +47,9 @@ export default function AdminPricingPage() {
         }
       />
 
-      <div className="grid max-w-3xl gap-5">
-        <section className="space-y-3 rounded-xl border border-border bg-card p-5">
-          <h3 className="font-display font-bold">Founding Introductory Pricing</h3>
+      <div className="grid max-w-3xl gap-5 mt-7">
+        <AdminSurfaceCard className="space-y-3 p-5">
+          <AdminSectionTitle>Founding Introductory Pricing</AdminSectionTitle>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
               label="Regular price / center"
@@ -118,10 +118,10 @@ export default function AdminPricingPage() {
               />
             </div>
           </div>
-        </section>
+        </AdminSurfaceCard>
 
-        <section className="space-y-3 rounded-xl border border-border bg-card p-5">
-          <h3 className="font-display font-bold">Pricing tiers</h3>
+        <AdminSurfaceCard className="space-y-3 p-5">
+          <AdminSectionTitle>Pricing tiers</AdminSectionTitle>
           <div className="grid gap-3 sm:grid-cols-3">
             <Field
               label="Personal"
@@ -167,11 +167,11 @@ export default function AdminPricingPage() {
             Billing structure stored as “{p.billing}”. Live recurring billing is
             not included in Phase 1.
           </p>
-        </section>
+        </AdminSurfaceCard>
 
-        <section className="space-y-3 rounded-xl border border-gold/30 bg-gold/5 p-5">
+        <AdminSurfaceCard className="space-y-3 border-gold/30 bg-gold/5 p-5">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="font-display font-bold">Founder Stack (separate)</h3>
+            <AdminSectionTitle>Founder Stack (separate)</AdminSectionTitle>
             <div className="flex items-center gap-2">
               <Label>Active</Label>
               <Switch
@@ -237,9 +237,9 @@ export default function AdminPricingPage() {
               }
             />
           </div>
-        </section>
+        </AdminSurfaceCard>
       </div>
-    </AdminPageContainer>
+    </>
   );
 }
 

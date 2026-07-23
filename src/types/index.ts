@@ -20,6 +20,7 @@ export type {
   FounderStackOffer,
   PricingConfig,
   PlatformRules,
+  CustomPlatformRule,
   EnrollmentPlan,
   Enrollment,
   PaymentRecord,

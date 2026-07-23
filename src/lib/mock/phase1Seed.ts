@@ -47,6 +47,7 @@ export const DEFAULT_PRICING_SETTINGS: PlatformSettings = {
       maxRecommendedBudget: 100000,
       minMonthlySetAside: 25,
     },
+    customRules: [],
   },
 };
 

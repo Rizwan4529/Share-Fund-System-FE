@@ -1,4 +1,8 @@
-import { authTabClass } from "@/components/auth/authStyles";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/common/TabsCommon";
 
 type AuthTabSwitcherProps = {
   mode: "login" | "signup";
@@ -7,17 +11,15 @@ type AuthTabSwitcherProps = {
 
 export function AuthTabSwitcher({ mode, onChange }: AuthTabSwitcherProps) {
   return (
-    <div className="mb-[30px] flex rounded-lg border border-line bg-[#f1f4fa] p-1">
-      {(["login", "signup"] as const).map((m) => (
-        <button
-          key={m}
-          type="button"
-          onClick={() => onChange(m)}
-          className={authTabClass(mode === m)}
-        >
-          {m === "login" ? "Log in" : "Sign up"}
-        </button>
-      ))}
-    </div>
+    <Tabs
+      value={mode}
+      onValueChange={(value) => onChange(value as "login" | "signup")}
+      className="mb-[30px] gap-0"
+    >
+      <TabsList>
+        <TabsTrigger value="login">Log in</TabsTrigger>
+        <TabsTrigger value="signup">Sign up</TabsTrigger>
+      </TabsList>
+    </Tabs>
   );
 }

@@ -31,8 +31,8 @@ export function AdminSignupChart({
         <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="signupFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#cf9f34" stopOpacity={0.35} />
-              <stop offset="100%" stopColor="#cf9f34" stopOpacity={0.02} />
+              <stop offset="0%" stopColor="#c4a33a" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="#c4a33a" stopOpacity={0.02} />
             </linearGradient>
           </defs>
           <CartesianGrid stroke="#eef1f7" vertical={false} />
@@ -48,7 +48,7 @@ export function AdminSignupChart({
           <Area
             type="monotone"
             dataKey="value"
-            stroke="#cf9f34"
+            stroke="#c4a33a"
             strokeWidth={2}
             fill="url(#signupFill)"
           />
@@ -129,7 +129,7 @@ export function AdminDualAreaChart({
           <XAxis dataKey="index" hide />
           <YAxis hide />
           <Tooltip />
-          <Area type="monotone" dataKey="signups" stroke="#cf9f34" fill="#cf9f3420" strokeWidth={2} />
+          <Area type="monotone" dataKey="signups" stroke="#c4a33a" fill="#c4a33a20" strokeWidth={2} />
           <Area type="monotone" dataKey="waitlist" stroke="#3f5580" fill="#3f558020" strokeWidth={2} />
         </AreaChart>
       </ResponsiveContainer>
@@ -222,7 +222,7 @@ export function AdminMiniBarChart({
     <div className={cn("h-24 w-full", className)}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData}>
-          <Bar dataKey="value" fill="#cf9f34" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="value" fill="#c4a33a" radius={[3, 3, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

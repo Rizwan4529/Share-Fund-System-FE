@@ -13,7 +13,7 @@ export function GoldButton({
     <Button
       variant={variant}
       size={size}
-      className={cn(variant === "gold" && "tracking-wide", className)}
+      className={cn("cursor-pointer", className)}
       {...props}
     />
   );

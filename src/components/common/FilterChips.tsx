@@ -73,13 +73,13 @@ function FilterChipButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "min-w-0 rounded-full font-semibold transition-colors",
+        "h-10 min-h-10 cursor-pointer rounded-md border font-semibold transition-colors",
         compact
-          ? "px-2 py-2 text-center text-xs leading-tight sm:text-sm"
-          : "whitespace-nowrap px-4 py-2 text-sm",
+          ? "min-w-0 px-3 text-center text-xs leading-tight sm:text-sm"
+          : "whitespace-nowrap px-4 text-sm",
         active
-          ? "bg-gradient-gold text-navy-deep shadow-[0_4px_14px_rgba(207,159,52,0.35)]"
-          : "border border-line bg-white text-muted-soft hover:border-gold-dark/35 hover:bg-bg-gold",
+          ? "border-info/30 bg-info-bg text-info"
+          : "border-line bg-white text-muted-soft hover:border-info/25 hover:bg-info-bg/50 hover:text-ink-heading",
       )}
     >
       <Typography as="span" variant="label" color="inherit">

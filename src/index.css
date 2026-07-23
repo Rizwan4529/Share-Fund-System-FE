@@ -14,12 +14,12 @@
   --color-navy-border: #102a5c;
   --color-navy-border-alt: #16356f;
 
-  --color-gold: #e8c25a;
-  --color-gold-dark: #cf9f34;
-  --color-gold-deep: #b5841f;
-  --color-gold-pale: #fbe6a6;
-  --color-gold-light: #fff4cf;
-  --color-gold-chip: #f0d489;
+  --color-gold: #d9b74a;
+  --color-gold-dark: #c4a33a;
+  --color-gold-deep: #a88c2e;
+  --color-gold-pale: #f5e6b0;
+  --color-gold-light: #fbf4dc;
+  --color-gold-chip: #e8d07a;
 
   --color-ink: #1b2c52;
   --color-ink-heading: #0c1f44;
@@ -80,6 +80,7 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -116,14 +117,14 @@
 
 :root {
   /* Brand gradients */
-  --gradient-gold: linear-gradient(135deg, #e8c25a, #cf9f34);
+  --gradient-gold: linear-gradient(135deg, #d9b74a, #c4a33a);
   --gradient-gold-shimmer: linear-gradient(
     100deg,
-    #b5841f 0%,
-    #e8c25a 28%,
-    #fff4cf 50%,
-    #e8c25a 72%,
-    #cf9f34 100%
+    #a88c2e 0%,
+    #d9b74a 28%,
+    #fbf4dc 50%,
+    #d9b74a 72%,
+    #c4a33a 100%
   );
   --gradient-navy-hero: linear-gradient(
     180deg,
@@ -142,7 +143,7 @@
   --shadow-app-card: 0 18px 44px -34px rgba(12, 31, 68, 0.5);
   --shadow-app-hero: 0 26px 54px -38px rgba(12, 31, 68, 0.7);
   --shadow-app-hero-lg: 0 30px 64px -42px rgba(12, 31, 68, 0.7);
-  --shadow-gold-btn: 0 10px 24px rgba(207, 159, 52, 0.34);
+  --shadow-gold-btn: 0 1px 2px rgba(12, 31, 68, 0.08);
   --gradient-navy-marketing: linear-gradient(
     135deg,
     #06122e 0%,
@@ -160,11 +161,12 @@
   --popover-foreground: var(--color-ink);
   --primary: var(--color-gold);
   --primary-foreground: var(--color-navy-deep);
+  --primary-light: color-mix(in srgb, var(--color-gold) 80%, white);
   --secondary: var(--color-bg-alt);
   --secondary-foreground: var(--color-ink-heading);
   --muted: var(--color-bg-alt);
   --muted-foreground: var(--color-brand-muted);
-  --accent: var(--color-bg-gold);
+  --accent: var(--primary-light);
   --accent-foreground: var(--color-ink-heading);
   --destructive: oklch(0.577 0.245 27.325);
   --border: var(--color-line);
@@ -179,7 +181,7 @@
   --sidebar-foreground: var(--color-ink-heading);
   --sidebar-primary: var(--color-navy);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: var(--color-bg-gold);
+  --sidebar-accent: var(--primary-light);
   --sidebar-accent-foreground: var(--color-ink-heading);
   --sidebar-border: var(--color-line);
   --sidebar-ring: var(--color-gold);
@@ -194,11 +196,12 @@
   --popover-foreground: #eaf0fb;
   --primary: var(--color-gold);
   --primary-foreground: var(--color-navy-deep);
+  --primary-light: color-mix(in srgb, var(--color-gold) 16%, var(--color-navy));
   --secondary: var(--color-navy-mid);
   --secondary-foreground: #eaf0fb;
   --muted: var(--color-navy-mid);
   --muted-foreground: var(--color-muted-light);
-  --accent: color-mix(in srgb, var(--color-gold) 12%, var(--color-navy));
+  --accent: var(--primary-light);
   --accent-foreground: var(--color-gold-chip);
   --destructive: oklch(0.704 0.191 22.216);
   --border: color-mix(in srgb, #ffffff 12%, var(--color-navy));

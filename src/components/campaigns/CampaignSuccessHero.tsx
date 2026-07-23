@@ -22,7 +22,7 @@ export function CampaignSuccessHero() {
         <path
           d="M20 100 Q160 10 300 100"
           fill="none"
-          stroke="#e8c25a"
+          stroke="#d9b74a"
           strokeWidth="2"
           strokeDasharray="6 4"
         />

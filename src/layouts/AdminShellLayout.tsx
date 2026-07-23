@@ -13,8 +13,8 @@ export function AdminShellLayout() {
           <AdminSidebar />
           <div className="flex min-h-svh min-w-0 flex-col overflow-hidden">
             <AdminTopBar />
-            <main className="admin-scroll flex-1 overflow-x-hidden overflow-y-auto">
-              <AdminPageContainer>
+            <main className="admin-scroll flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
+              <AdminPageContainer className="min-h-0 flex-1">
                 <Outlet />
               </AdminPageContainer>
             </main>

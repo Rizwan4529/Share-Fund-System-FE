@@ -58,7 +58,7 @@ export function AccountSidebar({
               className={cn(
                 "flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[14.5px] font-semibold transition-all lg:w-full",
                 active
-                  ? "bg-gradient-to-r from-bg-gold to-bg-gold-alt text-gold-dark shadow-[inset_3px_0_0_#cf9f34]"
+                  ? "bg-gradient-to-r from-bg-gold to-bg-gold-alt text-gold-dark shadow-[inset_3px_0_0_var(--color-gold-dark)]"
                   : "text-muted-soft hover:bg-bg-card hover:text-ink-heading",
               )}
             >
