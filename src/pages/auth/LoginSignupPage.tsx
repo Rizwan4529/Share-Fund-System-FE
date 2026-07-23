@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useWatch } from "react-hook-form";
 import { Link, useLocation } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -46,32 +45,9 @@ export default function LoginSignupPage() {
     defaultValues: { fullName: "", email: "", password: "" },
   });
 
-  const watchedFullName = useWatch({
-    control: signupForm.control,
-    name: "fullName",
-  });
-
   useEffect(() => {
-    if (mode !== "signup") return;
-    // #region agent log
-    fetch("http://127.0.0.1:7907/ingest/227e1692-4ea7-4e34-8def-aa35903da88f", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "70cf5c",
-      },
-      body: JSON.stringify({
-        sessionId: "70cf5c",
-        runId: "pre-fix",
-        hypothesisId: "B,E",
-        location: "LoginSignupPage.tsx:useEffect",
-        message: "signup fullName state changed",
-        data: { mode, watchedFullName },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-  }, [mode, watchedFullName]);
+    setMode(location.pathname === ROUTES.SIGNUP ? "signup" : "login");
+  }, [location.pathname]);
 
   const onLogin = async (data: LoginFormValues) => {
     setError("");
@@ -103,8 +79,8 @@ export default function LoginSignupPage() {
       </Typography>
       <Typography variant="body-sm" color="muted" className="mt-1.5 mb-[26px] text-[15px]">
         {mode === "login"
-          ? "Log in to continue toward your funding goal."
-          : "Free to join. Start in under a minute."}
+          ? "Log in to continue your Founding Participant account."
+          : "Create a participant account to start BMIS planning."}
       </Typography>
 
       {error ? <AuthErrorBanner message={error} /> : null}
@@ -183,6 +159,21 @@ export default function LoginSignupPage() {
           <GoldButton type="submit" size="auth" className="mt-1 w-full">
             Create account <ArrowRight className="size-[17px]" strokeWidth={2.3} />
           </GoldButton>
+          <Typography variant="caption" className="text-center text-muted-foreground">
+            By creating an account you agree to the{" "}
+            <Link to="/legal/terms" className="font-semibold underline">
+              Terms
+            </Link>
+            ,{" "}
+            <Link to="/legal/privacy" className="font-semibold underline">
+              Privacy Policy
+            </Link>
+            , and{" "}
+            <Link to="/legal/founding_disclosure" className="font-semibold underline">
+              Founding Participant disclosure
+            </Link>
+            .
+          </Typography>
         </FormCommon>
       )}
 

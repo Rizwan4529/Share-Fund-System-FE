@@ -12,29 +12,62 @@ const ForgotPasswordPage = lazy(() => import("@/pages/auth/ForgotPasswordPage"))
 const VerifyEmailPage = lazy(() => import("@/pages/auth/VerifyEmailPage"));
 const OnboardingPage = lazy(() => import("@/pages/onboarding/OnboardingPage"));
 const DashboardHomePage = lazy(() => import("@/pages/dashboard/DashboardHomePage"));
-const DashboardProgressPage = lazy(() => import("@/pages/dashboard/DashboardProgressPage"));
-const CampaignBrowsePage = lazy(() => import("@/pages/campaigns/CampaignBrowsePage"));
-const CampaignDetailPage = lazy(() => import("@/pages/campaigns/CampaignDetailPage"));
-const CampaignActivatePage = lazy(() => import("@/pages/campaigns/CampaignActivatePage"));
-const CampaignSuccessPage = lazy(() => import("@/pages/campaigns/CampaignSuccessPage"));
-const RewardsPage = lazy(() => import("@/pages/rewards/RewardsPage"));
-const LearnLibraryPage = lazy(() => import("@/pages/learn/LearnLibraryPage"));
-const LearnArticlePage = lazy(() => import("@/pages/learn/LearnArticlePage"));
-const LearnVideoPage = lazy(() => import("@/pages/learn/LearnVideoPage"));
+const QuestionnairePage = lazy(() => import("@/pages/questionnaire/QuestionnairePage"));
+const SuccessCentersBrowsePage = lazy(
+  () => import("@/pages/success-centers/SuccessCentersBrowsePage"),
+);
+const SuccessCenterDetailPage = lazy(
+  () => import("@/pages/success-centers/SuccessCenterDetailPage"),
+);
+const EnrollmentPage = lazy(() => import("@/pages/enrollment/EnrollmentPage"));
+const EnrollmentCheckoutPage = lazy(
+  () => import("@/pages/enrollment/EnrollmentCheckoutPage"),
+);
+const BillingPage = lazy(() => import("@/pages/billing/BillingPage"));
+const RecommendationPage = lazy(
+  () => import("@/pages/recommendation/RecommendationPage"),
+);
 const AccountPage = lazy(() => import("@/pages/account/AccountPage"));
+const LegalPage = lazy(() => import("@/pages/legal/LegalPage"));
+
 const AdminOverviewPage = lazy(() => import("@/pages/admin/AdminOverviewPage"));
-const AdminMembersPage = lazy(() => import("@/pages/admin/AdminMembersPage"));
-const AdminCampaignsPage = lazy(() => import("@/pages/admin/AdminCampaignsPage"));
-const AdminRewardsPage = lazy(() => import("@/pages/admin/AdminRewardsPage"));
-const AdminContentPage = lazy(() => import("@/pages/admin/AdminContentPage"));
-const AdminAnalyticsPage = lazy(() => import("@/pages/admin/AdminAnalyticsPage"));
-const AdminMarketingPage = lazy(() => import("@/pages/admin/AdminMarketingPage"));
+const AdminParticipantsPage = lazy(
+  () => import("@/pages/admin/AdminParticipantsPage"),
+);
+const AdminEnrollmentsPage = lazy(
+  () => import("@/pages/admin/AdminEnrollmentsPage"),
+);
+const AdminSuccessCentersPage = lazy(
+  () => import("@/pages/admin/AdminSuccessCentersPage"),
+);
+const AdminPricingPage = lazy(() => import("@/pages/admin/AdminPricingPage"));
+const AdminRulesPage = lazy(() => import("@/pages/admin/AdminRulesPage"));
+const AdminRecommendationsPage = lazy(
+  () => import("@/pages/admin/AdminRecommendationsPage"),
+);
+const AdminDisclosuresPage = lazy(
+  () => import("@/pages/admin/AdminDisclosuresPage"),
+);
 const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
+
+/*
+ * PHASE2_PARKED — page modules kept on disk but routes are unreachable:
+ * - pages/rewards/RewardsPage
+ * - pages/learn/*
+ * - pages/campaigns/*
+ * - pages/dashboard/DashboardProgressPage
+ * - pages/admin/AdminRewardsPage, AdminMarketingPage, AdminAnalyticsPage
+ * - pages/admin/AdminMembersPage, AdminCampaignsPage, AdminContentPage
+ */
 
 export const routes: RouteObject[] = [
   {
     path: "/",
     element: <Navigate to={ROUTES.DASHBOARD} replace />,
+  },
+  {
+    path: ROUTES.LEGAL,
+    element: <LegalPage />,
   },
   {
     element: <AuthSplitLayout />,
@@ -85,13 +118,42 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { path: ROUTES.ADMIN, element: <AdminOverviewPage /> },
-      { path: ROUTES.ADMIN_MEMBERS, element: <AdminMembersPage /> },
-      { path: ROUTES.ADMIN_CAMPAIGNS, element: <AdminCampaignsPage /> },
-      { path: ROUTES.ADMIN_REWARDS, element: <AdminRewardsPage /> },
-      { path: ROUTES.ADMIN_CONTENT, element: <AdminContentPage /> },
-      { path: ROUTES.ADMIN_ANALYTICS, element: <AdminAnalyticsPage /> },
-      { path: ROUTES.ADMIN_MARKETING, element: <AdminMarketingPage /> },
+      { path: ROUTES.ADMIN_PARTICIPANTS, element: <AdminParticipantsPage /> },
+      { path: ROUTES.ADMIN_ENROLLMENTS, element: <AdminEnrollmentsPage /> },
+      {
+        path: ROUTES.ADMIN_SUCCESS_CENTERS,
+        element: <AdminSuccessCentersPage />,
+      },
+      { path: ROUTES.ADMIN_PRICING, element: <AdminPricingPage /> },
+      { path: ROUTES.ADMIN_RULES, element: <AdminRulesPage /> },
+      {
+        path: ROUTES.ADMIN_RECOMMENDATIONS,
+        element: <AdminRecommendationsPage />,
+      },
+      { path: ROUTES.ADMIN_DISCLOSURES, element: <AdminDisclosuresPage /> },
       { path: ROUTES.ADMIN_SETTINGS, element: <AdminSettingsPage /> },
+      /* PHASE2_PARKED admin deep links → overview */
+      { path: "/admin/rewards", element: <Navigate to={ROUTES.ADMIN} replace /> },
+      {
+        path: "/admin/marketing",
+        element: <Navigate to={ROUTES.ADMIN} replace />,
+      },
+      {
+        path: "/admin/analytics",
+        element: <Navigate to={ROUTES.ADMIN} replace />,
+      },
+      {
+        path: "/admin/members",
+        element: <Navigate to={ROUTES.ADMIN_PARTICIPANTS} replace />,
+      },
+      {
+        path: "/admin/campaigns",
+        element: <Navigate to={ROUTES.ADMIN_SUCCESS_CENTERS} replace />,
+      },
+      {
+        path: "/admin/content",
+        element: <Navigate to={ROUTES.ADMIN_DISCLOSURES} replace />,
+      },
     ],
   },
   {
@@ -102,17 +164,41 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { path: ROUTES.DASHBOARD, element: <DashboardHomePage /> },
-      { path: ROUTES.DASHBOARD_PROGRESS, element: <DashboardProgressPage /> },
-      { path: ROUTES.CAMPAIGNS, element: <CampaignBrowsePage /> },
-      { path: ROUTES.CAMPAIGN_DETAIL, element: <CampaignDetailPage /> },
-      { path: ROUTES.CAMPAIGN_ACTIVATE, element: <CampaignActivatePage /> },
-      { path: ROUTES.CAMPAIGN_SUCCESS, element: <CampaignSuccessPage /> },
-      { path: ROUTES.REWARDS, element: <RewardsPage /> },
-      { path: ROUTES.LEARN, element: <LearnLibraryPage /> },
-      { path: ROUTES.LEARN_ARTICLE, element: <LearnArticlePage /> },
-      { path: ROUTES.LEARN_VIDEO, element: <LearnVideoPage /> },
+      { path: ROUTES.QUESTIONNAIRE, element: <QuestionnairePage /> },
+      { path: ROUTES.SUCCESS_CENTERS, element: <SuccessCentersBrowsePage /> },
+      {
+        path: ROUTES.SUCCESS_CENTER_DETAIL,
+        element: <SuccessCenterDetailPage />,
+      },
+      { path: ROUTES.ENROLLMENT, element: <EnrollmentPage /> },
+      { path: ROUTES.ENROLLMENT_CHECKOUT, element: <EnrollmentCheckoutPage /> },
+      { path: ROUTES.BILLING, element: <BillingPage /> },
+      { path: ROUTES.RECOMMENDATION, element: <RecommendationPage /> },
       { path: ROUTES.ACCOUNT, element: <Navigate to="/account/profile" replace /> },
       { path: ROUTES.ACCOUNT_SECTION, element: <AccountPage /> },
+      /* PHASE2_PARKED participant deep links → dashboard */
+      {
+        path: "/rewards",
+        element: <Navigate to={ROUTES.DASHBOARD} replace />,
+      },
+      {
+        path: "/rewards/*",
+        element: <Navigate to={ROUTES.DASHBOARD} replace />,
+      },
+      { path: "/learn", element: <Navigate to={ROUTES.DASHBOARD} replace /> },
+      { path: "/learn/*", element: <Navigate to={ROUTES.DASHBOARD} replace /> },
+      {
+        path: "/campaigns",
+        element: <Navigate to={ROUTES.SUCCESS_CENTERS} replace />,
+      },
+      {
+        path: "/campaigns/*",
+        element: <Navigate to={ROUTES.SUCCESS_CENTERS} replace />,
+      },
+      {
+        path: "/dashboard/progress",
+        element: <Navigate to={ROUTES.DASHBOARD} replace />,
+      },
     ],
   },
   {

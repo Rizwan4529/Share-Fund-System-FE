@@ -1,258 +1,113 @@
-import { useQuery } from "@tanstack/react-query";
-import {
-  AlertTriangle,
-  Banknote,
-  BookOpen,
-  ChevronRight,
-  DollarSign,
-  Download,
-  Flag,
-  Gift,
-  Layers,
-  PiggyBank,
-  RefreshCw,
-  Star,
-  Users,
-  Wallet,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
-  AdminGhostButton,
   AdminKpiCard,
+  AdminPageContainer,
   AdminPageHeader,
-  AdminSignupChart,
-  AdminSurfaceCard,
-  AdminTrafficDonut,
 } from "@/components/admin";
+import { GoldButton } from "@/components/common/GoldButton";
 import { Typography } from "@/components/common/Typography";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useAdminShell } from "@/context/AdminShellContext";
-import { fetchAdminOverview } from "@/lib/api/admin";
-import { ADMIN_RANGE_LABELS, ROUTES } from "@/utils/constants";
-
-const KPI_ICONS = {
-  members: Users,
-  star: Star,
-  campaigns: Layers,
-  gift: Gift,
-  flag: Flag,
-  dollar: DollarSign,
-  piggybank: PiggyBank,
-  banknote: Banknote,
-  wallet: Wallet,
-};
-
-const KPI_ICON_CLASS = {
-  members: "bg-bg-icon text-[#8a6413]",
-  star: "bg-info-bg text-[#2b5299]",
-  campaigns: "bg-success-bg text-[#1f7a55]",
-  gift: "bg-bg-icon text-[#8a6413]",
-  flag: "bg-bg-card text-[#3f5580]",
-  dollar: "bg-success-bg text-[#1f7a55]",
-  piggybank: "bg-info-bg text-[#2b5299]",
-  banknote: "bg-bg-icon text-[#8a6413]",
-  wallet: "bg-bg-card text-[#3f5580]",
-};
-
-const KPI_ROUTES: Record<string, string> = {
-  campaigns: ROUTES.ADMIN_CAMPAIGNS,
-  analytics: ROUTES.ADMIN_ANALYTICS,
-  rewards: ROUTES.ADMIN_REWARDS,
-};
-
-const PENDING_ROUTES: Record<string, string> = {
-  members: ROUTES.ADMIN_MEMBERS,
-  campaigns: ROUTES.ADMIN_CAMPAIGNS,
-  content: ROUTES.ADMIN_CONTENT,
-  rewards: ROUTES.ADMIN_REWARDS,
-};
-
-const ACTIVITY_ICONS = {
-  members: Users,
-  campaigns: Layers,
-  star: Star,
-  book: BookOpen,
-  alert: AlertTriangle,
-};
-
-const ACTIVITY_TONE_CLASS = {
-  gold: "bg-bg-icon text-[#8a6413]",
-  blue: "bg-info-bg text-[#2b5299]",
-  green: "bg-success-bg text-[#1f7a55]",
-  red: "bg-error-bg text-[#a2453b]",
-};
+import {
+  downloadCsv,
+  exportAdminCsv,
+  fetchAdminOverview,
+  type AdminOverviewStats,
+} from "@/lib/api/admin";
+import { ROUTES } from "@/utils/constants";
 
 export default function AdminOverviewPage() {
-  const navigate = useNavigate();
-  const { range } = useAdminShell();
-  const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["admin-overview", range],
-    queryFn: () => fetchAdminOverview(range),
-  });
+  const [stats, setStats] = useState<AdminOverviewStats | null>(null);
 
-  if (isLoading || !data) {
-    return <Skeleton className="h-96 rounded-lg" />;
-  }
+  useEffect(() => {
+    void fetchAdminOverview().then(setStats);
+  }, []);
+
+  const exportKind = async (
+    kind: "participants" | "enrollments" | "payments",
+  ) => {
+    const csv = await exportAdminCsv(kind);
+    downloadCsv(`sfs-${kind}.csv`, csv);
+    toast.success(`Exported ${kind}.csv`);
+  };
 
   return (
-    <div className="min-w-0 animate-fade-up">
+    <AdminPageContainer>
       <AdminPageHeader
-        overline="Control room"
-        title="Platform overview"
-        subtitle={`Health of the platform for the ${ADMIN_RANGE_LABELS[range]}.`}
-        actions={
-          <AdminGhostButton>
-            <Download className="size-4" />
-            Export
-          </AdminGhostButton>
-        }
+        title="Overview"
+        subtitle="Phase 1 Founding Participant control panel (mock data)."
       />
-
-      <div className="mb-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {data.kpis.map((kpi) => {
-          const Icon = KPI_ICONS[kpi.icon];
-          const route = "route" in kpi && kpi.route ? KPI_ROUTES[kpi.route] : undefined;
-
-          return (
-            <AdminKpiCard
-              key={kpi.label}
-              label={kpi.label}
-              value={kpi.value}
-              trend={kpi.trend}
-              trendUp={kpi.trendUp}
-              sub={kpi.sub}
-              icon={<Icon className="size-4" />}
-              iconClassName={KPI_ICON_CLASS[kpi.icon]}
-              onClick={route ? () => navigate(route) : undefined}
-            />
-          );
-        })}
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <AdminKpiCard
+          label="Participants"
+          value={String(stats?.participants ?? "—")}
+        />
+        <AdminKpiCard
+          label="Founding / Stack"
+          value={`${stats?.foundingCount ?? 0} / ${stats?.founderStackCount ?? 0}`}
+        />
+        <AdminKpiCard
+          label="Enrollment revenue"
+          value={stats ? `$${stats.revenue}` : "—"}
+        />
+        <AdminKpiCard
+          label="Pending projections"
+          value={String(stats?.pendingRecs ?? "—")}
+        />
       </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <AdminSurfaceCard className="p-4 sm:p-5">
-          <div className="mb-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
-                Signups over time
-              </Typography>
-              <Typography variant="caption" className="text-[#8496b7]">
-                New member registrations · {ADMIN_RANGE_LABELS[range]}
-              </Typography>
-            </div>
-            <div className="text-right">
-              <Typography variant="h4" className="font-display font-bold text-ink-heading">
-                {data.signupTotal.toLocaleString()}
-              </Typography>
-              <Typography variant="caption" className="font-semibold text-[#2f8f66]">
-                {data.signupTrend}
-              </Typography>
-            </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-xl border border-border bg-card p-5">
+          <Typography variant="h3">Quick links</Typography>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <GoldButton size="sm" asChild>
+              <Link to={ROUTES.ADMIN_PARTICIPANTS}>Participants</Link>
+            </GoldButton>
+            <GoldButton size="sm" variant="outline" asChild>
+              <Link to={ROUTES.ADMIN_ENROLLMENTS}>Enrollments</Link>
+            </GoldButton>
+            <GoldButton size="sm" variant="outline" asChild>
+              <Link to={ROUTES.ADMIN_PRICING}>Pricing</Link>
+            </GoldButton>
+            <GoldButton size="sm" variant="outline" asChild>
+              <Link to={ROUTES.ADMIN_RECOMMENDATIONS}>Recommendations</Link>
+            </GoldButton>
           </div>
-          <AdminSignupChart data={data.signups} />
-        </AdminSurfaceCard>
-
-        <AdminSurfaceCard className="p-4 sm:p-5">
-          <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
-            Traffic sources
+        </div>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <Typography variant="h3">Export data</Typography>
+          <Typography
+            variant="body"
+            className="mt-2 text-sm text-muted-foreground"
+          >
+            Download CSV from mock store (participants, enrollments, payments).
           </Typography>
-          <Typography variant="caption" className="mb-2 text-[#8496b7]">
-            Where new members come from
-          </Typography>
-          <AdminTrafficDonut data={data.traffic} />
-        </AdminSurfaceCard>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <AdminSurfaceCard>
-          <div className="flex items-center justify-between border-b border-line px-5 py-4">
-            <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
-              Recent activity
-            </Typography>
-            <AdminGhostButton
-              className="h-8 px-2.5 text-[12.5px]"
-              onClick={() => {
-                void refetch();
-                toast.success("Activity refreshed");
-              }}
-              disabled={isFetching}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <GoldButton
+              size="sm"
+              variant="outline"
+              onClick={() => void exportKind("participants")}
             >
-              <RefreshCw className="size-3.5" />
-              Refresh
-            </AdminGhostButton>
+              Participants
+            </GoldButton>
+            <GoldButton
+              size="sm"
+              variant="outline"
+              onClick={() => void exportKind("enrollments")}
+            >
+              Enrollments
+            </GoldButton>
+            <GoldButton
+              size="sm"
+              variant="outline"
+              onClick={() => void exportKind("payments")}
+            >
+              Payments
+            </GoldButton>
           </div>
-          <div>
-            {data.activity.map((item) => {
-              const ActivityIcon = ACTIVITY_ICONS[item.icon as keyof typeof ACTIVITY_ICONS] ?? Star;
-
-              return (
-                <div
-                  key={item.text}
-                  className="flex items-center gap-3 border-b border-[#f4f6fb] px-5 py-3"
-                >
-                  <span
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-[9px] ${ACTIVITY_TONE_CLASS[item.tone]}`}
-                  >
-                    <ActivityIcon className="size-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <Typography variant="body-sm" className="text-[13.5px] leading-snug text-[#22314f]">
-                      {item.text}
-                    </Typography>
-                    <Typography variant="caption" className="text-[#93a3c2]">
-                      {item.date}
-                    </Typography>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </AdminSurfaceCard>
-
-        <AdminSurfaceCard>
-          <div className="flex items-center gap-2 border-b border-line px-5 py-4">
-            <Star className="size-[18px] text-[#9a6a15]" />
-            <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
-              Needs attention
-            </Typography>
-          </div>
-          <div className="p-2">
-            {data.pending.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => navigate(PENDING_ROUTES[item.route])}
-                className="flex w-full items-center gap-3 rounded-[7px] border border-transparent p-3 text-left hover:bg-bg-card"
-              >
-                <span
-                  className={`flex size-[34px] shrink-0 items-center justify-center rounded-lg font-display text-[15px] font-bold ${
-                    item.tone === "gold"
-                      ? "bg-[#f6ecd4] text-[#9a6a15]"
-                      : item.tone === "blue"
-                        ? "bg-info-bg text-[#2b5299]"
-                        : item.tone === "danger"
-                          ? "bg-error-bg text-[#a2453b]"
-                          : "bg-bg-card text-muted-soft"
-                  }`}
-                >
-                  {item.count}
-                </span>
-                <div className="flex-1">
-                  <Typography variant="label" className="text-[13.5px] font-semibold text-[#22314f]">
-                    {item.label}
-                  </Typography>
-                  <Typography variant="caption" className="text-[#93a3c2]">
-                    {item.sub}
-                  </Typography>
-                </div>
-                <ChevronRight className="size-4 text-[#c3cee0]" />
-              </button>
-            ))}
-          </div>
-        </AdminSurfaceCard>
+        </div>
       </div>
-    </div>
+    </AdminPageContainer>
   );
 }

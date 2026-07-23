@@ -4,7 +4,6 @@ import {
   NavIconAccount,
   NavIconCampaigns,
   NavIconDashboard,
-  NavIconLearn,
   NavIconRewards,
 } from "@/components/member/app";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -16,11 +15,25 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: ROUTES.DASHBOARD, label: "Dashboard", icon: <NavIconDashboard /> },
-  { to: ROUTES.CAMPAIGNS, label: "Campaigns", icon: <NavIconCampaigns /> },
-  { to: ROUTES.REWARDS, label: "Rewards", icon: <NavIconRewards /> },
-  { to: ROUTES.LEARN, label: "Learn", icon: <NavIconLearn /> },
+  {
+    to: ROUTES.SUCCESS_CENTERS,
+    label: "Success Centers",
+    icon: <NavIconCampaigns />,
+  },
+  {
+    to: ROUTES.ENROLLMENT,
+    label: "Enrollment",
+    icon: <NavIconRewards />,
+  },
+  { to: ROUTES.BILLING, label: "Billing", icon: <NavIconAccount /> },
   { to: ROUTES.ACCOUNT, label: "Account", icon: <NavIconAccount /> },
 ];
+
+/*
+ * PHASE2_PARKED nav entries (do not restore without product approval):
+ * { to: ROUTES.REWARDS, label: "Rewards", icon: <NavIconRewards /> },
+ * { to: ROUTES.LEARN, label: "Learn", icon: <NavIconLearn /> },
+ */
 
 type MemberSidebarContentProps = {
   onNavigate?: () => void;

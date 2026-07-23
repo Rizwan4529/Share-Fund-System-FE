@@ -93,8 +93,8 @@ export default function AccountPage() {
       <div className="min-w-0 flex-1">
         {section === "profile" ? (
           <AccountSectionCard
-            title="Profile"
-            subtitle="Update your personal information and how you appear in SFS."
+            title="BMIS profile"
+            subtitle="Your participant identity and home base inside the system."
           >
             <FormCommon form={profileForm} onSubmit={onSaveProfile} className="space-y-4">
               <div className="mb-2 flex flex-wrap items-center gap-4">
@@ -111,6 +111,24 @@ export default function AccountPage() {
                 <Input control={profileForm.control} name="email" label="Email" type="email" required />
                 <Input control={profileForm.control} name="phone" label="Phone" />
                 <Input control={profileForm.control} name="location" label="Location" />
+              </div>
+              <BmisFields
+                goalSummary={data?.profile.bmisProfile.goalSummary ?? ""}
+                preferredContact={data?.profile.bmisProfile.preferredContact ?? ""}
+                notes={data?.profile.bmisProfile.notes ?? ""}
+                onSaveProfile={async (bmis) => {
+                  await saveProfile.mutateAsync({
+                    ...profileForm.getValues(),
+                    bmisProfile: bmis,
+                  } as never);
+                  toast.success("BMIS profile saved.");
+                }}
+              />
+              <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                Status: {data?.profile.membership} · Centers selected:{" "}
+                {data?.profile.selectedCenterIds.length ?? 0}/
+                {data?.profile.centerLimit ?? 0} · Questionnaire:{" "}
+                {data?.profile.questionnaireComplete ? "complete" : "incomplete"}
               </div>
               <div className="flex gap-3 pt-2">
                 <GoldButton type="submit" size="app">Save changes</GoldButton>
@@ -271,6 +289,77 @@ function ToggleSection<T extends Record<string, boolean>>({
       </div>
       <GoldButton size="app" className="mt-6" onClick={() => onSave(local)}>
         Save preferences
+      </GoldButton>
+    </div>
+  );
+}
+
+function BmisFields({
+  goalSummary,
+  preferredContact,
+  notes,
+  onSaveProfile,
+}: {
+  goalSummary: string;
+  preferredContact: string;
+  notes: string;
+  onSaveProfile: (bmis: {
+    goalSummary: string;
+    preferredContact: string;
+    notes: string;
+  }) => Promise<void>;
+}) {
+  const [goal, setGoal] = useState(goalSummary);
+  const [contact, setContact] = useState(preferredContact);
+  const [note, setNote] = useState(notes);
+
+  useEffect(() => {
+    setGoal(goalSummary);
+    setContact(preferredContact);
+    setNote(notes);
+  }, [goalSummary, preferredContact, notes]);
+
+  return (
+    <div className="space-y-3 rounded-lg border border-border p-4">
+      <p className="text-sm font-semibold">BMIS details</p>
+      <label className="block text-sm">
+        Goal summary
+        <input
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+        />
+      </label>
+      <label className="block text-sm">
+        Preferred contact
+        <input
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          value={contact}
+          onChange={(e) => setContact(e.target.value)}
+        />
+      </label>
+      <label className="block text-sm">
+        Notes
+        <textarea
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          rows={3}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </label>
+      <GoldButton
+        type="button"
+        size="sm"
+        variant="ghost-outline"
+        onClick={() =>
+          void onSaveProfile({
+            goalSummary: goal,
+            preferredContact: contact,
+            notes: note,
+          })
+        }
+      >
+        Save BMIS details
       </GoldButton>
     </div>
   );

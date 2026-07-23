@@ -10,7 +10,12 @@ import {
   saveProfile,
   setTwoFA,
 } from "@/lib/api/account";
-import type { CommunicationPrefs, NotificationPrefs, UserProfile } from "@/types";
+import type {
+  BmisProfile,
+  CommunicationPrefs,
+  NotificationPrefs,
+  UserProfile,
+} from "@/types";
 
 export function useAccount() {
   return useQuery({ queryKey: ["account"], queryFn: getAccountData });
@@ -23,7 +28,9 @@ export function useNotifications() {
 export function useSaveProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<UserProfile>) => saveProfile(data),
+    mutationFn: (
+      data: Partial<UserProfile> & { bmisProfile?: Partial<BmisProfile> },
+    ) => saveProfile(data),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["account"] });
     },

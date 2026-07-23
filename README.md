@@ -1,75 +1,50 @@
-# React + TypeScript + Vite
+# Share Fund System — Frontend (Phase 1 Founding Participant)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Mock-only React app for Phase 1: Founding Participant enrollment, BMIS profile/questionnaire, Success Centers, projections, and admin configuration.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + Vite + TypeScript
+- React Router 7, TanStack Query, React Hook Form + Zod
+- Tailwind 4 + shadcn/ui
 
-## React Compiler
+## Run
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Optional env (`.env.example`):
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `VITE_API_URL` — reserved for future backend (axios client unused in Phase 1 mocks)
+- `VITE_LANDING_URL` — pre-launch landing site
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Mock auth
+
+- Participant: any email that does **not** contain `admin`
+- Admin: any email containing `admin` (temporary mock until JWT)
+- Passwords are accepted in forms but not validated
+- Session + accounts persist in `localStorage` key `sfs-phase1-store`
+
+## Phase 1 surfaces
+
+**Participant:** Dashboard · Questionnaire · Success Centers · Enrollment/Checkout · Billing · Recommendation projections · Account (BMIS profile) · Legal pages (`/legal/:kind`)
+
+**Admin:** Overview · Participants · Enrollments · Success Centers · Pricing · Rules · Recommendations · Disclosures · Settings (audit)
+
+## Parked Phase 2 demo (not deleted)
+
+Rewards, Learn, Campaigns activate flow, Admin Rewards/Marketing/Analytics (and legacy Members/Campaigns/Content pages) remain on disk. Routes are commented/redirected so deep links cannot open them. Look for `PHASE2_PARKED` comments.
+
+## Open items (Todd)
+
+- Final BMIS questionnaire questions
+- Final recommendation formula
+- Final legal/disclosure wording
+- Confirm Stripe; wire when backend exists
+- Final Success Center launch list/content
+
+## Backend note
+
+This repo is FE-only mocks. Real JWT, MongoDB, and Stripe are out of scope here; API modules under `src/lib/api/*` are shaped for a future HTTP swap.

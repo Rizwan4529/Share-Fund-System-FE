@@ -10,6 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import {
+  acceptDisclosures,
   completeOnboarding,
   getSession,
   loginUser,
@@ -67,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (name: string, email: string, password: string) => {
       const u = await signupUser(name, email, password);
       setUser(u);
+      try {
+        await acceptDisclosures(["terms", "privacy", "disclaimer"]);
+      } catch {
+        /* mock acceptance best-effort */
+      }
       navigate(ROUTES.VERIFY);
     },
     [navigate],
@@ -82,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (categoryId?: string) => {
       const u = await completeOnboarding(categoryId);
       setUser(u);
-      navigate(ROUTES.CAMPAIGNS);
+      navigate(ROUTES.QUESTIONNAIRE);
     },
     [navigate],
   );

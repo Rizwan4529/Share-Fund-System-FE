@@ -1,3 +1,42 @@
+/**
+ * Shared types entry.
+ * Phase 1 domain lives in ./phase1.
+ * Phase 2 demo types kept below so parked modules still typecheck.
+ */
+
+export type {
+  UserRole,
+  FoundingStatus,
+  PricingTier,
+  BillingStructure,
+  RecommendationStatus,
+  PaymentStatus,
+  RefundStatus,
+  ChargebackStatus,
+  DisclosureKind,
+  BmisProfile,
+  QuestionnaireAnswer,
+  SuccessCenter,
+  FounderStackOffer,
+  PricingConfig,
+  PlatformRules,
+  EnrollmentPlan,
+  Enrollment,
+  PaymentRecord,
+  Recommendation,
+  DisclosureDoc,
+  DisclosureAcceptance,
+  AuditEvent,
+  PlatformSettings,
+  UserProfile,
+  AuthUser,
+  NotificationPrefs,
+  CommunicationPrefs,
+  NotificationItem,
+} from "./phase1";
+
+/* ─── PHASE2_PARKED: types used by parked Rewards / Learn / Campaigns demo ─── */
+
 export type CampaignFilter = "all" | "essentials" | "financial" | "business";
 
 export type CampaignCategory = {
@@ -63,36 +102,6 @@ export type RewardHistoryItem = {
   positive: boolean;
 };
 
-export type NotificationItem = {
-  id: string;
-  title: string;
-  body: string;
-  time: string;
-  read: boolean;
-};
-
-export type UserProfile = {
-  name: string;
-  email: string;
-  phone: string;
-  location: string;
-  avatarInitials: string;
-  membership: string;
-};
-
-export type NotificationPrefs = {
-  platform: boolean;
-  campaign: boolean;
-  education: boolean;
-  announce: boolean;
-};
-
-export type CommunicationPrefs = {
-  email: boolean;
-  product: boolean;
-  promos: boolean;
-};
-
 export type RewardsBalance = {
   balance: number;
   monthEarned: number;
@@ -104,15 +113,6 @@ export type RedeemOption = {
   title: string;
   description: string;
   cost: number;
-};
-
-export type UserRole = "member" | "admin";
-
-export type AuthUser = UserProfile & {
-  id: string;
-  onboardingComplete: boolean;
-  verified: boolean;
-  role: UserRole;
 };
 
 export type ActivateCampaignInput = {

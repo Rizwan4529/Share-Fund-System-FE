@@ -97,7 +97,7 @@ export function AdminSearchModal({ open, onClose }: AdminSearchModalProps) {
           type: "member",
           title: member.name,
           subtitle: member.email,
-          route: ROUTES.ADMIN_MEMBERS,
+          route: ROUTES.ADMIN_PARTICIPANTS,
           query: member.name,
         });
       }
@@ -113,7 +113,7 @@ export function AdminSearchModal({ open, onClose }: AdminSearchModalProps) {
           type: "campaign",
           title: campaign.name,
           subtitle: campaign.owner,
-          route: ROUTES.ADMIN_CAMPAIGNS,
+          route: ROUTES.ADMIN_SUCCESS_CENTERS,
           query: campaign.name,
         });
       }
@@ -126,7 +126,7 @@ export function AdminSearchModal({ open, onClose }: AdminSearchModalProps) {
           type: "content",
           title: item.title,
           subtitle: `${item.type} · ${item.cat}`,
-          route: ROUTES.ADMIN_CONTENT,
+          route: ROUTES.ADMIN_DISCLOSURES,
           query: item.title,
         });
       }
