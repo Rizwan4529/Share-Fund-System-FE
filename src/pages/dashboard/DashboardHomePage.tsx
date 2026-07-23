@@ -1,11 +1,23 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import {
+  ClipboardList,
+  LayoutGrid,
+  Receipt,
+  Target,
+  Wallet,
+} from "lucide-react";
 
+import { EmptyState } from "@/components/common/EmptyState";
 import { GoldButton } from "@/components/common/GoldButton";
 import { Typography } from "@/components/common/Typography";
 import {
   AppPageContainer,
   AppSurfaceCard,
-  MarketingBadge,
+  InfoCallout,
+  ParticipantPageHeader,
+  SectionLabel,
+  StatusChip,
 } from "@/components/member/app";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
@@ -18,11 +30,16 @@ export default function DashboardHomePage() {
   const { user } = useAuth();
   const { data, isLoading } = useDashboard();
   const greeting = getTimeGreeting(getFirstName(user?.name ?? "there"));
+  const enrolled = (user?.foundingStatus ?? "none") !== "none";
 
   if (isLoading || !data) {
     return (
       <AppPageContainer>
-        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="mb-6 h-16 w-full max-w-md rounded-xl" />
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Skeleton className="h-40 rounded-panel lg:col-span-2" />
+          <Skeleton className="h-40 rounded-panel" />
+        </div>
       </AppPageContainer>
     );
   }
@@ -36,99 +53,106 @@ export default function DashboardHomePage() {
 
   return (
     <AppPageContainer>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <Typography variant="h2">{greeting}</Typography>
-          <Typography variant="body" className="mt-1 text-muted-foreground">
-            Your BMIS participant home — planning projections only in Phase 1.
-          </Typography>
-        </div>
-        <MarketingBadge
-          title={foundingStatusLabel(user?.foundingStatus ?? "none")}
-          subtitle={
-            user?.foundingStatus === "none"
-              ? "Enroll to unlock Success Centers"
-              : "Planning projections only — funding not live"
-          }
-        />
-      </div>
+      <ParticipantPageHeader
+        overline="Participant home"
+        title={greeting}
+        subtitle="BMIS planning dashboard — projections only in Phase 1."
+        actions={
+          <StatusChip tone={enrolled ? "success" : "muted"}>
+            {foundingStatusLabel(user?.foundingStatus ?? "none")}
+          </StatusChip>
+        }
+      />
 
-      <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
-        {data.projectionDisclaimer}
-      </div>
+      <InfoCallout className="mb-6">{data.projectionDisclaimer}</InfoCallout>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <AppSurfaceCard className="p-5 lg:col-span-2">
-          <Typography variant="label">Selected Success Centers</Typography>
+        <AppSurfaceCard className="lg:col-span-2">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <SectionLabel tone="info">Selected Success Centers</SectionLabel>
+            <LayoutGrid className="size-4 text-info" />
+          </div>
           {data.selectedCenters.length === 0 ? (
-            <Typography variant="body" className="mt-3 text-muted-foreground">
-              None selected yet.{" "}
-              {data.centerLimit > 0 ? (
-                <Link
-                  to={ROUTES.SUCCESS_CENTERS}
-                  className="font-semibold underline"
-                >
-                  Choose up to {data.centerLimit}
-                </Link>
-              ) : (
-                <Link to={ROUTES.ENROLLMENT} className="font-semibold underline">
-                  Enroll to unlock selection
-                </Link>
-              )}
-            </Typography>
+            <EmptyState
+              icon={LayoutGrid}
+              size="compact"
+              variant="muted"
+              title="No Success Centers selected"
+              description={
+                data.centerLimit > 0
+                  ? `Your plan allows up to ${data.centerLimit}. Pick the categories that match your goal.`
+                  : "Enroll as a Founding Participant to unlock selection."
+              }
+              action={
+                <GoldButton asChild size="app">
+                  <Link
+                    to={
+                      data.centerLimit > 0
+                        ? ROUTES.SUCCESS_CENTERS
+                        : ROUTES.ENROLLMENT
+                    }
+                  >
+                    {data.centerLimit > 0 ? "Choose centers" : "Enroll now"}
+                  </Link>
+                </GoldButton>
+              }
+            />
           ) : (
-            <ul className="mt-3 space-y-2">
+            <ul className="space-y-2">
               {data.selectedCenters.map((c) => (
                 <li
                   key={c.id}
-                  className="rounded-lg border border-border px-3 py-2 text-sm font-semibold"
+                  className="flex items-center justify-between rounded-lg border border-line bg-bg-card px-3.5 py-2.5 text-sm font-semibold text-ink-heading"
                 >
                   {c.name}
+                  <StatusChip tone="info">Active</StatusChip>
                 </li>
               ))}
             </ul>
           )}
         </AppSurfaceCard>
 
-        <AppSurfaceCard className="p-5">
-          <Typography variant="label">Founding status</Typography>
-          <Typography variant="h3" className="mt-2">
+        <AppSurfaceCard>
+          <SectionLabel tone="navy">Founding status</SectionLabel>
+          <Typography
+            as="p"
+            variant="h5"
+            className="mt-3 font-display text-[20px] font-bold text-ink-heading"
+          >
             {foundingStatusLabel(user?.foundingStatus ?? "none")}
           </Typography>
-          <Typography variant="caption" className="mt-2 block text-muted-foreground">
+          <Typography variant="caption" className="mt-2 block text-muted-soft">
             Center limit: {data.centerLimit || "—"}
           </Typography>
-          <GoldButton asChild className="mt-4 w-full" size="sm">
-            <Link to={ROUTES.ENROLLMENT}>Enrollment</Link>
+          <GoldButton asChild className="mt-5 w-full">
+            <Link to={ROUTES.ENROLLMENT}>
+              {enrolled ? "Manage enrollment" : "Enroll now"}
+            </Link>
           </GoldButton>
         </AppSurfaceCard>
 
-        <AppSurfaceCard className="p-5">
-          <Typography variant="label">Projected planning budget</Typography>
-          <Typography variant="h3" className="mt-2">
-            {budget != null ? `$${budget.toLocaleString()}` : "—"}
+        <MetricCard
+          label="Projected budget"
+          value={budget != null ? `$${budget.toLocaleString()}` : "—"}
+          hint="Simulation"
+          icon={<Wallet className="size-4 text-info" />}
+        />
+        <MetricCard
+          label="Projected timeline"
+          value={timeline != null ? `${timeline} mo` : "—"}
+          hint="Simulation"
+          icon={<Target className="size-4 text-info" />}
+        />
+        <AppSurfaceCard>
+          <SectionLabel tone="info">Questionnaire</SectionLabel>
+          <Typography variant="body-sm" className="mt-3 text-ink-heading">
+            {data.questionnaireComplete ? "Complete" : "Not started"}
           </Typography>
-          <Typography variant="caption" className="mt-2 block text-muted-foreground">
-            Simulation / projection
-          </Typography>
-        </AppSurfaceCard>
-
-        <AppSurfaceCard className="p-5">
-          <Typography variant="label">Projected timeline</Typography>
-          <Typography variant="h3" className="mt-2">
-            {timeline != null ? `${timeline} months` : "—"}
-          </Typography>
-          <Typography variant="caption" className="mt-2 block text-muted-foreground">
-            Simulation / projection
-          </Typography>
-        </AppSurfaceCard>
-
-        <AppSurfaceCard className="p-5">
-          <Typography variant="label">Questionnaire</Typography>
-          <Typography variant="body" className="mt-2">
-            {data.questionnaireComplete ? "Complete" : "Not complete"}
-          </Typography>
-          <GoldButton asChild className="mt-4 w-full" size="sm" variant="outline">
+          <GoldButton
+            asChild
+            className="mt-5 w-full"
+            variant={data.questionnaireComplete ? "ghost-outline" : "gold"}
+          >
             <Link to={ROUTES.QUESTIONNAIRE}>
               {data.questionnaireComplete ? "Review answers" : "Start questionnaire"}
             </Link>
@@ -136,29 +160,36 @@ export default function DashboardHomePage() {
         </AppSurfaceCard>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <AppSurfaceCard className="p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <Typography variant="h3">Enrollment history</Typography>
-            <Link to={ROUTES.BILLING} className="text-sm font-semibold underline">
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <AppSurfaceCard>
+          <div className="mb-4 flex items-center justify-between">
+            <SectionLabel tone="navy">Enrollment history</SectionLabel>
+            <Link
+              to={ROUTES.BILLING}
+              className="text-xs font-bold text-info hover:underline"
+            >
               Billing
             </Link>
           </div>
           {data.enrollments.length === 0 ? (
-            <Typography variant="body" className="text-muted-foreground">
-              No enrollments yet.
-            </Typography>
+            <EmptyState
+              icon={ClipboardList}
+              size="compact"
+              variant="muted"
+              title="No enrollments yet"
+              description="Your Founding Participant plans will show up here after checkout."
+            />
           ) : (
             <ul className="space-y-2 text-sm">
               {data.enrollments.slice(0, 5).map((e) => (
                 <li
                   key={e.id}
-                  className="flex justify-between gap-2 border-b border-border py-2 last:border-0"
+                  className="flex justify-between gap-2 border-b border-line py-2.5 last:border-0"
                 >
-                  <span className="capitalize">
+                  <span className="capitalize text-ink-heading">
                     {e.plan.replaceAll("_", " ")}
                   </span>
-                  <span>
+                  <span className="text-muted-soft">
                     ${e.amount} · {e.status}
                   </span>
                 </li>
@@ -167,29 +198,33 @@ export default function DashboardHomePage() {
           )}
         </AppSurfaceCard>
 
-        <AppSurfaceCard className="p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <Typography variant="h3">Recent payments</Typography>
+        <AppSurfaceCard>
+          <div className="mb-4 flex items-center justify-between">
+            <SectionLabel tone="navy">Recent payments</SectionLabel>
             <Link
               to={ROUTES.RECOMMENDATION}
-              className="text-sm font-semibold underline"
+              className="text-xs font-bold text-info hover:underline"
             >
               Projections
             </Link>
           </div>
           {data.payments.length === 0 ? (
-            <Typography variant="body" className="text-muted-foreground">
-              No payments yet.
-            </Typography>
+            <EmptyState
+              icon={Receipt}
+              size="compact"
+              variant="muted"
+              title="No payments yet"
+              description="Receipts and refund windows appear here after a successful enrollment."
+            />
           ) : (
             <ul className="space-y-2 text-sm">
               {data.payments.slice(0, 5).map((p) => (
                 <li
                   key={p.id}
-                  className="flex justify-between gap-2 border-b border-border py-2 last:border-0"
+                  className="flex justify-between gap-2 border-b border-line py-2.5 last:border-0"
                 >
-                  <span>{p.receiptNumber}</span>
-                  <span>
+                  <span className="text-ink-heading">{p.receiptNumber}</span>
+                  <span className="text-muted-soft">
                     ${p.amount} · {p.status}
                   </span>
                 </li>
@@ -199,5 +234,36 @@ export default function DashboardHomePage() {
         </AppSurfaceCard>
       </div>
     </AppPageContainer>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  hint,
+  icon,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  icon: ReactNode;
+}) {
+  return (
+    <AppSurfaceCard>
+      <div className="mb-3 flex items-center justify-between">
+        <SectionLabel tone="info">{label}</SectionLabel>
+        {icon}
+      </div>
+      <Typography
+        as="p"
+        variant="h5"
+        className="font-display text-[22px] font-bold text-ink-heading"
+      >
+        {value}
+      </Typography>
+      <Typography variant="caption" className="mt-1.5 block text-muted-soft">
+        {hint}
+      </Typography>
+    </AppSurfaceCard>
   );
 }

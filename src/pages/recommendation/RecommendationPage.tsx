@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { LineChart, Target } from "lucide-react";
 
+import { EmptyState } from "@/components/common/EmptyState";
+import { GoldButton } from "@/components/common/GoldButton";
 import { Typography } from "@/components/common/Typography";
-import { AppPageContainer, AppSurfaceCard } from "@/components/member/app";
+import {
+  AppPageContainer,
+  AppSurfaceCard,
+  InfoCallout,
+  ParticipantPageHeader,
+  SectionLabel,
+  StatusChip,
+} from "@/components/member/app";
 import { getMyRecommendation } from "@/lib/api/recommendations";
 import type { Recommendation } from "@/types";
 import { ROUTES } from "@/utils/constants";
@@ -32,76 +42,100 @@ export default function RecommendationPage() {
   if (loading) {
     return (
       <AppPageContainer>
-        <div className="h-40 animate-pulse rounded-xl bg-muted" />
+        <div className="h-40 animate-pulse rounded-panel bg-muted" />
       </AppPageContainer>
     );
   }
 
   return (
     <AppPageContainer>
-      <div className="mb-6 max-w-2xl">
-        <Typography variant="h2">Recommendations & projections</Typography>
-        <Typography variant="body" className="mt-2 text-muted-foreground">
-          These figures are projections / simulations only. No live funding
-          moves in Phase 1.
-        </Typography>
-      </div>
+      <ParticipantPageHeader
+        overline="BMIS projections"
+        title="Recommendations"
+        subtitle="Rule-based planning figures. Clearly labeled as simulations — no live funding."
+        actions={
+          <GoldButton variant="ghost-outline" asChild>
+            <Link to={ROUTES.QUESTIONNAIRE}>Questionnaire</Link>
+          </GoldButton>
+        }
+      />
+
+      <InfoCallout className="mb-6">
+        These numbers are projections / simulations only. Live Success Center
+        funding is not activated in Phase 1.
+      </InfoCallout>
 
       {!rec ? (
-        <AppSurfaceCard className="max-w-2xl p-6">
-          <Typography variant="body">
-            No projection yet.{" "}
-            <Link
-              to={ROUTES.QUESTIONNAIRE}
-              className="font-semibold text-gold-dark underline"
-            >
-              Complete the BMIS questionnaire
-            </Link>{" "}
-            to generate one.
-          </Typography>
-        </AppSurfaceCard>
+        <EmptyState
+          icon={LineChart}
+          title="No projection yet"
+          description="Complete the BMIS questionnaire to generate a recommended planning budget and estimated timeline."
+          action={
+            <GoldButton asChild>
+              <Link to={ROUTES.QUESTIONNAIRE}>Start questionnaire</Link>
+            </GoldButton>
+          }
+        />
       ) : (
-        <div className="grid max-w-3xl gap-4 md:grid-cols-2">
-          <AppSurfaceCard className="p-6">
+        <div className="grid max-w-4xl gap-4 md:grid-cols-2">
+          <AppSurfaceCard>
+            <div className="mb-3 flex items-center justify-between">
+              <SectionLabel tone="info">Planning budget</SectionLabel>
+              <Target className="size-4 text-info" />
+            </div>
+            <StatusChip tone="info" className="mb-3">
+              Projection
+            </StatusChip>
             <Typography
-              variant="caption"
-              className="font-bold tracking-wide text-gold-dark uppercase"
+              as="p"
+              variant="h4"
+              className="font-display text-[28px] font-bold text-ink-heading"
             >
-              Projection — planning budget
-            </Typography>
-            <Typography variant="h2" className="mt-2">
               ${displayBudget(rec).toLocaleString()}
             </Typography>
-            <Typography variant="body" className="mt-2 text-muted-foreground">
+            <Typography variant="body-sm" className="mt-2 text-muted-soft">
               Recommended activation / planning budget (simulation).
             </Typography>
           </AppSurfaceCard>
-          <AppSurfaceCard className="p-6">
+
+          <AppSurfaceCard>
+            <div className="mb-3 flex items-center justify-between">
+              <SectionLabel tone="navy">Estimated timeline</SectionLabel>
+              <LineChart className="size-4 text-ink-tag" />
+            </div>
+            <StatusChip tone="navy" className="mb-3">
+              Projection
+            </StatusChip>
             <Typography
-              variant="caption"
-              className="font-bold tracking-wide text-gold-dark uppercase"
+              as="p"
+              variant="h4"
+              className="font-display text-[28px] font-bold text-ink-heading"
             >
-              Projection — estimated timeline
-            </Typography>
-            <Typography variant="h2" className="mt-2">
               {displayTimeline(rec)} months
             </Typography>
-            <Typography variant="body" className="mt-2 text-muted-foreground">
-              Estimated timeline to reach your goal (simulation).
+            <Typography variant="body-sm" className="mt-2 text-muted-soft">
+              Estimated time to reach your goal (simulation).
             </Typography>
           </AppSurfaceCard>
-          <AppSurfaceCard className="p-6 md:col-span-2">
-            <Typography variant="label">Status</Typography>
-            <Typography variant="body" className="mt-1 capitalize">
-              {rec.status}
-            </Typography>
-            <Typography variant="body" className="mt-3 text-muted-foreground">
+
+          <AppSurfaceCard className="md:col-span-2">
+            <SectionLabel tone="info">Review status</SectionLabel>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <StatusChip
+                tone={
+                  rec.status === "approved"
+                    ? "success"
+                    : rec.status === "adjusted"
+                      ? "gold"
+                      : "muted"
+                }
+              >
+                {rec.status}
+              </StatusChip>
+            </div>
+            <Typography variant="body-sm" className="mt-3 text-muted-soft">
               {rec.notes}
             </Typography>
-            <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-950 dark:text-amber-100">
-              Labeled as projection / simulation. Live Success Center funding is
-              not activated in this phase.
-            </div>
           </AppSurfaceCard>
         </div>
       )}

@@ -4,7 +4,13 @@ import { toast } from "sonner";
 
 import { GoldButton } from "@/components/common/GoldButton";
 import { Typography } from "@/components/common/Typography";
-import { AppPageContainer, AppSurfaceCard } from "@/components/member/app";
+import {
+  AppPageContainer,
+  AppSurfaceCard,
+  InfoCallout,
+  ParticipantPageHeader,
+  SectionLabel,
+} from "@/components/member/app";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,27 +70,32 @@ export default function QuestionnairePage() {
   if (loading) {
     return (
       <AppPageContainer>
-        <div className="h-40 animate-pulse rounded-xl bg-muted" />
+        <div className="h-40 animate-pulse rounded-panel bg-muted" />
       </AppPageContainer>
     );
   }
 
   return (
     <AppPageContainer>
-      <div className="mb-6 max-w-2xl">
-        <Typography variant="h2">BMIS questionnaire</Typography>
-        <Typography variant="body" className="mt-2 text-muted-foreground">
-          Placeholder questions until the final BMIS set is provided. Your
-          answers drive rule-based budget and timeline projections (simulations
-          only — no live funding).
-        </Typography>
-      </div>
+      <ParticipantPageHeader
+        overline="BMIS intake"
+        title="Questionnaire"
+        subtitle="Placeholder questions until the final BMIS set is provided. Answers drive projection simulations only."
+      />
 
-      <AppSurfaceCard className="max-w-2xl p-6">
-        <form className="space-y-5" onSubmit={onSubmit}>
+      <InfoCallout className="mb-6 max-w-2xl">
+        No live funding is involved. Your answers feed a rule-based planning
+        budget and timeline estimate.
+      </InfoCallout>
+
+      <AppSurfaceCard className="max-w-2xl">
+        <SectionLabel tone="info">Your answers</SectionLabel>
+        <form className="mt-5 space-y-5" onSubmit={onSubmit}>
           {PLACEHOLDER_QUESTIONS.map((q) => (
             <div key={q.id} className="space-y-2">
-              <Label htmlFor={q.id}>{q.label}</Label>
+              <Label htmlFor={q.id} className="text-sm font-semibold text-ink-heading">
+                {q.label}
+              </Label>
               {q.id === "situation" ? (
                 <Textarea
                   id={q.id}
@@ -93,6 +104,7 @@ export default function QuestionnairePage() {
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [q.id]: e.target.value }))
                   }
+                  className="min-h-24"
                 />
               ) : (
                 <Input
@@ -110,15 +122,16 @@ export default function QuestionnairePage() {
             <GoldButton type="submit" disabled={saving}>
               {saving ? "Saving…" : "Save & view projections"}
             </GoldButton>
-            <Link
-              to={ROUTES.DASHBOARD}
-              className="inline-flex items-center text-sm font-semibold text-muted-foreground hover:text-foreground"
-            >
-              Back to dashboard
-            </Link>
+            <GoldButton variant="ghost-outline" asChild>
+              <Link to={ROUTES.DASHBOARD}>Back to dashboard</Link>
+            </GoldButton>
           </div>
         </form>
       </AppSurfaceCard>
+
+      <Typography variant="caption" className="mt-4 block text-muted-soft">
+        Final question wording is an open item from Todd.
+      </Typography>
     </AppPageContainer>
   );
 }

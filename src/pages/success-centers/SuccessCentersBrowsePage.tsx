@@ -1,11 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { LayoutGrid, Lock } from "lucide-react";
 import { toast } from "sonner";
 
+import { EmptyState } from "@/components/common/EmptyState";
 import { FilterChips } from "@/components/common/FilterChips";
 import { GoldButton } from "@/components/common/GoldButton";
 import { Typography } from "@/components/common/Typography";
-import { AppPageContainer, AppSurfaceCard } from "@/components/member/app";
+import {
+  AppPageContainer,
+  AppSurfaceCard,
+  InfoCallout,
+  ParticipantPageHeader,
+  SectionLabel,
+  StatusChip,
+} from "@/components/member/app";
 import { useAuth } from "@/context/AuthContext";
 import {
   listSuccessCenters,
@@ -23,9 +32,12 @@ export default function SuccessCentersBrowsePage() {
   const [filter, setFilter] = useState<CenterFilter>("all");
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    void listSuccessCenters({ activeOnly: true }).then(setCenters);
+    void listSuccessCenters({ activeOnly: true })
+      .then(setCenters)
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -70,24 +82,31 @@ export default function SuccessCentersBrowsePage() {
 
   return (
     <AppPageContainer>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <Typography variant="h2">Success Centers</Typography>
-          <Typography variant="body" className="mt-2 text-muted-foreground">
-            Goal categories powered by BMIS. Phase 1 provides planning tools
-            only — figures are projections, not live funding.
-          </Typography>
-        </div>
-        {!canSelect ? (
-          <GoldButton asChild>
-            <Link to={ROUTES.ENROLLMENT}>Enroll to unlock</Link>
-          </GoldButton>
-        ) : (
-          <GoldButton onClick={onSave} disabled={saving}>
-            {saving ? "Saving…" : `Save selection (${selected.length}/${limit})`}
-          </GoldButton>
-        )}
-      </div>
+      <ParticipantPageHeader
+        overline="BMIS"
+        title="Success Centers"
+        subtitle="Goal categories with planning tools. Figures shown later are projections, not live funding."
+        actions={
+          !canSelect ? (
+            <GoldButton asChild>
+              <Link to={ROUTES.ENROLLMENT}>Enroll to unlock</Link>
+            </GoldButton>
+          ) : (
+            <GoldButton onClick={onSave} disabled={saving}>
+              {saving
+                ? "Saving…"
+                : `Save selection (${selected.length}/${limit})`}
+            </GoldButton>
+          )
+        }
+      />
+
+      {!canSelect ? (
+        <InfoCallout className="mb-5">
+          Selection is locked until you enroll. Founding plans unlock 1, 3, or 8
+          centers depending on the offer.
+        </InfoCallout>
+      ) : null}
 
       <FilterChips
         options={SUCCESS_CENTER_FILTERS}
@@ -96,47 +115,75 @@ export default function SuccessCentersBrowsePage() {
         className="mb-5"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {filtered.map((center) => {
-          const isOn = selected.includes(center.id);
-          return (
-            <AppSurfaceCard
-              key={center.id}
-              className={cn(
-                "flex flex-col p-5 transition",
-                isOn && "ring-2 ring-gold",
-              )}
-            >
-              <div className="mb-2 flex items-start justify-between gap-2">
-                <Typography variant="h3">{center.name}</Typography>
-                {center.tag ? (
-                  <span className="rounded-md bg-gold/15 px-2 py-0.5 text-[11px] font-bold text-gold-dark">
-                    {center.tag}
-                  </span>
-                ) : null}
-              </div>
-              <Typography variant="body" className="flex-1 text-muted-foreground">
-                {center.blurb}
-              </Typography>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <GoldButton
-                  variant={isOn ? "outline" : "gold"}
-                  size="sm"
-                  onClick={() => toggle(center.id)}
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-44 animate-pulse rounded-panel bg-muted" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon={LayoutGrid}
+          title="No Success Centers in this filter"
+          description="Try another category or check back after admin activates more centers."
+          variant="muted"
+        />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((center) => {
+            const isOn = selected.includes(center.id);
+            return (
+              <AppSurfaceCard
+                key={center.id}
+                className={cn(
+                  "flex flex-col transition",
+                  isOn && "border-info/40 ring-2 ring-info/25",
+                )}
+                padding="md"
+              >
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <SectionLabel tone="navy">{center.filter}</SectionLabel>
+                  {center.tag ? (
+                    <StatusChip tone="gold">{center.tag}</StatusChip>
+                  ) : null}
+                </div>
+                <Typography
+                  as="h2"
+                  variant="h5"
+                  className="font-display text-[17px] font-bold text-ink-heading"
                 >
-                  {isOn ? "Selected" : "Select"}
-                </GoldButton>
-                <Link
-                  to={`/success-centers/${center.id}`}
-                  className="inline-flex items-center text-sm font-semibold text-muted-foreground hover:text-foreground"
+                  {center.name}
+                </Typography>
+                <Typography
+                  variant="body-sm"
+                  className="mt-2 flex-1 text-muted-soft"
                 >
-                  Details
-                </Link>
-              </div>
-            </AppSurfaceCard>
-          );
-        })}
-      </div>
+                  {center.blurb}
+                </Typography>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <GoldButton
+                    variant={isOn ? "ghost-outline" : "gold"}
+                    onClick={() => toggle(center.id)}
+                  >
+                    {!canSelect ? (
+                      <>
+                        <Lock className="size-3.5" /> Locked
+                      </>
+                    ) : isOn ? (
+                      "Selected"
+                    ) : (
+                      "Select"
+                    )}
+                  </GoldButton>
+                  <GoldButton variant="ghost-outline" asChild>
+                    <Link to={`/success-centers/${center.id}`}>Details</Link>
+                  </GoldButton>
+                </div>
+              </AppSurfaceCard>
+            );
+          })}
+        </div>
+      )}
     </AppPageContainer>
   );
 }
