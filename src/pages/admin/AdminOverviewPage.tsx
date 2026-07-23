@@ -1,13 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertTriangle,
+  Banknote,
+  BookOpen,
   ChevronRight,
+  DollarSign,
   Download,
   Flag,
   Gift,
   Layers,
+  PiggyBank,
   RefreshCw,
   Star,
   Users,
+  Wallet,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -32,6 +38,10 @@ const KPI_ICONS = {
   campaigns: Layers,
   gift: Gift,
   flag: Flag,
+  dollar: DollarSign,
+  piggybank: PiggyBank,
+  banknote: Banknote,
+  wallet: Wallet,
 };
 
 const KPI_ICON_CLASS = {
@@ -40,6 +50,16 @@ const KPI_ICON_CLASS = {
   campaigns: "bg-success-bg text-[#1f7a55]",
   gift: "bg-bg-icon text-[#8a6413]",
   flag: "bg-bg-card text-[#3f5580]",
+  dollar: "bg-success-bg text-[#1f7a55]",
+  piggybank: "bg-info-bg text-[#2b5299]",
+  banknote: "bg-bg-icon text-[#8a6413]",
+  wallet: "bg-bg-card text-[#3f5580]",
+};
+
+const KPI_ROUTES: Record<string, string> = {
+  campaigns: ROUTES.ADMIN_CAMPAIGNS,
+  analytics: ROUTES.ADMIN_ANALYTICS,
+  rewards: ROUTES.ADMIN_REWARDS,
 };
 
 const PENDING_ROUTES: Record<string, string> = {
@@ -47,6 +67,14 @@ const PENDING_ROUTES: Record<string, string> = {
   campaigns: ROUTES.ADMIN_CAMPAIGNS,
   content: ROUTES.ADMIN_CONTENT,
   rewards: ROUTES.ADMIN_REWARDS,
+};
+
+const ACTIVITY_ICONS = {
+  members: Users,
+  campaigns: Layers,
+  star: Star,
+  book: BookOpen,
+  alert: AlertTriangle,
 };
 
 const ACTIVITY_TONE_CLASS = {
@@ -82,9 +110,11 @@ export default function AdminOverviewPage() {
         }
       />
 
-      <div className="mb-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {data.kpis.map((kpi) => {
           const Icon = KPI_ICONS[kpi.icon];
+          const route = "route" in kpi && kpi.route ? KPI_ROUTES[kpi.route] : undefined;
+
           return (
             <AdminKpiCard
               key={kpi.label}
@@ -95,6 +125,7 @@ export default function AdminOverviewPage() {
               sub={kpi.sub}
               icon={<Icon className="size-4" />}
               iconClassName={KPI_ICON_CLASS[kpi.icon]}
+              onClick={route ? () => navigate(route) : undefined}
             />
           );
         })}
@@ -153,26 +184,30 @@ export default function AdminOverviewPage() {
             </AdminGhostButton>
           </div>
           <div>
-            {data.activity.map((item) => (
-              <div
-                key={item.text}
-                className="flex items-center gap-3 border-b border-[#f4f6fb] px-5 py-3"
-              >
-                <span
-                  className={`flex size-9 shrink-0 items-center justify-center rounded-[9px] ${ACTIVITY_TONE_CLASS[item.tone]}`}
+            {data.activity.map((item) => {
+              const ActivityIcon = ACTIVITY_ICONS[item.icon as keyof typeof ACTIVITY_ICONS] ?? Star;
+
+              return (
+                <div
+                  key={item.text}
+                  className="flex items-center gap-3 border-b border-[#f4f6fb] px-5 py-3"
                 >
-                  <Star className="size-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <Typography variant="body-sm" className="text-[13.5px] leading-snug text-[#22314f]">
-                    {item.text}
-                  </Typography>
-                  <Typography variant="caption" className="text-[#93a3c2]">
-                    {item.date}
-                  </Typography>
+                  <span
+                    className={`flex size-9 shrink-0 items-center justify-center rounded-[9px] ${ACTIVITY_TONE_CLASS[item.tone]}`}
+                  >
+                    <ActivityIcon className="size-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <Typography variant="body-sm" className="text-[13.5px] leading-snug text-[#22314f]">
+                      {item.text}
+                    </Typography>
+                    <Typography variant="caption" className="text-[#93a3c2]">
+                      {item.date}
+                    </Typography>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </AdminSurfaceCard>
 

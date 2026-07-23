@@ -6,10 +6,13 @@ import {
   AdminStatusPill,
   AdminSurfaceCard,
   AdminTableScroll,
+  adminTableHeaderClass,
+  adminTableRowClass,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchAdminMarketing } from "@/lib/api/admin";
+import { cn } from "@/lib/utils";
 
 export default function AdminMarketingPage() {
   const { data, isLoading } = useQuery({
@@ -44,7 +47,7 @@ export default function AdminMarketingPage() {
         ))}
       </div>
 
-      <AdminSurfaceCard className="mb-4">
+      <AdminSurfaceCard className="mb-4 min-w-0 w-full">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
             Active efforts
@@ -54,7 +57,12 @@ export default function AdminMarketingPage() {
           </span>
         </div>
         <AdminTableScroll minWidth="640px">
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
+        <div
+          className={cn(
+            adminTableHeaderClass,
+            "grid-cols-[2fr_1fr_1fr_1fr_1fr]",
+          )}
+        >
           <span>Effort</span>
           <span>Channel</span>
           <span>Reach</span>
@@ -64,7 +72,10 @@ export default function AdminMarketingPage() {
         {data.efforts.map((effort) => (
           <div
             key={effort.name}
-            className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center gap-3 border-b border-[#f2f5fa] px-5 py-3 transition-colors hover:bg-bg-card"
+            className={cn(
+              adminTableRowClass,
+              "grid-cols-[2fr_1fr_1fr_1fr_1fr]",
+            )}
           >
             <Typography variant="label" className="text-[13.5px] font-semibold text-[#1a2c4e]">
               {effort.name}

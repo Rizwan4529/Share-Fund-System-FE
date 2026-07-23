@@ -274,8 +274,59 @@ export const ADMIN_FUNNEL = [
   { label: "Activated", value: 3260, pct: 62.2 },
 ];
 
+export const ADMIN_PLATFORM_FINANCIALS = {
+  activationSales: 284_500,
+  fundsRaised: 1_240_000,
+  platformRevenue: 186_400,
+  walletBalances: 892_400,
+};
+
+export const ADMIN_PENDING_ATTENTION_EXTRA = [
+  {
+    count: "2",
+    label: "Campaign approvals",
+    sub: "Draft campaigns awaiting review",
+    route: "campaigns" as const,
+    tone: "gold" as const,
+  },
+  {
+    count: "4",
+    label: "Payment issues",
+    sub: "Failed or disputed activation charges",
+    route: "rewards" as const,
+    tone: "danger" as const,
+  },
+  {
+    count: "6",
+    label: "Support requests",
+    sub: "Open member support tickets",
+    route: "members" as const,
+    tone: "blue" as const,
+  },
+];
+
 export function formatAdminNumber(value: number): string {
   return value.toLocaleString("en-US");
+}
+
+export function formatAdminCurrency(value: number): string {
+  if (value >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2).replace(/\.?0+$/, "")}M`;
+  }
+  if (value >= 1_000) {
+    return `$${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  }
+  return `$${formatAdminNumber(value)}`;
+}
+
+export function formatAdminCredits(value: number): string {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(2).replace(/\.?0+$/, "")}M cr`;
+  }
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K cr`;
+  }
+  return `${formatAdminNumber(value)} cr`;
 }
 
 export function getMemberInitials(name: string): string {

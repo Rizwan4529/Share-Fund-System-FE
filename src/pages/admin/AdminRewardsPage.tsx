@@ -10,12 +10,15 @@ import {
   AdminStatusPill,
   AdminSurfaceCard,
   AdminTableScroll,
+  adminTableHeaderClass,
+  adminTableRowClass,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchAdminRewards } from "@/lib/api/admin";
 import { getMemberInitials } from "@/lib/mock/adminData";
 import { GoldAvatar } from "@/components/member/app/GoldAvatar";
+import { cn } from "@/lib/utils";
 
 const TABS = [
   { id: "overview", label: "Overview" },
@@ -94,9 +97,14 @@ export default function AdminRewardsPage() {
       />
 
       {showLedger ? (
-        <AdminSurfaceCard>
+        <AdminSurfaceCard className="min-w-0 w-full">
           <AdminTableScroll minWidth="640px">
-          <div className="grid grid-cols-[1.6fr_1.4fr_1fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
+          <div
+            className={cn(
+              adminTableHeaderClass,
+              "grid-cols-[1.6fr_1.4fr_1fr_1fr_40px]",
+            )}
+          >
             <span>Member</span>
             <span>Reason</span>
             <span>Date</span>
@@ -106,7 +114,10 @@ export default function AdminRewardsPage() {
           {data.ledger.map((entry) => (
             <div
               key={entry.id}
-              className="grid grid-cols-[1.6fr_1.4fr_1fr_1fr_40px] items-center gap-3 border-b border-[#f2f5fa] px-5 py-3 transition-colors hover:bg-bg-card"
+              className={cn(
+                adminTableRowClass,
+                "grid-cols-[1.6fr_1.4fr_1fr_1fr_40px]",
+              )}
             >
               <div className="flex items-center gap-2.5">
                 <GoldAvatar initials={getMemberInitials(entry.name)} size="sm" />

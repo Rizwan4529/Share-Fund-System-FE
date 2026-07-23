@@ -8,6 +8,8 @@ import {
   AdminStatusPill,
   AdminSurfaceCard,
   AdminTableScroll,
+  adminTableHeaderClass,
+  adminTableRowClass,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,9 +45,14 @@ export default function AdminContentPage() {
         }
       />
 
-      <AdminSurfaceCard>
+      <AdminSurfaceCard className="min-w-0 w-full">
         <AdminTableScroll minWidth="640px">
-        <div className="grid grid-cols-[2.6fr_1fr_1fr_1.1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
+        <div
+          className={cn(
+            adminTableHeaderClass,
+            "grid-cols-[2.6fr_1fr_1fr_1.1fr_40px]",
+          )}
+        >
           <span>Title</span>
           <span>Type</span>
           <span>Category</span>
@@ -58,7 +65,10 @@ export default function AdminContentPage() {
           return (
             <div
               key={item.id}
-              className="grid grid-cols-[2.6fr_1fr_1fr_1.1fr_40px] items-center gap-3 border-b border-[#f2f5fa] px-5 py-3 transition-colors hover:bg-bg-card"
+              className={cn(
+                adminTableRowClass,
+                "grid-cols-[2.6fr_1fr_1fr_1.1fr_40px]",
+              )}
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span

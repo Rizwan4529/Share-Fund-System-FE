@@ -9,12 +9,14 @@ import {
   AdminKpiCard,
   AdminPageHeader,
   AdminSurfaceCard,
+  adminTableRowClass,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminShell } from "@/context/AdminShellContext";
 import { fetchAdminAnalytics } from "@/lib/api/admin";
 import { ADMIN_RANGE_LABELS } from "@/utils/constants";
+import { cn } from "@/lib/utils";
 
 export default function AdminAnalyticsPage() {
   const { range } = useAdminShell();
@@ -102,7 +104,10 @@ export default function AdminAnalyticsPage() {
           {data.channels.map((channel) => (
             <div
               key={channel.name}
-              className="grid grid-cols-[1.2fr_1fr_1fr] items-center gap-2.5 border-b border-[#f2f5fa] py-2.5"
+              className={cn(
+                adminTableRowClass,
+                "grid-cols-[1.2fr_1fr_1fr] gap-2.5 border-line py-2.5",
+              )}
             >
               <div className="flex items-center gap-2">
                 <span

@@ -10,6 +10,8 @@ import {
   AdminStatusPill,
   AdminSurfaceCard,
   AdminTableScroll,
+  adminTableHeaderClass,
+  adminTableRowClass,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -127,9 +129,14 @@ export default function AdminCampaignsPage() {
         </Typography>
       </div>
 
-      <AdminSurfaceCard className="min-w-0">
+      <AdminSurfaceCard className="min-w-0 w-full">
         <AdminTableScroll minWidth="720px">
-        <div className="grid grid-cols-[2.2fr_1.2fr_1fr_1.6fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
+        <div
+          className={cn(
+            adminTableHeaderClass,
+            "grid-cols-[2.2fr_1.2fr_1fr_1.6fr_1fr_40px]",
+          )}
+        >
           <span>Campaign</span>
           <span>Owner</span>
           <span>Category</span>
@@ -143,7 +150,10 @@ export default function AdminCampaignsPage() {
             role="button"
             tabIndex={0}
             onClick={() => toast.message(`Campaign detail — ${campaign.name}`)}
-            className="grid cursor-pointer grid-cols-[2.2fr_1.2fr_1fr_1.6fr_1fr_40px] items-center gap-3 border-b border-[#f2f5fa] px-5 py-3 transition-colors hover:bg-bg-card"
+            className={cn(
+              adminTableRowClass,
+              "cursor-pointer grid-cols-[2.2fr_1.2fr_1fr_1.6fr_1fr_40px]",
+            )}
           >
             <div className="min-w-0">
               <Typography variant="label" className="truncate text-sm font-semibold text-[#1a2c4e]">

@@ -15,6 +15,8 @@ import {
   AdminStatusPill,
   AdminSurfaceCard,
   AdminTableScroll,
+  adminTableHeaderClass,
+  adminTableRowClass,
   type AdminModalKind,
 } from "@/components/admin";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -28,6 +30,7 @@ import {
   type AdminMember,
 } from "@/lib/mock/adminData";
 import { GoldAvatar } from "@/components/member/app/GoldAvatar";
+import { cn } from "@/lib/utils";
 
 type ViewState = "populated" | "loading" | "empty" | "error";
 
@@ -166,7 +169,7 @@ export default function AdminMembersPage() {
         </AdminGhostButton>
       </div>
 
-      <AdminSurfaceCard className="min-w-0">
+      <AdminSurfaceCard className="min-w-0 w-full">
         {showPopulated ? (
           <>
             <AdminMembersMobileList
@@ -175,9 +178,14 @@ export default function AdminMembersPage() {
               onToggle={toggleMember}
               onSelect={setDrawerMember}
             />
-            <div className="hidden md:block">
+            <div className="hidden w-full md:block">
               <AdminTableScroll minWidth="720px">
-                <div className="grid grid-cols-[38px_2.4fr_1fr_1.1fr_1fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
+                <div
+                  className={cn(
+                    adminTableHeaderClass,
+                    "grid-cols-[38px_2.4fr_1fr_1.1fr_1fr_1fr_40px]",
+                  )}
+                >
                   <span>
                     <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
                   </span>
@@ -195,7 +203,10 @@ export default function AdminMembersPage() {
                     tabIndex={0}
                     onClick={() => setDrawerMember(member)}
                     onKeyDown={(e) => e.key === "Enter" && setDrawerMember(member)}
-                    className="grid cursor-pointer grid-cols-[38px_2.4fr_1fr_1.1fr_1fr_1fr_40px] items-center gap-3 border-b border-[#f2f5fa] px-5 py-3 transition-colors hover:bg-bg-card"
+                    className={cn(
+                      adminTableRowClass,
+                      "cursor-pointer grid-cols-[38px_2.4fr_1fr_1.1fr_1fr_1fr_40px]",
+                    )}
                   >
                     <span
                       onClick={(e) => e.stopPropagation()}

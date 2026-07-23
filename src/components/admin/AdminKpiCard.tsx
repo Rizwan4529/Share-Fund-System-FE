@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { ChevronRight, TrendingDown, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { Typography } from "@/components/common/Typography";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,15 @@ type AdminKpiCardProps = {
   icon?: ReactNode;
   iconClassName?: string;
   className?: string;
+  onClick?: () => void;
+  href?: string;
 };
+
+const cardClassName =
+  "rounded-lg border border-line bg-white p-3.5 shadow-[0_1px_0_rgba(12,31,68,0.03)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_14px_34px_-20px_rgba(12,31,68,0.35)] sm:p-[17px]";
+
+const interactiveClassName =
+  "relative w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40 focus-visible:ring-offset-2";
 
 export function AdminKpiCard({
   label,
@@ -24,14 +33,13 @@ export function AdminKpiCard({
   icon,
   iconClassName,
   className,
+  onClick,
+  href,
 }: AdminKpiCardProps) {
-  return (
-    <div
-      className={cn(
-        "rounded-lg border border-line bg-white p-3.5 shadow-[0_1px_0_rgba(12,31,68,0.03)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_14px_34px_-20px_rgba(12,31,68,0.35)] sm:p-[17px]",
-        className,
-      )}
-    >
+  const isInteractive = Boolean(onClick || href);
+
+  const content = (
+    <>
       <div className="mb-3 flex items-center gap-2">
         {icon ? (
           <span
@@ -46,6 +54,9 @@ export function AdminKpiCard({
         <Typography variant="label" className="text-[12.5px] font-semibold text-[#7386a8]">
           {label}
         </Typography>
+        {isInteractive ? (
+          <ChevronRight className="ml-auto size-4 shrink-0 text-[#c3cee0]" />
+        ) : null}
       </div>
       <Typography
         variant="h3"
@@ -76,6 +87,28 @@ export function AdminKpiCard({
           ) : null}
         </div>
       ) : null}
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link to={href} className={cn(cardClassName, interactiveClassName, className)}>
+        {content}
+      </Link>
+    );
+  }
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(cardClassName, interactiveClassName, className)}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return <div className={cn(cardClassName, className)}>{content}</div>;
 }

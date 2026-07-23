@@ -8,6 +8,8 @@ import {
   AdminSegmentedControl,
   AdminSurfaceCard,
   AdminTableScroll,
+  adminTableHeaderClass,
+  adminTableRowClass,
 } from "@/components/admin";
 import { Typography } from "@/components/common/Typography";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,7 +57,7 @@ export default function AdminSettingsPage() {
       <AdminSegmentedControl className="mb-4 w-full" options={TABS} value={tab} onChange={setTab} />
 
       {tab === "team" ? (
-        <AdminSurfaceCard>
+        <AdminSurfaceCard className="min-w-0 w-full">
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
             <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
               Team & roles
@@ -63,7 +65,12 @@ export default function AdminSettingsPage() {
             <AdminGhostButton className="h-[34px] text-[13px]">Invite teammate</AdminGhostButton>
           </div>
           <AdminTableScroll minWidth="560px">
-          <div className="grid grid-cols-[2fr_1.3fr_1fr_40px] gap-3 border-b border-[#e9edf5] bg-bg-card px-5 py-3 text-[11.5px] font-bold tracking-[0.05em] text-[#8092b3] uppercase">
+          <div
+            className={cn(
+              adminTableHeaderClass,
+              "grid-cols-[2fr_1.3fr_1fr_40px]",
+            )}
+          >
             <span>Member</span>
             <span>Role</span>
             <span>Access</span>
@@ -72,7 +79,10 @@ export default function AdminSettingsPage() {
           {data.team.map((member) => (
             <div
               key={member.id}
-              className="grid grid-cols-[2fr_1.3fr_1fr_40px] items-center gap-3 border-b border-[#f2f5fa] px-5 py-3 transition-colors hover:bg-bg-card"
+              className={cn(
+                adminTableRowClass,
+                "grid-cols-[2fr_1.3fr_1fr_40px]",
+              )}
             >
               <div className="flex items-center gap-2.5">
                 <GoldAvatar initials={getMemberInitials(member.name)} size="sm" />
@@ -125,7 +135,7 @@ export default function AdminSettingsPage() {
       ) : null}
 
       {tab === "audit" ? (
-        <AdminSurfaceCard>
+        <AdminSurfaceCard className="min-w-0 w-full">
           <div className="flex items-center gap-2 border-b border-line px-5 py-4">
             <Shield className="size-[18px] text-[#3f5580]" />
             <Typography variant="label" className="font-display text-base font-bold text-ink-heading">
@@ -135,7 +145,10 @@ export default function AdminSettingsPage() {
           {data.audit.map((entry) => (
             <div
               key={`${entry.actor}-${entry.time}`}
-              className="grid grid-cols-[auto_1fr_auto] items-center gap-3.5 border-b border-[#f4f6fb] px-5 py-3"
+              className={cn(
+                adminTableRowClass,
+                "grid-cols-[auto_1fr_auto] gap-3.5",
+              )}
             >
               <span
                 className={cn(

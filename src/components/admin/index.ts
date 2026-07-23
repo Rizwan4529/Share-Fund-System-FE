@@ -19,5 +19,5 @@ export { AdminPagination } from "./AdminPagination";
 export { AdminSearchModal } from "./AdminSearchModal";
 export { AdminSidebar } from "./AdminSidebar";
 export { AdminStatusPill } from "./AdminStatusPill";
-export { AdminTableScroll } from "./AdminTableScroll";
+export { AdminTableScroll, adminTableHeaderClass, adminTableRowClass } from "./AdminTableScroll";
 export { AdminTopBar } from "./AdminTopBar";
