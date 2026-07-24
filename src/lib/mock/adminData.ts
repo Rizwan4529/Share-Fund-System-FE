@@ -208,7 +208,7 @@ export const ADMIN_WAITLIST: Record<AdminDateRange, number[]> = {
 };
 
 export const ADMIN_TRAFFIC_SOURCES = [
-  { name: "Instagram", value: 2840, color: "#cf9f34" },
+  { name: "Instagram", value: 2840, color: "#c4a33a" },
   { name: "Facebook", value: 2110, color: "#0c2148" },
   { name: "YouTube", value: 1290, color: "#3f5580" },
   { name: "Direct", value: 760, color: "#9fb0d4" },
@@ -261,7 +261,7 @@ export const ADMIN_CATEGORY_INTEREST = [
 ];
 
 export const ADMIN_CHANNELS = [
-  { name: "Instagram", color: "#cf9f34", visitors: "48.2K", conv: "5.6%" },
+  { name: "Instagram", color: "#c4a33a", visitors: "48.2K", conv: "5.6%" },
   { name: "Facebook", color: "#0c2148", visitors: "39.1K", conv: "4.2%" },
   { name: "YouTube", color: "#3f5580", visitors: "26.8K", conv: "3.9%" },
   { name: "Direct", color: "#9fb0d4", visitors: "14.3K", conv: "6.1%" },

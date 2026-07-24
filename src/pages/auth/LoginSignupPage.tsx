@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useWatch } from "react-hook-form";
 import { Link, useLocation } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -45,33 +44,14 @@ export default function LoginSignupPage() {
     resolver: zodResolver(signupSchema),
     defaultValues: { fullName: "", email: "", password: "" },
   });
-
-  const watchedFullName = useWatch({
-    control: signupForm.control,
-    name: "fullName",
-  });
+  const {
+    register: registerSignup,
+    formState: { errors: signupErrors },
+  } = signupForm;
 
   useEffect(() => {
-    if (mode !== "signup") return;
-    // #region agent log
-    fetch("http://127.0.0.1:7907/ingest/227e1692-4ea7-4e34-8def-aa35903da88f", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "70cf5c",
-      },
-      body: JSON.stringify({
-        sessionId: "70cf5c",
-        runId: "pre-fix",
-        hypothesisId: "B,E",
-        location: "LoginSignupPage.tsx:useEffect",
-        message: "signup fullName state changed",
-        data: { mode, watchedFullName },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-  }, [mode, watchedFullName]);
+    setMode(location.pathname === ROUTES.SIGNUP ? "signup" : "login");
+  }, [location.pathname]);
 
   const onLogin = async (data: LoginFormValues) => {
     setError("");
@@ -101,16 +81,24 @@ export default function LoginSignupPage() {
       >
         {mode === "login" ? "Welcome back" : "Create your account"}
       </Typography>
-      <Typography variant="body-sm" color="muted" className="mt-1.5 mb-[26px] text-[15px]">
+      <Typography
+        variant="body-sm"
+        color="muted"
+        className="mt-1.5 mb-[26px] text-[15px]"
+      >
         {mode === "login"
-          ? "Log in to continue toward your funding goal."
-          : "Free to join. Start in under a minute."}
+          ? "Log in to continue your Founding Participant account."
+          : "Create a participant account to start BMIS planning."}
       </Typography>
 
       {error ? <AuthErrorBanner message={error} /> : null}
 
       {mode === "login" ? (
-        <FormCommon form={loginForm} onSubmit={onLogin} className="flex flex-col gap-4">
+        <FormCommon
+          form={loginForm}
+          onSubmit={onLogin}
+          className="flex flex-col gap-4"
+        >
           <Input
             control={loginForm.control}
             name="email"
@@ -152,17 +140,31 @@ export default function LoginSignupPage() {
           </GoldButton>
         </FormCommon>
       ) : (
-        <FormCommon form={signupForm} onSubmit={onSignup} className="flex flex-col gap-4">
-          <Input
-            control={signupForm.control}
-            name="fullName"
-            label="Full name"
-            type="text"
-            autoComplete="name"
-            required
-            className={authInputClass}
-            itemClassName="gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_label]:text-[#33425f]"
-          />
+        <FormCommon
+          form={signupForm}
+          onSubmit={onSignup}
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-col gap-[7px]">
+            <label
+              htmlFor="signup-full-name"
+              className="text-[13px] font-semibold text-[#33425f]"
+            >
+              Full name <span className="text-destructive">*</span>
+            </label>
+            <input
+              id="signup-full-name"
+              type="text"
+              autoComplete="off"
+              className={authInputClass}
+              {...registerSignup("fullName")}
+            />
+            {signupErrors.fullName ? (
+              <p className="text-sm text-destructive">
+                {signupErrors.fullName.message}
+              </p>
+            ) : null}
+          </div>
           <Input
             control={signupForm.control}
             name="email"
@@ -181,13 +183,39 @@ export default function LoginSignupPage() {
             onToggle={() => setShowPw(!showPw)}
           />
           <GoldButton type="submit" size="auth" className="mt-1 w-full">
-            Create account <ArrowRight className="size-[17px]" strokeWidth={2.3} />
+            Create account{" "}
+            <ArrowRight className="size-[17px]" strokeWidth={2.3} />
           </GoldButton>
+          <Typography
+            variant="caption"
+            className="text-center text-muted-foreground"
+          >
+            By creating an account you agree to the{" "}
+            <Link to="/legal/terms" className="font-semibold underline">
+              Terms
+            </Link>
+            ,{" "}
+            <Link to="/legal/privacy" className="font-semibold underline">
+              Privacy Policy
+            </Link>
+            , and{" "}
+            <Link
+              to="/legal/founding_disclosure"
+              className="font-semibold underline"
+            >
+              Founding Participant disclosure
+            </Link>
+            .
+          </Typography>
         </FormCommon>
       )}
 
       <AuthSocialButtons />
-      <Typography variant="body-sm" color="muted" className="mt-[26px] text-center text-sm">
+      <Typography
+        variant="body-sm"
+        color="muted"
+        className="mt-[26px] text-center text-sm"
+      >
         {mode === "login" ? "New to SFS?" : "Already have an account?"}{" "}
         <button
           type="button"

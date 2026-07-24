@@ -47,13 +47,25 @@ export function AuthSocialButtons() {
         <div className="h-px flex-1 bg-line" />
       </div>
       <div className="flex gap-3">
-        <Button variant="ghost-outline" className={authSocialButtonClass} type="button">
+        <Button
+          variant="ghost-outline"
+          className={authSocialButtonClass}
+          type="button"
+          disabled
+          title="Social login coming soon"
+        >
           <GoogleIcon />
-          Google
+          Google (soon)
         </Button>
-        <Button variant="ghost-outline" className={authSocialButtonClass} type="button">
+        <Button
+          variant="ghost-outline"
+          className={authSocialButtonClass}
+          type="button"
+          disabled
+          title="Social login coming soon"
+        >
           <FacebookIcon />
-          Facebook
+          Facebook (soon)
         </Button>
       </div>
     </>

@@ -9,6 +9,7 @@ export { MarketingBadge } from "./MarketingBadge";
 export { MemberNavLink } from "./MemberNavLink";
 export {
   NavIconAccount,
+  NavIconBilling,
   NavIconCampaigns,
   NavIconDashboard,
   NavIconLearn,
@@ -16,6 +17,9 @@ export {
 } from "./MemberNavIcons";
 export { NavyHeroCard } from "./NavyHeroCard";
 export { PageSearchToolbar } from "./PageSearchToolbar";
+export { ParticipantPageHeader } from "./ParticipantPageHeader";
+export { StatusChip } from "./StatusChip";
+export type { StatusChipTone } from "./StatusChip";
 export { PreferenceToggleRow } from "./PreferenceToggleRow";
 export { QuickActionsCard } from "./QuickActionsCard";
 export { RewardsSummaryCard } from "./RewardsSummaryCard";

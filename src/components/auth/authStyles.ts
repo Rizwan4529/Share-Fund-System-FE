@@ -2,13 +2,13 @@ import { cn } from "@/lib/utils";
 
 /** Auth form field styles — matched to SFS App.dc.html login panel */
 export const authInputClass = cn(
-  "h-[52px] rounded-brand border-border-input bg-input-bg px-[15px] text-[15.5px]",
-  "placeholder:text-muted-light shadow-none",
-  "focus-visible:border-gold-dark focus-visible:ring-[3px] focus-visible:ring-gold/15",
+  "h-10 w-full rounded-md border border-border-input bg-input-bg px-3 text-sm text-ink-heading",
+  "placeholder:text-muted-light shadow-none outline-none",
+  "focus-visible:border-info/40 focus-visible:ring-[3px] focus-visible:ring-info/15",
 );
 
 export const authSocialButtonClass = cn(
-  "h-[52px] flex-1 gap-2 rounded-brand border-border-input bg-white text-[14.5px] font-semibold",
+  "h-10 flex-1 cursor-pointer gap-2 rounded-md border-border-input bg-white text-sm font-semibold",
   "text-ink-heading hover:bg-bg-card hover:border-muted-light",
 );
 
@@ -22,14 +22,6 @@ export const authDividerClass = "my-6 flex items-center gap-3.5";
 
 export const authStepIconClass = cn(
   "mx-auto mb-5 flex size-[52px] items-center justify-center rounded-xl border",
-);
-
-export const authTabClass = (active: boolean) =>
-  cn(
-    "flex-1 rounded-md py-2.5 text-sm font-bold transition-all",
-    active
-      ? "bg-white text-ink-heading shadow-sm"
-      : "text-muted-soft hover:text-ink-heading",
 );
 
 export function passwordStrength(pw: string): number {

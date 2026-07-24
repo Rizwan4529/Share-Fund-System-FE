@@ -16,18 +16,36 @@ const NAV_ITEMS: Array<{
   label: string;
   icon: string;
   end?: boolean;
-  badge?: string;
   ownerOnly?: boolean;
 }> = [
   { to: ROUTES.ADMIN, label: "Overview", icon: "overview", end: true },
-  { to: ROUTES.ADMIN_MEMBERS, label: "Members", icon: "members", badge: "3" },
-  { to: ROUTES.ADMIN_CAMPAIGNS, label: "Campaigns", icon: "campaigns", badge: "1" },
-  { to: ROUTES.ADMIN_REWARDS, label: "Rewards", icon: "rewards" },
-  { to: ROUTES.ADMIN_CONTENT, label: "Content", icon: "content" },
-  { to: ROUTES.ADMIN_ANALYTICS, label: "Analytics", icon: "analytics" },
-  { to: ROUTES.ADMIN_MARKETING, label: "Marketing", icon: "marketing" },
-  { to: ROUTES.ADMIN_SETTINGS, label: "Settings", icon: "settings", ownerOnly: true },
+  { to: ROUTES.ADMIN_PARTICIPANTS, label: "Participants", icon: "members" },
+  { to: ROUTES.ADMIN_ENROLLMENTS, label: "Enrollments", icon: "rewards" },
+  {
+    to: ROUTES.ADMIN_SUCCESS_CENTERS,
+    label: "Success Centers",
+    icon: "campaigns",
+  },
+  { to: ROUTES.ADMIN_PRICING, label: "Pricing", icon: "analytics" },
+  { to: ROUTES.ADMIN_RULES, label: "Rules", icon: "rules" },
+  {
+    to: ROUTES.ADMIN_RECOMMENDATIONS,
+    label: "Recommendations",
+    icon: "recommendations",
+  },
+  { to: ROUTES.ADMIN_DISCLOSURES, label: "Disclosures", icon: "disclosures" },
+  {
+    to: ROUTES.ADMIN_SETTINGS,
+    label: "Settings",
+    icon: "settings",
+    ownerOnly: true,
+  },
 ];
+
+/*
+ * PHASE2_PARKED admin nav (unreachable):
+ * Rewards, Marketing, Analytics, legacy Members/Campaigns/Content
+ */
 
 type AdminSidebarContentProps = {
   onNavigate?: () => void;
@@ -63,9 +81,9 @@ export function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
               end={item.end}
               onClick={onNavigate}
               className={cn(
-                "flex w-full items-center gap-3 rounded-[7px] border-none px-[13px] py-2.5 text-left text-sm font-semibold transition-colors",
+                "flex w-full cursor-pointer items-center gap-3 rounded-[7px] border-none px-[13px] py-2.5 text-left text-sm font-semibold transition-colors",
                 active
-                  ? "bg-gradient-to-r from-gold/18 to-gold/6 text-gold-pale shadow-[inset_3px_0_0_#cf9f34]"
+                  ? "bg-gradient-to-r from-gold/18 to-gold/6 text-gold-pale shadow-[inset_3px_0_0_var(--color-gold-dark)]"
                   : "text-[#aebfdf] hover:bg-white/5",
               )}
             >
@@ -78,11 +96,6 @@ export function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
                 <AdminNavIcon name={item.icon} />
               </span>
               <span className="flex-1">{item.label}</span>
-              {!active && item.badge ? (
-                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-gold/16 px-1.5 py-0.5 text-[11px] font-bold text-gold-pale">
-                  {item.badge}
-                </span>
-              ) : null}
             </NavLink>
           );
         })}
@@ -99,7 +112,10 @@ export function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
               >
                 {user.name}
               </Typography>
-              <Typography variant="caption" className="text-[11.5px] text-[#8ba0c6]">
+              <Typography
+                variant="caption"
+                className="text-[11.5px] text-[#8ba0c6]"
+              >
                 {viewRole}
               </Typography>
             </div>

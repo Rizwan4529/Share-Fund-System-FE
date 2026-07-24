@@ -1,39 +1,17 @@
+/* PHASE2_PARKED — rewards mock API kept for parked pages; not used in Phase 1 routes. */
 import { delay } from "@/lib/delay";
-import { getStore, setStore } from "@/lib/mock/store";
 import { REDEEM_OPTIONS } from "@/utils/constants";
 
 export async function getRewardsData() {
   await delay();
-  const store = getStore();
   return {
-    balance: store.rewards,
-    history: store.rewardHistory,
+    balance: { balance: 0, monthEarned: 0, lifetime: 0 },
+    history: [],
     redeemOptions: REDEEM_OPTIONS,
   };
 }
 
-export async function redeemCredits(optionId: string): Promise<void> {
+export async function redeemCredits(_optionId: string): Promise<void> {
   await delay();
-  const store = getStore();
-  const option = REDEEM_OPTIONS.find((o) => o.id === optionId);
-  if (!option) throw new Error("Invalid option");
-  if (store.rewards.balance < option.cost) {
-    throw new Error("Insufficient credits");
-  }
-  setStore({
-    rewards: {
-      ...store.rewards,
-      balance: store.rewards.balance - option.cost,
-    },
-    rewardHistory: [
-      {
-        id: crypto.randomUUID(),
-        title: `Redeemed — ${option.title.toLowerCase()}`,
-        date: "Just now",
-        delta: `−${option.cost}`,
-        positive: false,
-      },
-      ...store.rewardHistory,
-    ],
-  });
+  throw new Error("Rewards are parked in Phase 1.");
 }

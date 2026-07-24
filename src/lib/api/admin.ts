@@ -1,6 +1,199 @@
 import { delay } from "@/lib/delay";
+import { appendAudit, getStore, setStore } from "@/lib/mock/store";
+import type {
+  AuthUser,
+  AuditEvent,
+  Enrollment,
+  FoundingStatus,
+  PaymentRecord,
+  Recommendation,
+  SuccessCenter,
+} from "@/types";
+
+export type AdminOverviewStats = {
+  participants: number;
+  foundingCount: number;
+  founderStackCount: number;
+  enrollments: number;
+  revenue: number;
+  pendingRecs: number;
+  activeCenters: number;
+};
+
+export async function fetchAdminOverview(): Promise<AdminOverviewStats> {
+  await delay(150);
+  const store = getStore();
+  const participants = store.accounts.filter((a) => a.role === "participant");
+  const succeeded = store.payments.filter((p) => p.status === "succeeded");
+  return {
+    participants: participants.length,
+    foundingCount: participants.filter(
+      (p) => p.foundingStatus === "founding_participant",
+    ).length,
+    founderStackCount: participants.filter(
+      (p) => p.foundingStatus === "founder_stack",
+    ).length,
+    enrollments: store.enrollments.length,
+    revenue: succeeded.reduce((sum, p) => sum + p.amount, 0),
+    pendingRecs: store.recommendations.filter((r) => r.status === "pending")
+      .length,
+    activeCenters: store.successCenters.filter((c) => c.active).length,
+  };
+}
+
+export async function fetchAdminParticipants(): Promise<AuthUser[]> {
+  await delay(150);
+  return structuredClone(
+    getStore().accounts.filter((a) => a.role === "participant"),
+  );
+}
+
+export async function updateParticipantFoundingStatus(
+  userId: string,
+  foundingStatus: FoundingStatus,
+  centerLimit?: number,
+  actor = "Admin",
+): Promise<AuthUser> {
+  await delay(200);
+  const store = getStore();
+  const account = store.accounts.find((a) => a.id === userId);
+  if (!account) throw new Error("Participant not found");
+
+  const limit =
+    centerLimit ??
+    (foundingStatus === "founder_stack"
+      ? store.settings.pricing.founderStack.successCenterCount
+      : foundingStatus === "founding_participant"
+        ? store.settings.pricing.bundleCenterCount
+        : 0);
+
+  const updated: AuthUser = {
+    ...account,
+    foundingStatus,
+    centerLimit: limit,
+    membership:
+      foundingStatus === "founder_stack"
+        ? "Founder Stack"
+        : foundingStatus === "founding_participant"
+          ? "Founding Participant"
+          : "Participant",
+    selectedCenterIds: account.selectedCenterIds.slice(0, limit),
+  };
+
+  const accounts = store.accounts.map((a) =>
+    a.id === userId ? updated : a,
+  );
+  const user = store.user?.id === userId ? updated : store.user;
+  setStore({ accounts, user });
+  appendAudit(
+    actor,
+    `Set ${updated.email} founding status → ${foundingStatus}`,
+  );
+  return updated;
+}
+
+export async function fetchAdminEnrollments(): Promise<{
+  enrollments: Enrollment[];
+  payments: PaymentRecord[];
+}> {
+  await delay(150);
+  const store = getStore();
+  return {
+    enrollments: structuredClone(store.enrollments),
+    payments: structuredClone(store.payments),
+  };
+}
+
+export async function fetchAdminSuccessCenters(): Promise<SuccessCenter[]> {
+  await delay(120);
+  return structuredClone(getStore().successCenters);
+}
+
+export async function fetchAdminRecommendations(): Promise<Recommendation[]> {
+  await delay(120);
+  return structuredClone(getStore().recommendations);
+}
+
+export async function fetchAdminAudit(): Promise<AuditEvent[]> {
+  await delay(100);
+  return structuredClone(getStore().audit);
+}
+
+function toCsv(rows: Record<string, string | number | null | undefined>[]): string {
+  if (rows.length === 0) return "";
+  const headers = Object.keys(rows[0]!);
+  const escape = (v: string | number | null | undefined) => {
+    const s = v == null ? "" : String(v);
+    return `"${s.replaceAll('"', '""')}"`;
+  };
+  return [
+    headers.join(","),
+    ...rows.map((r) => headers.map((h) => escape(r[h])).join(",")),
+  ].join("\n");
+}
+
+export async function exportAdminCsv(
+  kind: "participants" | "enrollments" | "payments",
+): Promise<string> {
+  await delay(200);
+  const store = getStore();
+  appendAudit("Admin", `Exported ${kind} CSV`);
+  if (kind === "participants") {
+    return toCsv(
+      store.accounts
+        .filter((a) => a.role === "participant")
+        .map((a) => ({
+          id: a.id,
+          name: a.name,
+          email: a.email,
+          foundingStatus: a.foundingStatus,
+          centerLimit: a.centerLimit,
+          selectedCenters: a.selectedCenterIds.join("|"),
+          questionnaireComplete: a.questionnaireComplete ? "yes" : "no",
+        })),
+    );
+  }
+  if (kind === "enrollments") {
+    return toCsv(
+      store.enrollments.map((e) => ({
+        id: e.id,
+        userEmail: e.userEmail,
+        plan: e.plan,
+        amount: e.amount,
+        status: e.status,
+        createdAt: e.createdAt,
+      })),
+    );
+  }
+  return toCsv(
+    store.payments.map((p) => ({
+      id: p.id,
+      userEmail: p.userEmail,
+      plan: p.plan,
+      amount: p.amount,
+      status: p.status,
+      paidAt: p.paidAt,
+      transactionRef: p.transactionRef,
+      refundDeadline: p.refundDeadline,
+      refundStatus: p.refundStatus,
+      chargebackStatus: p.chargebackStatus,
+    })),
+  );
+}
+
+export function downloadCsv(filename: string, csv: string): void {
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── PHASE2_PARKED API facades (static adminData) for parked pages ─── */
+
 import {
-  ADMIN_ACTIVITY,
   ADMIN_AUDIT,
   ADMIN_CAMPAIGNS,
   ADMIN_CATEGORY_INTEREST,
@@ -13,83 +206,15 @@ import {
   ADMIN_MARKETING_KPIS,
   ADMIN_MEMBERS,
   ADMIN_NOTIFICATIONS,
-  ADMIN_PENDING_ATTENTION_EXTRA,
   ADMIN_PLATFORM_CARDS,
-  ADMIN_PLATFORM_FINANCIALS,
   ADMIN_REDEEM_RULES,
   ADMIN_SIGNUPS,
   ADMIN_TEAM,
-  ADMIN_TRAFFIC_SOURCES,
   ADMIN_WAITLIST,
-  formatAdminCredits,
-  formatAdminCurrency,
   type AdminCampaign,
   type AdminMember,
 } from "@/lib/mock/adminData";
 import type { AdminDateRange } from "@/utils/constants";
-
-export async function fetchAdminOverview(range: AdminDateRange) {
-  await delay(150);
-  const signups = ADMIN_SIGNUPS[range];
-  const signupTotal = signups.reduce((sum, n) => sum + n, 0);
-  return {
-    kpis: [
-      { label: "Total members", value: "8,240", trend: "+6.2%", trendUp: true, sub: "vs. last period", icon: "members" as const },
-      { label: "New signups", value: "612", trend: "+12%", trendUp: true, sub: range, icon: "star" as const },
-      { label: "Active campaigns", value: "1,946", trend: "+4.1%", trendUp: true, sub: "across 7 categories", icon: "campaigns" as const },
-      { label: "Credits issued", value: "1.24M", trend: "39%", trendUp: null, sub: "redeemed", icon: "gift" as const },
-      { label: "Waitlist carried", value: "3,180", trend: "−2.3%", trendUp: false, sub: "early access", icon: "flag" as const },
-      {
-        label: "Total activation sales",
-        value: formatAdminCurrency(ADMIN_PLATFORM_FINANCIALS.activationSales),
-        trend: "+8.4%",
-        trendUp: true,
-        sub: "activation fees",
-        icon: "dollar" as const,
-        route: "campaigns" as const,
-      },
-      {
-        label: "Total funds raised",
-        value: formatAdminCurrency(ADMIN_PLATFORM_FINANCIALS.fundsRaised),
-        trend: "+11.2%",
-        trendUp: true,
-        sub: "member campaigns",
-        icon: "piggybank" as const,
-        route: "campaigns" as const,
-      },
-      {
-        label: "Platform revenue",
-        value: formatAdminCurrency(ADMIN_PLATFORM_FINANCIALS.platformRevenue),
-        trend: "+5.7%",
-        trendUp: true,
-        sub: "fees & services",
-        icon: "banknote" as const,
-        route: "analytics" as const,
-      },
-      {
-        label: "Wallet balances",
-        value: formatAdminCredits(ADMIN_PLATFORM_FINANCIALS.walletBalances),
-        trend: "+3.1%",
-        trendUp: true,
-        sub: "credits held",
-        icon: "wallet" as const,
-        route: "rewards" as const,
-      },
-    ],
-    signups,
-    signupTotal,
-    signupTrend: "+12% vs. last period",
-    traffic: ADMIN_TRAFFIC_SOURCES,
-    activity: ADMIN_ACTIVITY,
-    pending: [
-      { count: "3", label: "Members pending review", sub: "New signups awaiting approval", route: "members" as const, tone: "gold" as const },
-      { count: "1", label: "Campaign paused", sub: '"Storefront expansion" needs a look', route: "campaigns" as const, tone: "slate" as const },
-      { count: "2", label: "Content drafts", sub: "Ready to review and publish", route: "content" as const, tone: "blue" as const },
-      { count: "1", label: "Credit adjustment flagged", sub: "Manual change awaiting sign-off", route: "rewards" as const, tone: "danger" as const },
-      ...ADMIN_PENDING_ATTENTION_EXTRA,
-    ],
-  };
-}
 
 export async function fetchAdminMembers() {
   await delay(150);
@@ -124,10 +249,30 @@ export async function fetchAdminAnalytics(range: AdminDateRange) {
   await delay(150);
   return {
     kpis: [
-      { label: "Visitors", value: "128.4K", trend: "+9.4% vs. last period", trendUp: true },
-      { label: "Page views", value: "472K", trend: "+6.1% vs. last period", trendUp: true },
-      { label: "Signup conversion", value: "4.8%", trend: "+0.6 pts", trendUp: true },
-      { label: "Activation rate", value: "62%", trend: "−1.2 pts", trendUp: false },
+      {
+        label: "Visitors",
+        value: "128.4K",
+        trend: "+9.4% vs. last period",
+        trendUp: true,
+      },
+      {
+        label: "Page views",
+        value: "472K",
+        trend: "+6.1% vs. last period",
+        trendUp: true,
+      },
+      {
+        label: "Signup conversion",
+        value: "4.8%",
+        trend: "+0.6 pts",
+        trendUp: true,
+      },
+      {
+        label: "Activation rate",
+        value: "62%",
+        trend: "−1.2 pts",
+        trendUp: false,
+      },
     ],
     signups: ADMIN_SIGNUPS[range],
     waitlist: ADMIN_WAITLIST[range],

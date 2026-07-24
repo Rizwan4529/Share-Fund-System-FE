@@ -1,5 +1,11 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * Shared horizontal inset for admin content + top bar.
+ * Matches Bidalotcoins Tags `SIDEBAR_PAGE_PADDING` (px-7) — identical L/R.
+ */
+export const ADMIN_PAGE_GUTTER = "px-7";
+
 export function AdminPageContainer({
   children,
   className,
@@ -10,7 +16,8 @@ export function AdminPageContainer({
   return (
     <div
       className={cn(
-        "mx-auto w-full min-w-0 max-w-admin px-4 pb-10 pt-5 lg:px-[30px] lg:pb-[60px] lg:pt-7",
+        "mx-auto flex w-full min-w-0 max-w-admin flex-col pb-4 pt-3",
+        ADMIN_PAGE_GUTTER,
         className,
       )}
     >

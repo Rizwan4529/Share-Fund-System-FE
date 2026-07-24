@@ -4,9 +4,9 @@ import { Typography } from "@/components/common/Typography";
 import { ASSETS } from "@/utils/assets";
 
 const VALUE_PROPS = [
-  "Free to join — no payment to get started",
-  "Seven campaign categories to choose from",
-  "Education & rewards built in",
+  "Founding Participant enrollment with clear pricing",
+  "Success Centers for goal-based planning",
+  "BMIS projections labeled as simulations — funding is not live yet",
 ];
 
 export function AuthBrandPanel() {
@@ -29,13 +29,14 @@ export function AuthBrandPanel() {
           variant="h1"
           className="text-4xl font-bold text-white lg:text-[42px] lg:leading-tight"
         >
-          Funding goals,
+          Plan your goals
           <br />
-          <span className="text-shimmer-gold">simplified.</span>
+          <span className="text-shimmer-gold">with BMIS.</span>
         </Typography>
         <Typography variant="body-lg" className="mt-5 text-[15.5px] leading-relaxed text-white/80">
-          Create an account to choose a campaign that matches your goal, track
-          your progress, and earn rewards along the way.
+          Create a participant account, complete your BMIS profile, choose Success
+          Centers, and enroll as a Founding Participant. Phase 1 is a planning
+          tool — live funding is not active.
         </Typography>
         <div className="mt-8 space-y-4">
           {VALUE_PROPS.map((text) => (
@@ -51,7 +52,7 @@ export function AuthBrandPanel() {
         </div>
       </div>
       <Typography variant="caption" className="relative z-1 self-start text-white/50">
-        © 2026 SFS · Share Funding System
+        © 2026 Share Fund System
       </Typography>
     </div>
   );

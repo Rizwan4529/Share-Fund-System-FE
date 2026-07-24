@@ -24,10 +24,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
 import {
   useAccount,
+  useChangePassword,
   useDeleteAccount,
   useSaveCommunicationPrefs,
   useSaveNotificationPrefs,
   useSaveProfile,
+  useSetAccountPaused,
   useSetTwoFA,
 } from "@/hooks/queries/useAccount";
 import {
@@ -39,12 +41,14 @@ import {
 
 export default function AccountPage() {
   const { section = "profile" } = useParams();
-  const { logout } = useAuth();
+  const { logout, refresh } = useAuth();
   const { data, isLoading } = useAccount();
   const saveProfile = useSaveProfile();
   const saveNotif = useSaveNotificationPrefs();
   const saveComm = useSaveCommunicationPrefs();
   const setTwoFA = useSetTwoFA();
+  const changePassword = useChangePassword();
+  const setPaused = useSetAccountPaused();
   const deleteAccount = useDeleteAccount();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -68,9 +72,30 @@ export default function AccountPage() {
     toast.success("Profile saved.");
   };
 
-  const onSaveSecurity = async () => {
-    toast.success("Security settings updated.");
-    securityForm.reset();
+  const onSaveSecurity = async (values: SecurityFormValues) => {
+    if (!values.newPassword) {
+      toast.error("Enter a new password.");
+      return;
+    }
+    try {
+      await changePassword.mutateAsync({
+        currentPassword: values.currentPassword ?? "",
+        newPassword: values.newPassword,
+      });
+      toast.success("Password updated.");
+      securityForm.reset();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not update password.",
+      );
+    }
+  };
+
+  const handlePause = async () => {
+    const next = !data?.profile.paused;
+    await setPaused.mutateAsync(Boolean(next));
+    await refresh();
+    toast.success(next ? "Account paused." : "Account resumed.");
   };
 
   const handleDelete = async () => {
@@ -93,8 +118,8 @@ export default function AccountPage() {
       <div className="min-w-0 flex-1">
         {section === "profile" ? (
           <AccountSectionCard
-            title="Profile"
-            subtitle="Update your personal information and how you appear in SFS."
+            title="BMIS profile"
+            subtitle="Your participant identity and home base inside the system."
           >
             <FormCommon form={profileForm} onSubmit={onSaveProfile} className="space-y-4">
               <div className="mb-2 flex flex-wrap items-center gap-4">
@@ -102,8 +127,14 @@ export default function AccountPage() {
                   initials={data?.profile.avatarInitials ?? "?"}
                   className="size-[72px] text-2xl"
                 />
-                <GoldButton type="button" variant="ghost-outline" size="sm">
-                  Change photo
+                <GoldButton
+                  type="button"
+                  variant="ghost-outline"
+                  size="sm"
+                  disabled
+                  title="Photo upload coming soon"
+                >
+                  Change photo (coming soon)
                 </GoldButton>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -111,6 +142,25 @@ export default function AccountPage() {
                 <Input control={profileForm.control} name="email" label="Email" type="email" required />
                 <Input control={profileForm.control} name="phone" label="Phone" />
                 <Input control={profileForm.control} name="location" label="Location" />
+              </div>
+              <BmisFields
+                goalSummary={data?.profile.bmisProfile.goalSummary ?? ""}
+                preferredContact={data?.profile.bmisProfile.preferredContact ?? ""}
+                notes={data?.profile.bmisProfile.notes ?? ""}
+                onSaveProfile={async (bmis) => {
+                  await saveProfile.mutateAsync({
+                    ...profileForm.getValues(),
+                    bmisProfile: bmis,
+                  } as never);
+                  toast.success("BMIS profile saved.");
+                }}
+              />
+              <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                Status: {data?.profile.membership} · Centers selected:{" "}
+                {data?.profile.selectedCenterIds.length ?? 0}/
+                {data?.profile.centerLimit ?? 0} · Questionnaire:{" "}
+                {data?.profile.questionnaireComplete ? "complete" : "incomplete"}
+                {data?.profile.paused ? " · Paused" : ""}
               </div>
               <div className="flex gap-3 pt-2">
                 <GoldButton type="submit" size="app">Save changes</GoldButton>
@@ -131,7 +181,13 @@ export default function AccountPage() {
               <Input control={securityForm.control} name="currentPassword" label="Current password" type="password" />
               <Input control={securityForm.control} name="newPassword" label="New password" type="password" />
               <Input control={securityForm.control} name="confirmPassword" label="Confirm password" type="password" />
-              <GoldButton type="submit" size="app">Update password</GoldButton>
+              <GoldButton
+                type="submit"
+                size="app"
+                disabled={changePassword.isPending}
+              >
+                {changePassword.isPending ? "Updating…" : "Update password"}
+              </GoldButton>
             </FormCommon>
             <div className="mt-8 border-t border-line pt-6">
               <PreferenceToggleRow
@@ -195,12 +251,22 @@ export default function AccountPage() {
           >
             <div className="space-y-4">
               <div className="rounded-panel border border-line bg-bg-card p-5">
-                <h3 className="font-display text-[16px] font-bold text-ink-heading">Pause account</h3>
+                <h3 className="font-display text-[16px] font-bold text-ink-heading">
+                  {data?.profile.paused ? "Resume account" : "Pause account"}
+                </h3>
                 <p className="mt-1 text-[14px] text-muted-soft">
-                  Temporarily hide your profile and pause campaign activity.
+                  {data?.profile.paused
+                    ? "Your account is paused. Resume to restore full participant access."
+                    : "Temporarily hide your profile and pause campaign activity."}
                 </p>
-                <GoldButton variant="ghost-outline" className="mt-4" size="sm">
-                  Pause account
+                <GoldButton
+                  variant="ghost-outline"
+                  className="mt-4"
+                  size="sm"
+                  disabled={setPaused.isPending}
+                  onClick={() => void handlePause()}
+                >
+                  {data?.profile.paused ? "Resume account" : "Pause account"}
                 </GoldButton>
               </div>
               <AccountDangerCard
@@ -271,6 +337,77 @@ function ToggleSection<T extends Record<string, boolean>>({
       </div>
       <GoldButton size="app" className="mt-6" onClick={() => onSave(local)}>
         Save preferences
+      </GoldButton>
+    </div>
+  );
+}
+
+function BmisFields({
+  goalSummary,
+  preferredContact,
+  notes,
+  onSaveProfile,
+}: {
+  goalSummary: string;
+  preferredContact: string;
+  notes: string;
+  onSaveProfile: (bmis: {
+    goalSummary: string;
+    preferredContact: string;
+    notes: string;
+  }) => Promise<void>;
+}) {
+  const [goal, setGoal] = useState(goalSummary);
+  const [contact, setContact] = useState(preferredContact);
+  const [note, setNote] = useState(notes);
+
+  useEffect(() => {
+    setGoal(goalSummary);
+    setContact(preferredContact);
+    setNote(notes);
+  }, [goalSummary, preferredContact, notes]);
+
+  return (
+    <div className="space-y-3 rounded-lg border border-border p-4">
+      <p className="text-sm font-semibold">BMIS details</p>
+      <label className="block text-sm">
+        Goal summary
+        <input
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+        />
+      </label>
+      <label className="block text-sm">
+        Preferred contact
+        <input
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          value={contact}
+          onChange={(e) => setContact(e.target.value)}
+        />
+      </label>
+      <label className="block text-sm">
+        Notes
+        <textarea
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          rows={3}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </label>
+      <GoldButton
+        type="button"
+        size="sm"
+        variant="ghost-outline"
+        onClick={() =>
+          void onSaveProfile({
+            goalSummary: goal,
+            preferredContact: contact,
+            notes: note,
+          })
+        }
+      >
+        Save BMIS details
       </GoldButton>
     </div>
   );

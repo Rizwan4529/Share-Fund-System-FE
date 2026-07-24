@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
+  changePassword,
   deleteAccount,
   getAccountData,
   getNotifications,
@@ -8,9 +9,15 @@ import {
   saveCommunicationPrefs,
   saveNotificationPrefs,
   saveProfile,
+  setAccountPaused,
   setTwoFA,
 } from "@/lib/api/account";
-import type { CommunicationPrefs, NotificationPrefs, UserProfile } from "@/types";
+import type {
+  BmisProfile,
+  CommunicationPrefs,
+  NotificationPrefs,
+  UserProfile,
+} from "@/types";
 
 export function useAccount() {
   return useQuery({ queryKey: ["account"], queryFn: getAccountData });
@@ -23,7 +30,9 @@ export function useNotifications() {
 export function useSaveProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<UserProfile>) => saveProfile(data),
+    mutationFn: (
+      data: Partial<UserProfile> & { bmisProfile?: Partial<BmisProfile> },
+    ) => saveProfile(data),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["account"] });
     },
@@ -51,6 +60,28 @@ export function useSetTwoFA() {
   return useMutation({
     mutationFn: (enabled: boolean) => setTwoFA(enabled),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["account"] }),
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    }) => changePassword(currentPassword, newPassword),
+  });
+}
+
+export function useSetAccountPaused() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (paused: boolean) => setAccountPaused(paused),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["account"] });
+    },
   });
 }
 

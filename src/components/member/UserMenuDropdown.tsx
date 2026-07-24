@@ -1,5 +1,6 @@
 import { HelpCircle, LogOut, Settings, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 import { GoldAvatar } from "@/components/member/app";
 import {
@@ -47,9 +48,16 @@ export function UserMenuDropdown() {
             Account settings
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem className="rounded-md px-3 py-2.5 text-[14.5px] font-medium text-[#33425f]">
+        <DropdownMenuItem
+          className="rounded-md px-3 py-2.5 text-[14.5px] font-medium text-[#33425f]"
+          disabled
+          onSelect={(e) => {
+            e.preventDefault();
+            toast.message("Help center coming soon");
+          }}
+        >
           <HelpCircle className="size-[18px] text-[#8496b7]" strokeWidth={1.8} />
-          Help center
+          Help center (soon)
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
