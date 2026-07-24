@@ -16,9 +16,11 @@ import {
   AdminTableIconAction,
   AdminTableToolbar,
 } from "@/components/admin";
+import { DrawerCommon } from "@/components/common/DrawerCommon";
 import { DataTableColumnHeaderCommon } from "@/components/common/DataTableColumnHeaderCommon";
 import { DataTableCommon } from "@/components/common/DataTableCommon";
 import { GoldButton } from "@/components/common/GoldButton";
+import { Button } from "@/components/ui/button";
 import { filterRowsBySearch } from "@/hooks/useAdminTableSearch";
 import { useClientTablePage } from "@/hooks/useClientTablePage";
 import {
@@ -31,6 +33,7 @@ import type { AuthUser, FoundingStatus } from "@/types";
 export default function AdminParticipantsPage() {
   const [rows, setRows] = useState<AuthUser[]>([]);
   const [search, setSearch] = useState("");
+  const [detail, setDetail] = useState<AuthUser | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -54,6 +57,20 @@ export default function AdminParticipantsPage() {
     await updateParticipantFoundingStatus(id, status);
     toast.success("Founding status updated.");
     reload();
+    setDetail((prev) =>
+      prev?.id === id
+        ? {
+            ...prev,
+            foundingStatus: status,
+            membership:
+              status === "founder_stack"
+                ? "Founder Stack"
+                : status === "founding_participant"
+                  ? "Founding Participant"
+                  : "Participant",
+          }
+        : prev,
+    );
   };
 
   const columns = useMemo<ColumnDef<AuthUser>[]>(
@@ -121,11 +138,7 @@ export default function AdminParticipantsPage() {
                 label="View details"
                 icon={Eye}
                 tone="info"
-                onClick={() =>
-                  toast.message(r.name, {
-                    description: `${r.email} · ${foundingStatusLabel(r.foundingStatus)}`,
-                  })
-                }
+                onClick={() => setDetail(r)}
               />
               <AdminTableIconAction
                 label="Copy email"
@@ -191,6 +204,67 @@ export default function AdminParticipantsPage() {
           emptyMessage="No participants yet. Sign up as a non-admin user to populate."
         />
       </div>
+
+      <DrawerCommon
+        open={Boolean(detail)}
+        onOpenChange={(open) => {
+          if (!open) setDetail(null);
+        }}
+        title={detail?.name ?? "Participant"}
+        description={detail?.email}
+        footer={
+          <Button type="button" variant="outline" onClick={() => setDetail(null)}>
+            Close
+          </Button>
+        }
+      >
+        {detail ? (
+          <div className="space-y-4 text-sm">
+            <DetailRow label="Membership" value={detail.membership} />
+            <DetailRow
+              label="Founding status"
+              value={foundingStatusLabel(detail.foundingStatus)}
+            />
+            <DetailRow
+              label="Centers"
+              value={`${detail.selectedCenterIds.length} / ${detail.centerLimit}`}
+            />
+            <DetailRow
+              label="Questionnaire"
+              value={detail.questionnaireComplete ? "Complete" : "Incomplete"}
+            />
+            <DetailRow
+              label="Onboarding"
+              value={detail.onboardingComplete ? "Complete" : "Incomplete"}
+            />
+            <DetailRow
+              label="Verified"
+              value={detail.verified ? "Yes" : "No"}
+            />
+            <DetailRow label="Phone" value={detail.phone || "—"} />
+            <DetailRow label="Location" value={detail.location || "—"} />
+            <DetailRow
+              label="Account"
+              value={detail.paused ? "Paused" : "Active"}
+            />
+            {detail.bmisProfile.goalSummary ? (
+              <DetailRow
+                label="Goal summary"
+                value={detail.bmisProfile.goalSummary}
+              />
+            ) : null}
+          </div>
+        ) : null}
+      </DrawerCommon>
     </section>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-background px-3 py-2.5">
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div className="mt-0.5 font-semibold text-ink-heading">{value}</div>
+    </div>
   );
 }

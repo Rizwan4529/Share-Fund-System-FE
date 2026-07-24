@@ -154,6 +154,40 @@ export async function listMyPayments(): Promise<PaymentRecord[]> {
   return store.payments.filter((p) => p.userId === store.user!.id);
 }
 
+export async function requestRefund(paymentId: string): Promise<PaymentRecord> {
+  await delay(200);
+  const store = getStore();
+  if (!store.user) throw new Error("Not authenticated");
+  const target = store.payments.find(
+    (p) => p.id === paymentId && p.userId === store.user!.id,
+  );
+  if (!target) throw new Error("Payment not found");
+  if (target.status !== "succeeded") {
+    throw new Error("Only successful payments can be refunded.");
+  }
+  if (target.refundStatus !== "none") {
+    throw new Error("A refund has already been requested for this payment.");
+  }
+  const deadline = new Date(target.refundDeadline);
+  if (Number.isFinite(deadline.getTime()) && Date.now() > deadline.getTime()) {
+    throw new Error("The refund window for this payment has closed.");
+  }
+  const updated: PaymentRecord = {
+    ...target,
+    refundStatus: "requested",
+    refundRequestedAt: new Date().toISOString(),
+  };
+  setStore({
+    payments: store.payments.map((p) => (p.id === paymentId ? updated : p)),
+  });
+  appendAudit(
+    store.user.email,
+    `Requested refund for ${target.receiptNumber}`,
+    "warn",
+  );
+  return updated;
+}
+
 export async function listMyEnrollments(): Promise<Enrollment[]> {
   await delay(120);
   const store = getStore();

@@ -9,6 +9,7 @@ export { MarketingBadge } from "./MarketingBadge";
 export { MemberNavLink } from "./MemberNavLink";
 export {
   NavIconAccount,
+  NavIconBilling,
   NavIconCampaigns,
   NavIconDashboard,
   NavIconLearn,

@@ -15,6 +15,7 @@ export type AccountPayload = {
     questionnaireComplete: boolean;
     selectedCenterIds: string[];
     centerLimit: number;
+    paused: boolean;
   };
   twoFA: boolean;
   notifPrefs: NotificationPrefs;
@@ -39,6 +40,7 @@ export async function getAccountData(): Promise<AccountPayload> {
       questionnaireComplete: u.questionnaireComplete,
       selectedCenterIds: u.selectedCenterIds,
       centerLimit: u.centerLimit,
+      paused: Boolean(u.paused),
     },
     twoFA: store.twoFA,
     notifPrefs: store.notifPrefs,
@@ -106,6 +108,40 @@ export async function setTwoFA(enabled: boolean): Promise<boolean> {
   await delay(150);
   setStore({ twoFA: enabled });
   return enabled;
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  await delay(200);
+  const store = getStore();
+  if (!store.user) throw new Error("Not authenticated");
+  if (!newPassword || newPassword.length < 8) {
+    throw new Error("Use at least 8 characters for the new password.");
+  }
+  const key = store.user.email.toLowerCase();
+  const stored = store.credentials[key];
+  if (stored && stored !== currentPassword) {
+    throw new Error("Current password is incorrect.");
+  }
+  setStore({
+    credentials: { ...store.credentials, [key]: newPassword },
+  });
+  appendAudit(store.user.email, "Changed password (demo)");
+}
+
+export async function setAccountPaused(paused: boolean): Promise<AuthUser> {
+  await delay(150);
+  const store = getStore();
+  if (!store.user) throw new Error("Not authenticated");
+  const user: AuthUser = { ...store.user, paused };
+  setStore({ user });
+  appendAudit(
+    user.email,
+    paused ? "Paused account (demo)" : "Resumed account (demo)",
+  );
+  return user;
 }
 
 export async function deleteAccount(): Promise<void> {

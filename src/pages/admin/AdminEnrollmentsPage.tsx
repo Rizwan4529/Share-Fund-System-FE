@@ -19,6 +19,7 @@ import {
   AdminTableToolbar,
 } from "@/components/admin";
 import { DialogCommon } from "@/components/common/DialogCommon";
+import { DrawerCommon } from "@/components/common/DrawerCommon";
 import { DataTableColumnHeaderCommon } from "@/components/common/DataTableColumnHeaderCommon";
 import { DataTableCommon } from "@/components/common/DataTableCommon";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ export default function AdminEnrollmentsPage() {
   const [tab, setTab] = useState("enrollments");
   const [search, setSearch] = useState("");
   const [denyTarget, setDenyTarget] = useState<PaymentRecord | null>(null);
+  const [detail, setDetail] = useState<Enrollment | null>(null);
 
   const filteredEnrollments = useMemo(
     () =>
@@ -176,11 +178,7 @@ export default function AdminEnrollmentsPage() {
                 label="View enrollment"
                 icon={Eye}
                 tone="info"
-                onClick={() =>
-                  toast.message(e.userName, {
-                    description: `${e.plan.replaceAll("_", " ")} · $${e.amount} · ${e.status}`,
-                  })
-                }
+                onClick={() => setDetail(e)}
               />
               <AdminTableIconAction
                 label="Copy email"
@@ -399,7 +397,55 @@ export default function AdminEnrollmentsPage() {
           setDenyTarget(null);
         }}
       />
+
+      <DrawerCommon
+        open={Boolean(detail)}
+        onOpenChange={(open) => {
+          if (!open) setDetail(null);
+        }}
+        title={detail ? `Enrollment · ${detail.userName}` : "Enrollment"}
+        description={detail?.userEmail}
+        footer={
+          <Button type="button" variant="outline" onClick={() => setDetail(null)}>
+            Close
+          </Button>
+        }
+      >
+        {detail ? (
+          <div className="space-y-3 text-sm">
+            <EnrollmentDetailRow
+              label="Plan"
+              value={detail.plan.replaceAll("_", " ")}
+            />
+            <EnrollmentDetailRow label="Amount" value={`$${detail.amount}`} />
+            <EnrollmentDetailRow label="Status" value={detail.status} />
+            <EnrollmentDetailRow
+              label="Created"
+              value={new Date(detail.createdAt).toLocaleString()}
+            />
+            <EnrollmentDetailRow label="Enrollment ID" value={detail.id} />
+            <EnrollmentDetailRow label="User ID" value={detail.userId} />
+          </div>
+        ) : null}
+      </DrawerCommon>
     </section>
+  );
+}
+
+function EnrollmentDetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-background px-3 py-2.5">
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div className="mt-0.5 font-semibold capitalize text-ink-heading">
+        {value}
+      </div>
+    </div>
   );
 }
 

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
+  changePassword,
   deleteAccount,
   getAccountData,
   getNotifications,
@@ -8,6 +9,7 @@ import {
   saveCommunicationPrefs,
   saveNotificationPrefs,
   saveProfile,
+  setAccountPaused,
   setTwoFA,
 } from "@/lib/api/account";
 import type {
@@ -58,6 +60,28 @@ export function useSetTwoFA() {
   return useMutation({
     mutationFn: (enabled: boolean) => setTwoFA(enabled),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["account"] }),
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    }) => changePassword(currentPassword, newPassword),
+  });
+}
+
+export function useSetAccountPaused() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (paused: boolean) => setAccountPaused(paused),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["account"] });
+    },
   });
 }
 

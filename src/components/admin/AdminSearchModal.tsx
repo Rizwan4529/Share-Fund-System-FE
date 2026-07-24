@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Layers, Search, Users, X } from "lucide-react";
@@ -6,12 +6,12 @@ import { FileText, Layers, Search, Users, X } from "lucide-react";
 import { Typography } from "@/components/common/Typography";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAdminShell } from "@/context/AdminShellContext";
 import {
-  fetchAdminCampaigns,
-  fetchAdminContent,
-  fetchAdminMembers,
+  fetchAdminEnrollments,
+  fetchAdminParticipants,
+  fetchAdminSuccessCenters,
 } from "@/lib/api/admin";
+import { foundingStatusLabel } from "@/lib/auth/roles";
 import { ROUTES } from "@/utils/constants";
 import { cn } from "@/lib/utils";
 
@@ -22,37 +22,36 @@ type AdminSearchModalProps = {
 
 type SearchResult = {
   id: string;
-  type: "member" | "campaign" | "content";
+  type: "participant" | "enrollment" | "center";
   title: string;
   subtitle: string;
   route: string;
-  query: string;
 };
 
 const TYPE_META = {
-  member: { label: "Member", icon: Users },
-  campaign: { label: "Campaign", icon: Layers },
-  content: { label: "Content", icon: FileText },
+  participant: { label: "Participant", icon: Users },
+  enrollment: { label: "Enrollment", icon: FileText },
+  center: { label: "Center", icon: Layers },
 } as const;
 
 export function AdminSearchModal({ open, onClose }: AdminSearchModalProps) {
   const navigate = useNavigate();
-  const { search, setSearch } = useAdminShell();
+  const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: membersData } = useQuery({
-    queryKey: ["admin-members"],
-    queryFn: fetchAdminMembers,
+  const { data: participants = [] } = useQuery({
+    queryKey: ["admin-search-participants"],
+    queryFn: fetchAdminParticipants,
     enabled: open,
   });
-  const { data: campaignsData } = useQuery({
-    queryKey: ["admin-campaigns"],
-    queryFn: fetchAdminCampaigns,
+  const { data: enrollmentData } = useQuery({
+    queryKey: ["admin-search-enrollments"],
+    queryFn: fetchAdminEnrollments,
     enabled: open,
   });
-  const { data: contentData } = useQuery({
-    queryKey: ["admin-content"],
-    queryFn: fetchAdminContent,
+  const { data: centers = [] } = useQuery({
+    queryKey: ["admin-search-centers"],
+    queryFn: fetchAdminSuccessCenters,
     enabled: open,
   });
 
@@ -67,6 +66,7 @@ export function AdminSearchModal({ open, onClose }: AdminSearchModalProps) {
 
   useEffect(() => {
     if (open) {
+      setQuery("");
       const timer = window.setTimeout(() => inputRef.current?.focus(), 50);
       return () => window.clearTimeout(timer);
     }
@@ -82,61 +82,57 @@ export function AdminSearchModal({ open, onClose }: AdminSearchModalProps) {
   }, [open, onClose]);
 
   const results = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = query.trim().toLowerCase();
     if (!q) return [];
 
     const items: SearchResult[] = [];
 
-    membersData?.members.forEach((member) => {
-      if (
-        member.name.toLowerCase().includes(q) ||
-        member.email.toLowerCase().includes(q)
-      ) {
+    participants.forEach((participant) => {
+      const haystack =
+        `${participant.name} ${participant.email} ${foundingStatusLabel(participant.foundingStatus)}`.toLowerCase();
+      if (haystack.includes(q)) {
         items.push({
-          id: `member-${member.id}`,
-          type: "member",
-          title: member.name,
-          subtitle: member.email,
+          id: `participant-${participant.id}`,
+          type: "participant",
+          title: participant.name,
+          subtitle: `${participant.email} · ${foundingStatusLabel(participant.foundingStatus)}`,
           route: ROUTES.ADMIN_PARTICIPANTS,
-          query: member.name,
         });
       }
     });
 
-    campaignsData?.campaigns.forEach((campaign) => {
-      if (
-        campaign.name.toLowerCase().includes(q) ||
-        campaign.owner.toLowerCase().includes(q)
-      ) {
+    enrollmentData?.enrollments.forEach((enrollment) => {
+      const haystack =
+        `${enrollment.userName} ${enrollment.userEmail} ${enrollment.plan} ${enrollment.status}`.toLowerCase();
+      if (haystack.includes(q)) {
         items.push({
-          id: `campaign-${campaign.id}`,
-          type: "campaign",
-          title: campaign.name,
-          subtitle: campaign.owner,
+          id: `enrollment-${enrollment.id}`,
+          type: "enrollment",
+          title: enrollment.userName,
+          subtitle: `${enrollment.plan.replaceAll("_", " ")} · $${enrollment.amount} · ${enrollment.status}`,
+          route: ROUTES.ADMIN_ENROLLMENTS,
+        });
+      }
+    });
+
+    centers.forEach((center) => {
+      const haystack =
+        `${center.name} ${center.filter} ${center.blurb}`.toLowerCase();
+      if (haystack.includes(q)) {
+        items.push({
+          id: `center-${center.id}`,
+          type: "center",
+          title: center.name,
+          subtitle: `${center.filter} · ${center.active ? "Active" : "Inactive"}`,
           route: ROUTES.ADMIN_SUCCESS_CENTERS,
-          query: campaign.name,
-        });
-      }
-    });
-
-    contentData?.content.forEach((item) => {
-      if (item.title.toLowerCase().includes(q)) {
-        items.push({
-          id: `content-${item.id}`,
-          type: "content",
-          title: item.title,
-          subtitle: `${item.type} · ${item.cat}`,
-          route: ROUTES.ADMIN_DISCLOSURES,
-          query: item.title,
         });
       }
     });
 
     return items.slice(0, 12);
-  }, [search, membersData, campaignsData, contentData]);
+  }, [query, participants, enrollmentData, centers]);
 
   const handleSelect = (result: SearchResult) => {
-    setSearch(result.query);
     navigate(result.route);
     onClose();
   };
@@ -157,9 +153,9 @@ export function AdminSearchModal({ open, onClose }: AdminSearchModalProps) {
             <Search className="size-[17px] shrink-0 text-muted-light" />
             <Input
               ref={inputRef}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search members, campaigns, content…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search participants, enrollments, centers…"
               className="h-10 flex-1 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
             />
             <Button
@@ -174,10 +170,10 @@ export function AdminSearchModal({ open, onClose }: AdminSearchModalProps) {
           </div>
 
           <div className="admin-scroll max-h-[min(60vh,420px)] overflow-y-auto p-2">
-            {search.trim() === "" ? (
+            {query.trim() === "" ? (
               <div className="px-3 py-8 text-center">
                 <Typography variant="body-sm" className="text-[#8496b7]">
-                  Search across members, campaigns, and content.
+                  Search participants, enrollments, and Success Centers.
                 </Typography>
               </div>
             ) : results.length === 0 ? (
@@ -221,9 +217,12 @@ export function AdminSearchModal({ open, onClose }: AdminSearchModalProps) {
                         <span
                           className={cn(
                             "shrink-0 rounded-md px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
-                            result.type === "member" && "bg-info-bg text-[#2b5299]",
-                            result.type === "campaign" && "bg-bg-icon text-[#8a6413]",
-                            result.type === "content" && "bg-bg-card text-[#7386a8]",
+                            result.type === "participant" &&
+                              "bg-info-bg text-[#2b5299]",
+                            result.type === "enrollment" &&
+                              "bg-bg-card text-[#7386a8]",
+                            result.type === "center" &&
+                              "bg-bg-icon text-[#8a6413]",
                           )}
                         >
                           {meta.label}

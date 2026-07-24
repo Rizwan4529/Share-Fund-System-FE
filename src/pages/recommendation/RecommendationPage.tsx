@@ -54,9 +54,16 @@ export default function RecommendationPage() {
         title="Recommendations"
         subtitle="Rule-based planning figures. Clearly labeled as simulations — no live funding."
         actions={
-          <GoldButton variant="ghost-outline" asChild>
-            <Link to={ROUTES.QUESTIONNAIRE}>Questionnaire</Link>
-          </GoldButton>
+          <div className="flex flex-wrap gap-2">
+            <GoldButton variant="ghost-outline" asChild>
+              <Link to={ROUTES.QUESTIONNAIRE}>Questionnaire</Link>
+            </GoldButton>
+            {rec ? (
+              <GoldButton asChild>
+                <Link to={ROUTES.ENROLLMENT}>Enroll</Link>
+              </GoldButton>
+            ) : null}
+          </div>
         }
       />
 
@@ -136,6 +143,14 @@ export default function RecommendationPage() {
             <Typography variant="body-sm" className="mt-3 text-muted-soft">
               {rec.notes}
             </Typography>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <GoldButton asChild>
+                <Link to={ROUTES.ENROLLMENT}>Continue to enrollment</Link>
+              </GoldButton>
+              <GoldButton variant="ghost-outline" asChild>
+                <Link to={ROUTES.SUCCESS_CENTERS}>Choose Success Centers</Link>
+              </GoldButton>
+            </div>
           </AppSurfaceCard>
         </div>
       )}

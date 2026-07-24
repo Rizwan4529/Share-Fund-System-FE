@@ -202,10 +202,10 @@ export default function DashboardHomePage() {
           <div className="mb-4 flex items-center justify-between">
             <SectionLabel tone="navy">Recent payments</SectionLabel>
             <Link
-              to={ROUTES.RECOMMENDATION}
+              to={ROUTES.BILLING}
               className="text-xs font-bold text-info hover:underline"
             >
-              Projections
+              View all
             </Link>
           </div>
           {data.payments.length === 0 ? (

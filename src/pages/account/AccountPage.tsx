@@ -24,10 +24,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
 import {
   useAccount,
+  useChangePassword,
   useDeleteAccount,
   useSaveCommunicationPrefs,
   useSaveNotificationPrefs,
   useSaveProfile,
+  useSetAccountPaused,
   useSetTwoFA,
 } from "@/hooks/queries/useAccount";
 import {
@@ -39,12 +41,14 @@ import {
 
 export default function AccountPage() {
   const { section = "profile" } = useParams();
-  const { logout } = useAuth();
+  const { logout, refresh } = useAuth();
   const { data, isLoading } = useAccount();
   const saveProfile = useSaveProfile();
   const saveNotif = useSaveNotificationPrefs();
   const saveComm = useSaveCommunicationPrefs();
   const setTwoFA = useSetTwoFA();
+  const changePassword = useChangePassword();
+  const setPaused = useSetAccountPaused();
   const deleteAccount = useDeleteAccount();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -68,9 +72,30 @@ export default function AccountPage() {
     toast.success("Profile saved.");
   };
 
-  const onSaveSecurity = async () => {
-    toast.success("Security settings updated.");
-    securityForm.reset();
+  const onSaveSecurity = async (values: SecurityFormValues) => {
+    if (!values.newPassword) {
+      toast.error("Enter a new password.");
+      return;
+    }
+    try {
+      await changePassword.mutateAsync({
+        currentPassword: values.currentPassword ?? "",
+        newPassword: values.newPassword,
+      });
+      toast.success("Password updated.");
+      securityForm.reset();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not update password.",
+      );
+    }
+  };
+
+  const handlePause = async () => {
+    const next = !data?.profile.paused;
+    await setPaused.mutateAsync(Boolean(next));
+    await refresh();
+    toast.success(next ? "Account paused." : "Account resumed.");
   };
 
   const handleDelete = async () => {
@@ -102,8 +127,14 @@ export default function AccountPage() {
                   initials={data?.profile.avatarInitials ?? "?"}
                   className="size-[72px] text-2xl"
                 />
-                <GoldButton type="button" variant="ghost-outline" size="sm">
-                  Change photo
+                <GoldButton
+                  type="button"
+                  variant="ghost-outline"
+                  size="sm"
+                  disabled
+                  title="Photo upload coming soon"
+                >
+                  Change photo (coming soon)
                 </GoldButton>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -129,6 +160,7 @@ export default function AccountPage() {
                 {data?.profile.selectedCenterIds.length ?? 0}/
                 {data?.profile.centerLimit ?? 0} · Questionnaire:{" "}
                 {data?.profile.questionnaireComplete ? "complete" : "incomplete"}
+                {data?.profile.paused ? " · Paused" : ""}
               </div>
               <div className="flex gap-3 pt-2">
                 <GoldButton type="submit" size="app">Save changes</GoldButton>
@@ -149,7 +181,13 @@ export default function AccountPage() {
               <Input control={securityForm.control} name="currentPassword" label="Current password" type="password" />
               <Input control={securityForm.control} name="newPassword" label="New password" type="password" />
               <Input control={securityForm.control} name="confirmPassword" label="Confirm password" type="password" />
-              <GoldButton type="submit" size="app">Update password</GoldButton>
+              <GoldButton
+                type="submit"
+                size="app"
+                disabled={changePassword.isPending}
+              >
+                {changePassword.isPending ? "Updating…" : "Update password"}
+              </GoldButton>
             </FormCommon>
             <div className="mt-8 border-t border-line pt-6">
               <PreferenceToggleRow
@@ -213,12 +251,22 @@ export default function AccountPage() {
           >
             <div className="space-y-4">
               <div className="rounded-panel border border-line bg-bg-card p-5">
-                <h3 className="font-display text-[16px] font-bold text-ink-heading">Pause account</h3>
+                <h3 className="font-display text-[16px] font-bold text-ink-heading">
+                  {data?.profile.paused ? "Resume account" : "Pause account"}
+                </h3>
                 <p className="mt-1 text-[14px] text-muted-soft">
-                  Temporarily hide your profile and pause campaign activity.
+                  {data?.profile.paused
+                    ? "Your account is paused. Resume to restore full participant access."
+                    : "Temporarily hide your profile and pause campaign activity."}
                 </p>
-                <GoldButton variant="ghost-outline" className="mt-4" size="sm">
-                  Pause account
+                <GoldButton
+                  variant="ghost-outline"
+                  className="mt-4"
+                  size="sm"
+                  disabled={setPaused.isPending}
+                  onClick={() => void handlePause()}
+                >
+                  {data?.profile.paused ? "Resume account" : "Pause account"}
                 </GoldButton>
               </div>
               <AccountDangerCard

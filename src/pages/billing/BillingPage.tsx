@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Receipt } from "lucide-react";
+import { toast } from "sonner";
 
 import { EmptyState } from "@/components/common/EmptyState";
 import { GoldButton } from "@/components/common/GoldButton";
@@ -12,7 +13,7 @@ import {
   SectionLabel,
   StatusChip,
 } from "@/components/member/app";
-import { listMyPayments } from "@/lib/api/enrollment";
+import { listMyPayments, requestRefund } from "@/lib/api/enrollment";
 import type { PaymentRecord, PaymentStatus } from "@/types";
 import { ROUTES } from "@/utils/constants";
 
@@ -25,19 +26,41 @@ function statusTone(
   return "muted";
 }
 
+function canRequestRefund(p: PaymentRecord) {
+  if (p.status !== "succeeded" || p.refundStatus !== "none") return false;
+  const deadline = new Date(p.refundDeadline);
+  if (!Number.isFinite(deadline.getTime())) return true;
+  return Date.now() <= deadline.getTime();
+}
+
 export default function BillingPage() {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [requestingId, setRequestingId] = useState<string | null>(null);
+
+  const reload = () =>
+    void listMyPayments()
+      .then(setPayments)
+      .finally(() => setLoading(false));
 
   useEffect(() => {
-    void (async () => {
-      try {
-        setPayments(await listMyPayments());
-      } finally {
-        setLoading(false);
-      }
-    })();
+    reload();
   }, []);
+
+  const onRequestRefund = async (paymentId: string) => {
+    setRequestingId(paymentId);
+    try {
+      await requestRefund(paymentId);
+      toast.success("Refund requested. An admin will review it.");
+      reload();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not request refund.",
+      );
+    } finally {
+      setRequestingId(null);
+    }
+  };
 
   return (
     <AppPageContainer>
@@ -99,6 +122,20 @@ export default function BillingPage() {
                   <div>Refund amount: ${p.refundAmount}</div>
                 ) : null}
               </div>
+              {canRequestRefund(p) ? (
+                <div className="mt-4">
+                  <GoldButton
+                    size="sm"
+                    variant="ghost-outline"
+                    disabled={requestingId === p.id}
+                    onClick={() => void onRequestRefund(p.id)}
+                  >
+                    {requestingId === p.id
+                      ? "Requesting…"
+                      : "Request refund"}
+                  </GoldButton>
+                </div>
+              ) : null}
             </AppSurfaceCard>
           ))}
         </div>

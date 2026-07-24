@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { SearchX } from "lucide-react";
 
+import { EmptyState } from "@/components/common/EmptyState";
 import { GoldButton } from "@/components/common/GoldButton";
 import { Typography } from "@/components/common/Typography";
 import {
@@ -17,15 +19,36 @@ import { ROUTES } from "@/utils/constants";
 export default function SuccessCenterDetailPage() {
   const { centerId = "" } = useParams();
   const [center, setCenter] = useState<SuccessCenter | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    void getSuccessCenter(centerId).then(setCenter);
+    setLoading(true);
+    void getSuccessCenter(centerId)
+      .then(setCenter)
+      .finally(() => setLoading(false));
   }, [centerId]);
+
+  if (loading) {
+    return (
+      <AppPageContainer>
+        <div className="h-40 animate-pulse rounded-panel bg-muted" />
+      </AppPageContainer>
+    );
+  }
 
   if (!center) {
     return (
       <AppPageContainer>
-        <div className="h-40 animate-pulse rounded-panel bg-muted" />
+        <EmptyState
+          icon={SearchX}
+          title="Success Center not found"
+          description="That center doesn’t exist or is no longer available."
+          action={
+            <GoldButton asChild>
+              <Link to={ROUTES.SUCCESS_CENTERS}>Browse Success Centers</Link>
+            </GoldButton>
+          }
+        />
       </AppPageContainer>
     );
   }

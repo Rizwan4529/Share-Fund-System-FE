@@ -210,6 +210,8 @@ export type AuthUser = UserProfile & {
   questionnaireAnswers: QuestionnaireAnswer[];
   bmisProfile: BmisProfile;
   recommendationId: string | null;
+  /** Demo-only: pause hides profile activity until resumed. */
+  paused?: boolean;
 };
 
 export type NotificationPrefs = {

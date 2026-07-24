@@ -100,11 +100,18 @@ export async function loginUser(
 export async function signupUser(
   name: string,
   email: string,
-  _password: string,
+  password: string,
 ): Promise<AuthUser> {
   await delay();
   const user = createUserFromSignup(name, email);
-  setStore({ user });
+  const store = getStore();
+  setStore({
+    user,
+    credentials: {
+      ...store.credentials,
+      [email.toLowerCase()]: password,
+    },
+  });
   appendAudit(email, "Registered new participant account");
   return user;
 }
@@ -194,6 +201,17 @@ export async function sendResetEmail(_email: string): Promise<void> {
   await delay();
 }
 
-export async function resetPassword(_password: string): Promise<void> {
+export async function resetPassword(
+  email: string,
+  password: string,
+): Promise<void> {
   await delay();
+  const store = getStore();
+  setStore({
+    credentials: {
+      ...store.credentials,
+      [email.toLowerCase()]: password,
+    },
+  });
+  appendAudit(email, "Reset password (demo)");
 }

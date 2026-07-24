@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { filterRowsBySearch } from "@/hooks/useAdminTableSearch";
 import { useClientTablePage } from "@/hooks/useClientTablePage";
 import {
@@ -207,7 +208,7 @@ export default function AdminSuccessCentersPage() {
         open={drawerOpen}
         onOpenChange={closeDrawer}
         title={isCreate ? "New Success Center" : "Edit Success Center"}
-        description="Update name, blurb, description, and notices."
+        description="Update name, category, content, and availability."
         footer={
           <>
             <Button
@@ -243,6 +244,39 @@ export default function AdminSuccessCentersPage() {
               />
             </div>
             <div className="space-y-1.5">
+              <Label htmlFor="sc-filter">Category</Label>
+              <select
+                id="sc-filter"
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                value={editing.filter}
+                onChange={(e) =>
+                  setEditing({
+                    ...editing,
+                    filter: e.target.value as SuccessCenter["filter"],
+                  })
+                }
+              >
+                <option value="essentials">Essentials</option>
+                <option value="financial">Financial</option>
+                <option value="business">Business</option>
+              </select>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5">
+              <div>
+                <Label htmlFor="sc-active">Active</Label>
+                <p className="text-xs text-muted-foreground">
+                  Inactive centers are hidden from participants.
+                </p>
+              </div>
+              <Switch
+                id="sc-active"
+                checked={editing.active}
+                onCheckedChange={(v) =>
+                  setEditing({ ...editing, active: v })
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="sc-blurb">Short blurb</Label>
               <Input
                 id="sc-blurb"
@@ -263,6 +297,18 @@ export default function AdminSuccessCentersPage() {
                 }
                 placeholder="Long description"
                 className="min-h-28"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="sc-content">Content</Label>
+              <Textarea
+                id="sc-content"
+                value={editing.content}
+                onChange={(e) =>
+                  setEditing({ ...editing, content: e.target.value })
+                }
+                placeholder="Additional content shown on the detail page"
+                className="min-h-24"
               />
             </div>
             <div className="space-y-1.5">

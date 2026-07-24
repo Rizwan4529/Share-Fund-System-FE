@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Bell, ChevronDown, LogOut, Menu, Settings } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Search, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { AdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbs";
+import { AdminSearchModal } from "@/components/admin/AdminSearchModal";
 import { Typography } from "@/components/common/Typography";
 import { Button } from "@/components/ui/button";
 import { useAdminShell } from "@/context/AdminShellContext";
@@ -26,12 +27,26 @@ export function AdminTopBar() {
   const { hasNotifications, markAllNotificationsRead } = useAdminShell();
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [notifications, setNotifications] = useState<
     Awaited<ReturnType<typeof fetchAdminNotifications>>
   >([]);
 
   useEffect(() => {
     void fetchAdminNotifications().then(setNotifications);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen(true);
+        setNotifOpen(false);
+        setUserOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
   const handleLogout = async () => {
@@ -63,11 +78,20 @@ export function AdminTopBar() {
         </div>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
-          {/* PHASE2: date-range filter parked
-          <div className="hidden overflow-x-auto sm:block">
-            <AdminSegmentedControl ... />
-          </div>
-          */}
+          <Button
+            type="button"
+            variant="ghost-outline"
+            size="icon"
+            className="relative size-10 rounded-md border-[#e0e7f1]"
+            onClick={() => {
+              setSearchOpen(true);
+              setNotifOpen(false);
+              setUserOpen(false);
+            }}
+            aria-label="Search"
+          >
+            <Search className="size-[18px] text-[#33425f]" />
+          </Button>
 
           <div className="relative">
             <Button
@@ -196,6 +220,8 @@ export function AdminTopBar() {
           </div>
         </div>
       </header>
+
+      <AdminSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }

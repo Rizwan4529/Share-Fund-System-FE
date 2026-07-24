@@ -32,6 +32,11 @@ export type Phase1Store = {
   user: AuthUser | null;
   /** Persisted accounts so logout/login restores the same participant. */
   accounts: AuthUser[];
+  /**
+   * Demo credentials map (email → password). Phase 1 mock only —
+   * replaced by real auth before any live use.
+   */
+  credentials: Record<string, string>;
   settings: PlatformSettings;
   successCenters: SuccessCenter[];
   disclosures: DisclosureDoc[];
@@ -55,6 +60,7 @@ const emptyBmis: BmisProfile = {
 const defaultStore: Phase1Store = {
   user: null,
   accounts: [],
+  credentials: {},
   settings: structuredClone(DEFAULT_PRICING_SETTINGS),
   successCenters: structuredClone(SEED_SUCCESS_CENTERS),
   disclosures: structuredClone(SEED_DISCLOSURES),
@@ -90,6 +96,10 @@ function readStore(): Phase1Store {
     return {
       ...structuredClone(defaultStore),
       ...parsed,
+      credentials: {
+        ...defaultStore.credentials,
+        ...(parsed.credentials ?? {}),
+      },
       settings: {
         ...structuredClone(DEFAULT_PRICING_SETTINGS),
         ...(parsed.settings ?? {}),

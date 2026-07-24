@@ -17,8 +17,13 @@ import {
 } from "@/lib/api/settings";
 import type { PlatformSettings } from "@/types";
 
+function isInvalidNumber(n: number) {
+  return Number.isNaN(n) || !Number.isFinite(n) || n < 0;
+}
+
 export default function AdminPricingPage() {
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     void getPlatformSettings().then(setSettings);
@@ -30,9 +35,34 @@ export default function AdminPricingPage() {
 
   const p = settings.pricing;
 
+  const validate = () => {
+    const values = [
+      p.regularPricePerCenter,
+      p.foundingPriceOne,
+      p.foundingPriceBundle,
+      p.bundleCenterCount,
+      p.tiers.personal,
+      p.tiers.professional_partner,
+      p.tiers.organizational,
+      p.founderStack.price,
+      p.founderStack.successCenterCount,
+    ];
+    if (values.some(isInvalidNumber)) {
+      toast.error("All prices and counts must be valid numbers that are 0 or greater.");
+      return false;
+    }
+    return true;
+  };
+
   const save = async () => {
-    await updatePlatformSettings(settings);
-    toast.success("Pricing settings saved.");
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      await updatePlatformSettings(settings);
+      toast.success("Pricing settings saved.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -41,8 +71,8 @@ export default function AdminPricingPage() {
         title="Pricing"
         subtitle="Administrator-configurable Founding and Founder Stack pricing."
         actions={
-          <GoldButton size="sm" onClick={() => void save()}>
-            Save pricing
+          <GoldButton size="sm" disabled={saving} onClick={() => void save()}>
+            {saving ? "Saving…" : "Save pricing"}
           </GoldButton>
         }
       />
@@ -257,8 +287,13 @@ function Field({
       <Label>{label}</Label>
       <Input
         type="number"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        min={0}
+        step="any"
+        value={Number.isNaN(value) ? "" : value}
+        onChange={(e) => {
+          const raw = e.target.value;
+          onChange(raw === "" ? Number.NaN : Number(raw));
+        }}
       />
     </div>
   );

@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ArrowRight, Inbox, Lock, Mail } from "lucide-react";
+import { ArrowRight, CheckCircle2, Inbox, Lock, Mail } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   AuthBackLink,
@@ -16,11 +18,12 @@ import { sendResetEmail, resetPassword } from "@/lib/api/auth";
 import { forgotEmailSchema, resetPasswordSchema } from "@/lib/schemas/auth";
 import { ROUTES } from "@/utils/constants";
 
-type Step = "email" | "sent" | "reset";
+type Step = "email" | "sent" | "reset" | "done";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
+  const [resending, setResending] = useState(false);
 
   const emailForm = useForm<{ email: string }>({
     resolver: zodResolver(forgotEmailSchema),
@@ -38,9 +41,20 @@ export default function ForgotPasswordPage() {
     setStep("sent");
   };
 
+  const onResend = async () => {
+    setResending(true);
+    try {
+      await sendResetEmail(email);
+      toast.success("Reset email resent (demo).");
+    } finally {
+      setResending(false);
+    }
+  };
+
   const onReset = async (data: { password: string }) => {
-    await resetPassword(data.password);
-    setStep("email");
+    await resetPassword(email, data.password);
+    resetForm.reset();
+    setStep("done");
   };
 
   return (
@@ -96,8 +110,13 @@ export default function ForgotPasswordPage() {
           >
             Open reset screen (demo)
           </Button>
-          <button type="button" className="text-[13px] font-semibold text-gold-dark">
-            Resend email
+          <button
+            type="button"
+            className="text-[13px] font-semibold text-gold-dark disabled:opacity-60"
+            disabled={resending}
+            onClick={() => void onResend()}
+          >
+            {resending ? "Sending…" : "Resend email"}
           </button>
         </div>
       ) : null}
@@ -137,6 +156,25 @@ export default function ForgotPasswordPage() {
             </GoldButton>
           </FormCommon>
         </>
+      ) : null}
+
+      {step === "done" ? (
+        <div className="text-center">
+          <AuthStepIcon variant="green">
+            <CheckCircle2 className="size-6" strokeWidth={1.7} />
+          </AuthStepIcon>
+          <Typography variant="h3" className="text-[26px] font-bold text-ink-heading">
+            Password updated
+          </Typography>
+          <Typography variant="body-sm" color="muted" className="mt-2 mb-6 text-[15px]">
+            Your password has been reset. You can sign in with your new credentials.
+          </Typography>
+          <GoldButton size="auth" className="w-full" asChild>
+            <Link to={ROUTES.LOGIN}>
+              Back to log in <ArrowRight className="size-4" />
+            </Link>
+          </GoldButton>
+        </div>
       ) : null}
     </div>
   );

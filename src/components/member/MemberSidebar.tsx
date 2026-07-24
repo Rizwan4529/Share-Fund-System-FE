@@ -2,6 +2,7 @@ import {
   GoldAvatar,
   MemberNavLink,
   NavIconAccount,
+  NavIconBilling,
   NavIconCampaigns,
   NavIconDashboard,
   NavIconRewards,
@@ -25,7 +26,7 @@ const NAV = [
     label: "Enrollment",
     icon: <NavIconRewards />,
   },
-  { to: ROUTES.BILLING, label: "Billing", icon: <NavIconAccount /> },
+  { to: ROUTES.BILLING, label: "Billing", icon: <NavIconBilling /> },
   { to: ROUTES.ACCOUNT, label: "Account", icon: <NavIconAccount /> },
 ];
 

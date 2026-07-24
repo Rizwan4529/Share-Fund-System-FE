@@ -1,13 +1,28 @@
+import { useState } from "react";
 import { Mail } from "lucide-react";
+import { toast } from "sonner";
 
 import { GoldButton } from "@/components/common/GoldButton";
 import { Typography } from "@/components/common/Typography";
 import { useAuth } from "@/context/AuthContext";
+import { sendResetEmail } from "@/lib/api/auth";
 import { ASSETS } from "@/utils/assets";
 
 export function VerifyWelcomeCard() {
   const { user, verify } = useAuth();
   const firstName = user?.name?.split(" ")[0] ?? "there";
+  const [resending, setResending] = useState(false);
+
+  const onResend = async () => {
+    if (!user?.email) return;
+    setResending(true);
+    try {
+      await sendResetEmail(user.email);
+      toast.success("Verification email resent (demo).");
+    } finally {
+      setResending(false);
+    }
+  };
 
   return (
     <div className="flex min-h-svh flex-col bg-[radial-gradient(ellipse_at_center,#eef2f8_0%,#e4e9f2_100%)] p-6">
@@ -43,8 +58,13 @@ export function VerifyWelcomeCard() {
           </GoldButton>
           <Typography variant="body-sm" color="muted" className="mt-4 text-[14px]">
             Didn&apos;t get it?{" "}
-            <button type="button" className="font-semibold text-gold-dark">
-              Resend email
+            <button
+              type="button"
+              className="font-semibold text-gold-dark disabled:opacity-60"
+              disabled={resending}
+              onClick={() => void onResend()}
+            >
+              {resending ? "Sending…" : "Resend email"}
             </button>
           </Typography>
         </div>

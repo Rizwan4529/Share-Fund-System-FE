@@ -38,6 +38,16 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const { user, finishOnboarding } = useAuth();
 
+  const skipControl = (
+    <button
+      type="button"
+      className="text-sm font-semibold text-muted-foreground transition-colors hover:text-ink-heading lg:hidden"
+      onClick={() => void finishOnboarding()}
+    >
+      Skip for now →
+    </button>
+  );
+
   return (
     <OnboardingLayout
       rail={
@@ -70,6 +80,7 @@ export default function OnboardingPage() {
           <GoldButton size="app" className="mt-8" onClick={() => setStep(1)}>
             Let&apos;s begin
           </GoldButton>
+          <div className="mt-4 flex justify-center">{skipControl}</div>
         </div>
       ) : null}
 
@@ -89,11 +100,12 @@ export default function OnboardingPage() {
             Three steps to a working participant account.
           </Typography>
           <OnboardingHowItWorksList items={HOW_ITEMS} />
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <GoldButton variant="ghost-outline" onClick={() => setStep(0)}>
               Back
             </GoldButton>
             <GoldButton onClick={() => setStep(2)}>Continue</GoldButton>
+            {skipControl}
           </div>
         </div>
       ) : null}
@@ -123,6 +135,7 @@ export default function OnboardingPage() {
             Continue to questionnaire
             <ArrowRight className="ml-2 size-4" />
           </GoldButton>
+          <div className="mt-4 flex justify-center">{skipControl}</div>
         </div>
       ) : null}
     </OnboardingLayout>

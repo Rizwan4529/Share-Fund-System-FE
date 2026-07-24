@@ -33,11 +33,16 @@ const emptyDraft = (): DraftRule => ({
   description: "",
 });
 
+function isInvalidNumber(n: number) {
+  return Number.isNaN(n) || !Number.isFinite(n) || n < 0;
+}
+
 export default function AdminRulesPage() {
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [draft, setDraft] = useState<DraftRule>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     void getPlatformSettings().then(setSettings);
@@ -54,9 +59,35 @@ export default function AdminRulesPage() {
     setSettings({ ...settings, rules: { ...r, ...next } });
   };
 
+  const validateRules = () => {
+    const values = [
+      r.platformFeePercent,
+      r.refundReservePercent,
+      r.refundWindowDays,
+      r.maxCentersPerParticipant,
+      r.defaultTimelineMonths,
+      r.recommendationBudgetFactor,
+      r.recommendationTimelineFactor,
+      r.caps.maxRecommendedBudget,
+      r.caps.minMonthlySetAside,
+      ...customRules.map((rule) => rule.value),
+    ];
+    if (values.some(isInvalidNumber)) {
+      toast.error("All rule values must be valid numbers that are 0 or greater.");
+      return false;
+    }
+    return true;
+  };
+
   const save = async () => {
-    await updatePlatformSettings(settings);
-    toast.success("Rules saved.");
+    if (!validateRules()) return;
+    setSaving(true);
+    try {
+      await updatePlatformSettings(settings);
+      toast.success("Rules saved.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const openCreate = () => {
@@ -91,8 +122,8 @@ export default function AdminRulesPage() {
       return;
     }
     const value = Number(draft.value);
-    if (Number.isNaN(value)) {
-      toast.error("Enter a valid number.");
+    if (isInvalidNumber(value)) {
+      toast.error("Enter a valid number that is 0 or greater.");
       return;
     }
 
@@ -109,7 +140,11 @@ export default function AdminRulesPage() {
 
     patchRules({ customRules: nextCustom });
     closeDrawer(false);
-    toast.success(editingId ? "Rule updated." : "Rule added.");
+    toast.success(
+      editingId
+        ? "Rule updated. Click Save rules to persist."
+        : "Rule added. Click Save rules to persist.",
+    );
   };
 
   const removeCustom = (id: string) => {
@@ -124,18 +159,23 @@ export default function AdminRulesPage() {
         subtitle="Fees, percentages, caps, limits, timelines, and recommendation placeholders."
         actions={
           <div className="flex flex-wrap gap-2">
-            {/* <Button
+            <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={openCreate}
+              disabled={saving}
             >
               <Plus className="size-4" />
               Add rule
-            </Button> */}
-            {/* <GoldButton size="sm" onClick={() => void save()}>
-              Save rules
-            </GoldButton> */}
+            </Button>
+            <GoldButton
+              size="sm"
+              disabled={saving}
+              onClick={() => void save()}
+            >
+              {saving ? "Saving…" : "Save rules"}
+            </GoldButton>
           </div>
         }
       />

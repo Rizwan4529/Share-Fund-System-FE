@@ -30,7 +30,7 @@ export default function EnrollmentCheckoutPage() {
   const planId = (params.get("plan") ?? "founding_one") as EnrollmentPlan;
   const navigate = useNavigate();
   const { refresh } = useAuth();
-  const [plans, setPlans] = useState<CheckoutPlanOption[]>([]);
+  const [plans, setPlans] = useState<CheckoutPlanOption[] | null>(null);
   const [ack, setAck] = useState<DisclosureDoc | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -41,7 +41,7 @@ export default function EnrollmentCheckoutPage() {
   }, []);
 
   const plan = useMemo(
-    () => plans.find((p) => p.plan === planId) ?? null,
+    () => plans?.find((p) => p.plan === planId) ?? null,
     [plans, planId],
   );
 
@@ -77,10 +77,27 @@ export default function EnrollmentCheckoutPage() {
     }
   };
 
-  if (!plan) {
+  if (plans === null) {
     return (
       <AppPageContainer>
         <div className="h-40 animate-pulse rounded-panel bg-muted" />
+      </AppPageContainer>
+    );
+  }
+
+  if (!plan) {
+    return (
+      <AppPageContainer>
+        <ParticipantPageHeader
+          overline="Checkout"
+          title="Plan not found"
+          subtitle="That enrollment plan isn’t available. Choose a plan to continue."
+          actions={
+            <GoldButton asChild>
+              <Link to={ROUTES.ENROLLMENT}>Browse plans</Link>
+            </GoldButton>
+          }
+        />
       </AppPageContainer>
     );
   }
@@ -147,7 +164,8 @@ export default function EnrollmentCheckoutPage() {
         <AppSurfaceCard className="flex flex-col gap-3 lg:col-span-2">
           <SectionLabel tone="navy">Mock Stripe</SectionLabel>
           <Typography variant="body-sm" className="text-muted-soft">
-            // TODO: Stripe Elements when BE ready
+            Card entry is simulated for Phase 1. Live Stripe Elements will replace
+            this mock when the backend is ready.
           </Typography>
           <GoldButton disabled={busy} className="w-full" onClick={() => void pay(false)}>
             {busy ? "Processing…" : `Pay $${plan.price}`}
