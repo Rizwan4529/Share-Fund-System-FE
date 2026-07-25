@@ -105,8 +105,8 @@ export default function EnrollmentCheckoutPage() {
   return (
     <AppPageContainer>
       <ParticipantPageHeader
-        overline="Checkout"
-        title="Complete enrollment"
+        overline="Founding Access · Checkout"
+        title="Complete Founding Access"
         subtitle="Mock payment provider for Phase 1. Stripe Elements land with the backend."
         actions={
           <GoldButton variant="ghost-outline" asChild>
@@ -137,7 +137,8 @@ export default function EnrollmentCheckoutPage() {
             <StatusChip tone="muted">one-time · mock</StatusChip>
           </div>
           <Typography variant="body-sm" className="mt-2 text-muted-soft">
-            {plan.centerLimit} Success Center access
+            Founding Access to {plan.centerLimit} Success Center categor
+            {plan.centerLimit === 1 ? "y" : "ies"}
           </Typography>
 
           <div className="mt-6 space-y-3 rounded-lg border border-line bg-bg-card p-4">

@@ -23,7 +23,7 @@ const NAV = [
   },
   {
     to: ROUTES.ENROLLMENT,
-    label: "Enrollment",
+    label: "Founding Access",
     icon: <NavIconRewards />,
   },
   { to: ROUTES.BILLING, label: "Billing", icon: <NavIconBilling /> },
@@ -49,8 +49,8 @@ export function MemberSidebarContent({
 
   return (
     <div className={cn("flex h-full flex-col px-[18px] py-[26px]", className)}>
-      <div className="px-2.5 pb-[26px]">
-        <img src={ASSETS.logoLight} alt="SFS" className="h-[30px] w-auto" />
+      <div className="px-2.5 pb-[30px]">
+        <img src={ASSETS.logoLight} alt="SFS" className="h-[38px] w-auto" />
       </div>
       <nav className="flex flex-1 flex-col gap-1">
         {NAV.map(({ to, label, icon }) => (

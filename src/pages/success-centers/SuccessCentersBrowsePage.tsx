@@ -85,11 +85,11 @@ export default function SuccessCentersBrowsePage() {
       <ParticipantPageHeader
         overline="BMIS"
         title="Success Centers"
-        subtitle="Goal categories with planning tools. Figures shown later are projections, not live funding."
+        subtitle="Explore Success Center categories and specialized programs with education, planning tools, and BMIS recommendations."
         actions={
           !canSelect ? (
             <GoldButton asChild>
-              <Link to={ROUTES.ENROLLMENT}>Enroll to unlock</Link>
+              <Link to={ROUTES.ENROLLMENT}>Get Founding Access</Link>
             </GoldButton>
           ) : (
             <GoldButton onClick={onSave} disabled={saving}>
@@ -103,8 +103,8 @@ export default function SuccessCentersBrowsePage() {
 
       {!canSelect ? (
         <InfoCallout className="mb-5">
-          Selection is locked until you enroll. Founding plans unlock 1, 3, or 8
-          centers depending on the offer.
+          Selection unlocks with Founding Access. Founding plans include 1, 3, or
+          up to 8 categories depending on the offer.
         </InfoCallout>
       ) : null}
 
@@ -160,7 +160,14 @@ export default function SuccessCentersBrowsePage() {
                 >
                   {center.blurb}
                 </Typography>
-                <div className="mt-5 flex flex-wrap gap-2">
+                <Typography
+                  variant="caption"
+                  className="mt-3 block font-semibold text-info"
+                >
+                  {center.programs.length} program
+                  {center.programs.length === 1 ? "" : "s"}
+                </Typography>
+                <div className="mt-4 flex flex-wrap gap-2">
                   <GoldButton
                     variant={isOn ? "ghost-outline" : "gold"}
                     onClick={() => toggle(center.id)}
@@ -176,7 +183,9 @@ export default function SuccessCentersBrowsePage() {
                     )}
                   </GoldButton>
                   <GoldButton variant="ghost-outline" asChild>
-                    <Link to={`/success-centers/${center.id}`}>Details</Link>
+                    <Link to={`/success-centers/${center.id}`}>
+                      Explore Programs
+                    </Link>
                   </GoldButton>
                 </div>
               </AppSurfaceCard>

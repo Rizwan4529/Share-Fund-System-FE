@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Check } from "lucide-react";
 import { toast } from "sonner";
 
 import { GoldButton } from "@/components/common/GoldButton";
@@ -7,58 +8,102 @@ import { Typography } from "@/components/common/Typography";
 import {
   AppPageContainer,
   AppSurfaceCard,
-  InfoCallout,
   ParticipantPageHeader,
   SectionLabel,
 } from "@/components/member/app";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import {
-  PLACEHOLDER_QUESTIONS,
-  getQuestionnaire,
-  saveQuestionnaire,
+  getSuccessProfile,
+  saveSuccessProfile,
 } from "@/lib/api/questionnaire";
-import type { QuestionnaireAnswer } from "@/types";
+import {
+  REQUIRED_PROFILE_FIELDS,
+  SUCCESS_PROFILE_STEPS,
+  type FieldDef,
+} from "@/lib/questionnaire/schema";
+import { cn } from "@/lib/utils";
+import type { SuccessCenter, SuccessProfile } from "@/types";
 import { ROUTES } from "@/utils/constants";
+
+const selectClass =
+  "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 export default function QuestionnairePage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [profile, setProfile] = useState<SuccessProfile | null>(null);
+  const [categories, setCategories] = useState<SuccessCenter[]>([]);
+  const [stepIdx, setStepIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     void (async () => {
       try {
-        const data = await getQuestionnaire();
-        const map: Record<string, string> = {};
-        for (const a of data.answers) map[a.questionId] = a.value;
-        setValues(map);
+        const data = await getSuccessProfile();
+        setProfile(data.profile);
+        setCategories(data.categories);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const answers: QuestionnaireAnswer[] = PLACEHOLDER_QUESTIONS.map((q) => ({
-      questionId: q.id,
-      questionLabel: q.label,
-      value: values[q.id]?.trim() ?? "",
-    }));
-    if (!answers[0]?.value || !answers[1]?.value || !answers[2]?.value) {
-      toast.error("Please answer the required goal and amount questions.");
+  const programs = useMemo(() => {
+    if (!profile) return [];
+    return (
+      categories.find((c) => c.id === profile.selectedCategoryId)?.programs ?? []
+    );
+  }, [categories, profile]);
+
+  const step = SUCCESS_PROFILE_STEPS[stepIdx]!;
+  const isLast = stepIdx === SUCCESS_PROFILE_STEPS.length - 1;
+
+  const set = (key: keyof SuccessProfile, value: SuccessProfile[keyof SuccessProfile]) =>
+    setProfile((prev) => (prev ? { ...prev, [key]: value } : prev));
+
+  const missingRequired = (): boolean => {
+    if (!profile) return true;
+    const stepRequired = step.fields.filter((f) => f.required);
+    return stepRequired.some((f) => {
+      const v = profile[f.key];
+      if (typeof v === "boolean") return !v;
+      if (typeof v === "number") return !(v > 0);
+      return String(v ?? "").trim().length === 0;
+    });
+  };
+
+  const next = () => {
+    if (missingRequired()) {
+      toast.error("Please complete the required fields on this step.");
+      return;
+    }
+    setStepIdx((i) => Math.min(i + 1, SUCCESS_PROFILE_STEPS.length - 1));
+  };
+
+  const back = () => setStepIdx((i) => Math.max(i - 1, 0));
+
+  const submit = async () => {
+    if (!profile) return;
+    const missing = REQUIRED_PROFILE_FIELDS.filter((key) => {
+      const v = profile[key];
+      if (typeof v === "boolean") return !v;
+      if (typeof v === "number") return !(v > 0);
+      return String(v ?? "").trim().length === 0;
+    });
+    if (missing.length > 0) {
+      toast.error("Some required Success Profile fields are still missing.");
       return;
     }
     setSaving(true);
     try {
-      await saveQuestionnaire(answers);
+      await saveSuccessProfile(profile);
       await refresh();
-      toast.success("Questionnaire saved. Projection generated.");
+      toast.success("Success Profile saved. Your BMIS projection is ready.");
       navigate(ROUTES.RECOMMENDATION);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not save.");
@@ -67,7 +112,7 @@ export default function QuestionnairePage() {
     }
   };
 
-  if (loading) {
+  if (loading || !profile) {
     return (
       <AppPageContainer>
         <div className="h-40 animate-pulse rounded-panel bg-muted" />
@@ -78,60 +123,223 @@ export default function QuestionnairePage() {
   return (
     <AppPageContainer>
       <ParticipantPageHeader
-        overline="BMIS intake"
-        title="Questionnaire"
-        subtitle="Placeholder questions until the final BMIS set is provided. Answers drive projection simulations only."
+        overline="BMIS · Success Profile"
+        title="Success Profile"
+        subtitle="A short intake that powers your rule-based BMIS planning projections. No live funding is involved."
       />
 
-      <InfoCallout className="mb-6 max-w-2xl">
-        No live funding is involved. Your answers feed a rule-based planning
-        budget and timeline estimate.
-      </InfoCallout>
+      <ol className="mb-6 flex flex-wrap gap-2">
+        {SUCCESS_PROFILE_STEPS.map((s, i) => {
+          const done = i < stepIdx;
+          const active = i === stepIdx;
+          return (
+            <li key={s.id}>
+              <button
+                type="button"
+                onClick={() => i <= stepIdx && setStepIdx(i)}
+                className={cn(
+                  "flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
+                  active
+                    ? "border-primary bg-primary-light text-primary-foreground"
+                    : done
+                      ? "border-info/40 bg-info-bg/50 text-info"
+                      : "border-line bg-bg-card text-muted-soft",
+                )}
+              >
+                <span className="flex size-4 items-center justify-center rounded-full bg-current/15 text-[10px]">
+                  {done ? <Check className="size-3" /> : i + 1}
+                </span>
+                {s.title}
+              </button>
+            </li>
+          );
+        })}
+      </ol>
 
       <AppSurfaceCard className="max-w-2xl">
-        <SectionLabel tone="info">Your answers</SectionLabel>
-        <form className="mt-5 space-y-5" onSubmit={onSubmit}>
-          {PLACEHOLDER_QUESTIONS.map((q) => (
-            <div key={q.id} className="space-y-2">
-              <Label htmlFor={q.id} className="text-sm font-semibold text-ink-heading">
-                {q.label}
-              </Label>
-              {q.id === "situation" ? (
-                <Textarea
-                  id={q.id}
-                  placeholder={q.placeholder}
-                  value={values[q.id] ?? ""}
-                  onChange={(e) =>
-                    setValues((v) => ({ ...v, [q.id]: e.target.value }))
-                  }
-                  className="min-h-24"
-                />
-              ) : (
-                <Input
-                  id={q.id}
-                  placeholder={q.placeholder}
-                  value={values[q.id] ?? ""}
-                  onChange={(e) =>
-                    setValues((v) => ({ ...v, [q.id]: e.target.value }))
-                  }
-                />
-              )}
-            </div>
-          ))}
-          <div className="flex flex-wrap gap-3 pt-2">
-            <GoldButton type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Save & view projections"}
-            </GoldButton>
-            <GoldButton variant="ghost-outline" asChild>
-              <Link to={ROUTES.DASHBOARD}>Back to dashboard</Link>
-            </GoldButton>
-          </div>
-        </form>
-      </AppSurfaceCard>
+        <SectionLabel tone="info">{step.title}</SectionLabel>
+        <Typography variant="body-sm" className="mt-1.5 text-muted-soft">
+          {step.description}
+        </Typography>
 
-      <Typography variant="caption" className="mt-4 block text-muted-soft">
-        Final question wording is an open item from Todd.
-      </Typography>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          {step.fields.map((field) => {
+            if (field.showWhen && !profile[field.showWhen]) return null;
+            const isWide =
+              field.type === "textarea" ||
+              field.type === "boolean" ||
+              field.type === "category" ||
+              field.type === "program";
+            return (
+              <div
+                key={String(field.key)}
+                className={cn("space-y-2", isWide && "sm:col-span-2")}
+              >
+                <QuestionnaireField
+                  field={field}
+                  profile={profile}
+                  categories={categories}
+                  programs={programs}
+                  onChange={set}
+                />
+                {field.help ? (
+                  <p className="text-xs text-muted-soft">{field.help}</p>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
+          <GoldButton variant="ghost-outline" asChild>
+            <Link to={ROUTES.DASHBOARD}>Save & exit</Link>
+          </GoldButton>
+          <div className="flex gap-2">
+            {stepIdx > 0 ? (
+              <GoldButton variant="ghost-outline" onClick={back}>
+                Back
+              </GoldButton>
+            ) : null}
+            {isLast ? (
+              <GoldButton onClick={() => void submit()} disabled={saving}>
+                {saving ? "Saving…" : "Generate projection"}
+              </GoldButton>
+            ) : (
+              <GoldButton onClick={next}>Continue</GoldButton>
+            )}
+          </div>
+        </div>
+      </AppSurfaceCard>
     </AppPageContainer>
+  );
+}
+
+function QuestionnaireField({
+  field,
+  profile,
+  categories,
+  programs,
+  onChange,
+}: {
+  field: FieldDef;
+  profile: SuccessProfile;
+  categories: SuccessCenter[];
+  programs: SuccessCenter["programs"];
+  onChange: (
+    key: keyof SuccessProfile,
+    value: SuccessProfile[keyof SuccessProfile],
+  ) => void;
+}) {
+  const id = `q-${String(field.key)}`;
+  const value = profile[field.key];
+
+  const numberValue = (v: SuccessProfile[keyof SuccessProfile]) =>
+    typeof v === "number" && v > 0 ? String(v) : "";
+
+  if (field.type === "boolean") {
+    return (
+      <label
+        htmlFor={id}
+        className="flex items-start gap-3 rounded-lg border border-line bg-bg-card px-3.5 py-3"
+      >
+        <Checkbox
+          id={id}
+          checked={Boolean(value)}
+          onCheckedChange={(v) => onChange(field.key, v === true)}
+        />
+        <span className="text-sm leading-snug text-ink-heading">
+          {field.label}
+        </span>
+      </label>
+    );
+  }
+
+  return (
+    <>
+      <Label htmlFor={id} className="text-sm font-semibold text-ink-heading">
+        {field.label}
+        {field.required ? <span className="text-error"> *</span> : null}
+      </Label>
+      {field.type === "textarea" ? (
+        <Textarea
+          id={id}
+          placeholder={field.placeholder}
+          value={String(value ?? "")}
+          onChange={(e) => onChange(field.key, e.target.value)}
+          className="min-h-24"
+        />
+      ) : field.type === "select" ? (
+        <select
+          id={id}
+          className={selectClass}
+          value={String(value ?? "")}
+          onChange={(e) => onChange(field.key, e.target.value)}
+        >
+          <option value="">Select…</option>
+          {field.options?.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      ) : field.type === "category" ? (
+        <select
+          id={id}
+          className={selectClass}
+          value={String(value ?? "")}
+          onChange={(e) => {
+            onChange(field.key, e.target.value);
+            onChange("selectedProgramId", "");
+          }}
+        >
+          <option value="">Select a category…</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      ) : field.type === "program" ? (
+        <select
+          id={id}
+          className={selectClass}
+          value={String(value ?? "")}
+          onChange={(e) => onChange(field.key, e.target.value)}
+        >
+          <option value="">Select a program…</option>
+          {programs.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      ) : field.type === "date" ? (
+        <Input
+          id={id}
+          type="date"
+          value={String(value ?? "")}
+          onChange={(e) => onChange(field.key, e.target.value)}
+        />
+      ) : field.type === "number" || field.type === "currency" ? (
+        <Input
+          id={id}
+          type="number"
+          min={0}
+          inputMode="numeric"
+          placeholder={field.placeholder}
+          value={numberValue(value)}
+          onChange={(e) =>
+            onChange(field.key, e.target.value === "" ? 0 : Number(e.target.value))
+          }
+        />
+      ) : (
+        <Input
+          id={id}
+          placeholder={field.placeholder}
+          value={String(value ?? "")}
+          onChange={(e) => onChange(field.key, e.target.value)}
+        />
+      )}
+    </>
   );
 }

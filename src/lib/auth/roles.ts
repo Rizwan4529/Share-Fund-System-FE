@@ -20,6 +20,16 @@ export function foundingStatusLabel(
     case "founder_stack":
       return "Founder Stack";
     default:
-      return "Not enrolled";
+      return "Not active";
   }
+}
+
+/**
+ * Founding Participant Status shown to participants: never "Not enrolled".
+ * Registered-but-unpaid reads "Not active"; after payment it reads "Active".
+ */
+export function foundingAccessState(
+  status: "none" | "founding_participant" | "founder_stack",
+): "Active" | "Not active" {
+  return status === "none" ? "Not active" : "Active";
 }

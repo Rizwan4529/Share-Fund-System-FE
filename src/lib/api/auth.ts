@@ -8,6 +8,7 @@ import {
   getStore,
   setStore,
 } from "@/lib/mock/store";
+import { emptySuccessProfile } from "@/lib/mock/phase1Seed";
 import type { AuthUser, DisclosureAcceptance } from "@/types";
 
 function buildAdminUser(email: string): AuthUser {
@@ -40,6 +41,7 @@ function buildAdminUser(email: string): AuthUser {
     questionnaireComplete: false,
     questionnaireAnswers: [],
     bmisProfile: emptyBmisProfile(),
+    successProfile: emptySuccessProfile(),
     recommendationId: null,
   };
 }
@@ -54,6 +56,7 @@ function normalizeUser(user: AuthUser): AuthUser {
     questionnaireComplete: user.questionnaireComplete ?? false,
     questionnaireAnswers: user.questionnaireAnswers ?? [],
     bmisProfile: user.bmisProfile ?? emptyBmisProfile(),
+    successProfile: user.successProfile ?? emptySuccessProfile(),
     recommendationId: user.recommendationId ?? null,
     membership:
       user.role === "admin"

@@ -68,6 +68,12 @@ export default function AdminRulesPage() {
       r.defaultTimelineMonths,
       r.recommendationBudgetFactor,
       r.recommendationTimelineFactor,
+      r.activationPercentDefault,
+      r.roundingUnit,
+      r.safeCapacityFactor,
+      r.planPresets.fastMonths,
+      r.planPresets.moderateMonths,
+      r.planPresets.longMonths,
       r.caps.maxRecommendedBudget,
       r.caps.minMonthlySetAside,
       ...customRules.map((rule) => rule.value),
@@ -231,6 +237,58 @@ export default function AdminRulesPage() {
               value={r.caps.minMonthlySetAside}
               onChange={(n) =>
                 patchRules({ caps: { ...r.caps, minMonthlySetAside: n } })
+              }
+            />
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-6">
+          <AdminSectionTitle>BMIS recommendation engine</AdminSectionTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Drives activation requirements, scheduled payments, and the Fast /
+            Moderate / Long plan options.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <Num
+              label="Default activation %"
+              value={r.activationPercentDefault}
+              onChange={(n) => patchRules({ activationPercentDefault: n })}
+            />
+            <Num
+              label="Rounding unit ($)"
+              value={r.roundingUnit}
+              onChange={(n) => patchRules({ roundingUnit: n })}
+            />
+            <Num
+              label="Safe capacity factor"
+              value={r.safeCapacityFactor}
+              onChange={(n) => patchRules({ safeCapacityFactor: n })}
+            />
+            <Num
+              label="Fast plan (months)"
+              value={r.planPresets.fastMonths}
+              onChange={(n) =>
+                patchRules({
+                  planPresets: { ...r.planPresets, fastMonths: n },
+                })
+              }
+            />
+            <Num
+              label="Moderate plan (months)"
+              value={r.planPresets.moderateMonths}
+              onChange={(n) =>
+                patchRules({
+                  planPresets: { ...r.planPresets, moderateMonths: n },
+                })
+              }
+            />
+            <Num
+              label="Long plan (months)"
+              value={r.planPresets.longMonths}
+              onChange={(n) =>
+                patchRules({
+                  planPresets: { ...r.planPresets, longMonths: n },
+                })
               }
             />
           </div>

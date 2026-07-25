@@ -46,7 +46,19 @@ export default function LegalPage() {
             </Link>
           ))}
         </nav>
-        <article className="mt-8 rounded-xl border border-border bg-card p-6 sm:p-8">
+        <div className="mt-6 rounded-lg border border-gold/40 bg-gold/10 px-4 py-3">
+          <Typography
+            variant="caption"
+            className="block text-[12.5px] font-semibold text-gold-deep"
+          >
+            Placeholder — not final legal wording
+          </Typography>
+          <Typography variant="caption" className="mt-1 block text-muted-foreground">
+            This document is a Phase 1 placeholder. Final legal wording will be
+            supplied and approved by the platform owner before launch.
+          </Typography>
+        </div>
+        <article className="mt-6 rounded-xl border border-border bg-card p-6 sm:p-8">
           <Typography variant="h2">{doc?.title ?? "Legal"}</Typography>
           <Typography variant="caption" className="mt-2 block text-muted-foreground">
             Version {doc?.version ?? "—"} · Updated {doc?.updatedAt ?? "—"}

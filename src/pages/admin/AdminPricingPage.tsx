@@ -122,6 +122,32 @@ export default function AdminPricingPage() {
               }
             />
             <div className="space-y-1.5">
+              <Label htmlFor="selection-mode">Allotment unlocks</Label>
+              <select
+                id="selection-mode"
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                value={p.selectionMode}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    pricing: {
+                      ...p,
+                      selectionMode: e.target
+                        .value as PlatformSettings["pricing"]["selectionMode"],
+                    },
+                  })
+                }
+              >
+                <option value="categories">Categories (default)</option>
+                <option value="programs">Programs</option>
+                <option value="count">Generic count</option>
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Controls whether Founding Access counts unlock categories,
+                programs, or a generic selection count.
+              </p>
+            </div>
+            <div className="space-y-1.5">
               <Label>Promo start</Label>
               <Input
                 type="date"

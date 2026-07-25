@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Power } from "lucide-react";
+import { Pencil, Plus, Power, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -69,6 +69,7 @@ export default function AdminSuccessCentersPage() {
       active: false,
       notices: "Planning tools only. No live funding in Phase 1.",
       content: "",
+      programs: [],
     });
     setDrawerOpen(true);
   };
@@ -108,6 +109,46 @@ export default function AdminSuccessCentersPage() {
 
   const isCreate = drawerMode === "create";
 
+  const addProgram = () => {
+    if (!editing) return;
+    setEditing({
+      ...editing,
+      programs: [
+        ...editing.programs,
+        {
+          id: `prog-${Date.now()}`,
+          name: "New program",
+          blurb: "",
+          activationPercent: 5,
+          educationSummary: "",
+          timelineNote: "",
+          eligibilityNote: "",
+        },
+      ],
+    });
+  };
+
+  const updateProgram = (
+    id: string,
+    patch: Partial<SuccessCenter["programs"][number]>,
+  ) => {
+    if (!editing) return;
+    setEditing({
+      ...editing,
+      programs: editing.programs.map((p) =>
+        p.id === id ? { ...p, ...patch } : p,
+      ),
+    });
+  };
+
+  const removeProgram = (id: string) => {
+    if (!editing) return;
+    setEditing({
+      ...editing,
+      programs: editing.programs.filter((p) => p.id !== id),
+    });
+  };
+
   const columns = useMemo<ColumnDef<SuccessCenter>[]>(
     () => [
       {
@@ -134,6 +175,15 @@ export default function AdminSuccessCentersPage() {
         cell: ({ row }) => (
           <span className="capitalize">{row.original.filter}</span>
         ),
+        enableSorting: true,
+      },
+      {
+        id: "programs",
+        accessorFn: (c) => c.programs.length,
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Programs" />
+        ),
+        cell: ({ row }) => <span>{row.original.programs.length}</span>,
         enableSorting: true,
       },
       {
@@ -322,6 +372,114 @@ export default function AdminSuccessCentersPage() {
                 placeholder="Notices"
                 className="min-h-24"
               />
+            </div>
+
+            <div className="space-y-3 border-t border-border pt-4">
+              <div className="flex items-center justify-between gap-2">
+                <Label>Programs</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={addProgram}
+                >
+                  <Plus className="size-4" />
+                  Add program
+                </Button>
+              </div>
+              {editing.programs.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  No programs yet. Add specialized programs participants can
+                  explore under this category.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {editing.programs.map((program) => (
+                    <div
+                      key={program.id}
+                      className="space-y-2 rounded-lg border border-border bg-background p-3"
+                    >
+                      <div className="flex items-start gap-2">
+                        <Input
+                          value={program.name}
+                          placeholder="Program name"
+                          onChange={(e) =>
+                            updateProgram(program.id, { name: e.target.value })
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="shrink-0 text-error hover:bg-error-bg/50 hover:text-error"
+                          onClick={() => removeProgram(program.id)}
+                          aria-label={`Remove ${program.name}`}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                      <Input
+                        value={program.blurb}
+                        placeholder="Short blurb"
+                        onChange={(e) =>
+                          updateProgram(program.id, { blurb: e.target.value })
+                        }
+                      />
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            Activation %
+                          </Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="any"
+                            value={program.activationPercent}
+                            onChange={(e) =>
+                              updateProgram(program.id, {
+                                activationPercent: Number(e.target.value),
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">
+                            Timeline note
+                          </Label>
+                          <Input
+                            value={program.timelineNote}
+                            placeholder="e.g. 6–12 months"
+                            onChange={(e) =>
+                              updateProgram(program.id, {
+                                timelineNote: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <Textarea
+                        value={program.educationSummary}
+                        placeholder="Education summary"
+                        className="min-h-16"
+                        onChange={(e) =>
+                          updateProgram(program.id, {
+                            educationSummary: e.target.value,
+                          })
+                        }
+                      />
+                      <Input
+                        value={program.eligibilityNote}
+                        placeholder="Eligibility note"
+                        onChange={(e) =>
+                          updateProgram(program.id, {
+                            eligibilityNote: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ) : null}

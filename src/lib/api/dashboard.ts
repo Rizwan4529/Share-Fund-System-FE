@@ -1,7 +1,9 @@
 import { delay } from "@/lib/delay";
 import { getStore } from "@/lib/mock/store";
+import { profileCompletion } from "@/lib/questionnaire/schema";
 import type {
   Enrollment,
+  FoundingSelectionMode,
   PaymentRecord,
   Recommendation,
   SuccessCenter,
@@ -12,7 +14,9 @@ export type DashboardPayload = {
   recommendation: Recommendation | null;
   foundingStatus: string;
   centerLimit: number;
+  selectionMode: FoundingSelectionMode;
   questionnaireComplete: boolean;
+  profileCompletion: number;
   enrollments: Enrollment[];
   payments: PaymentRecord[];
   projectionDisclaimer: string;
@@ -35,7 +39,9 @@ export async function getDashboardData(): Promise<DashboardPayload> {
     recommendation,
     foundingStatus: store.user.foundingStatus,
     centerLimit: store.user.centerLimit,
+    selectionMode: store.settings.pricing.selectionMode,
     questionnaireComplete: store.user.questionnaireComplete,
+    profileCompletion: profileCompletion(store.user.successProfile),
     enrollments: store.enrollments.filter((e) => e.userId === store.user!.id),
     payments: store.payments.filter((p) => p.userId === store.user!.id),
     projectionDisclaimer:

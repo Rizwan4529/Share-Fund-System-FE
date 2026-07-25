@@ -23,6 +23,7 @@ import {
   SEED_PAYMENTS,
   SEED_RECOMMENDATIONS,
   SEED_SUCCESS_CENTERS,
+  emptySuccessProfile,
   formatAuditTime,
 } from "./phase1Seed";
 
@@ -56,6 +57,16 @@ const emptyBmis: BmisProfile = {
   preferredContact: "",
   notes: "",
 };
+
+/** Backfill fields added after an account was first persisted. */
+function normalizeStoredUser(user: AuthUser): AuthUser {
+  return {
+    ...user,
+    bmisProfile: user.bmisProfile ?? { ...emptyBmis },
+    successProfile: user.successProfile ?? emptySuccessProfile(),
+    questionnaireAnswers: user.questionnaireAnswers ?? [],
+  };
+}
 
 const defaultStore: Phase1Store = {
   user: null,
@@ -118,6 +129,10 @@ function readStore(): Phase1Store {
         rules: {
           ...DEFAULT_PRICING_SETTINGS.rules,
           ...(parsed.settings?.rules ?? {}),
+          planPresets: {
+            ...DEFAULT_PRICING_SETTINGS.rules.planPresets,
+            ...(parsed.settings?.rules?.planPresets ?? {}),
+          },
           caps: {
             ...DEFAULT_PRICING_SETTINGS.rules.caps,
             ...(parsed.settings?.rules?.caps ?? {}),
@@ -127,6 +142,11 @@ function readStore(): Phase1Store {
             DEFAULT_PRICING_SETTINGS.rules.customRules,
         },
       },
+      successCenters: (parsed.successCenters ?? SEED_SUCCESS_CENTERS).map(
+        (center) => ({ ...center, programs: center.programs ?? [] }),
+      ),
+      user: parsed.user ? normalizeStoredUser(parsed.user) : null,
+      accounts: (parsed.accounts ?? []).map(normalizeStoredUser),
     };
   } catch {
     return structuredClone(defaultStore);
@@ -207,6 +227,7 @@ export function createUserFromSignup(name: string, email: string): AuthUser {
     questionnaireComplete: false,
     questionnaireAnswers: [],
     bmisProfile: { ...emptyBmis },
+    successProfile: emptySuccessProfile(),
     recommendationId: null,
   };
 }

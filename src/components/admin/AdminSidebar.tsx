@@ -62,8 +62,8 @@ export function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
 
   return (
     <>
-      <div className="flex items-center gap-2.5 border-b border-white/7 px-[22px] py-[22px] pb-[18px]">
-        <img src={ASSETS.logoLight} alt="SFS" className="h-[30px] w-auto" />
+      <div className="flex items-center gap-2.5 border-b border-white/7 px-[22px] py-[24px] pb-[20px]">
+        <img src={ASSETS.logoLight} alt="SFS" className="h-[36px] w-auto" />
         <span className="inline-flex h-[21px] items-center rounded-[5px] border border-gold/42 bg-gold/16 px-2 text-[11px] font-bold tracking-[0.09em] text-gold-pale uppercase">
           Admin
         </span>

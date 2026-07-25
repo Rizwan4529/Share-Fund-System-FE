@@ -18,7 +18,7 @@ import {
   getEnrollmentPlans,
   type CheckoutPlanOption,
 } from "@/lib/api/enrollment";
-import { foundingStatusLabel } from "@/lib/auth/roles";
+import { foundingAccessState } from "@/lib/auth/roles";
 import { ROUTES } from "@/utils/constants";
 import { cn } from "@/lib/utils";
 
@@ -41,29 +41,30 @@ export default function EnrollmentPage() {
   return (
     <AppPageContainer>
       <ParticipantPageHeader
-        overline="Founding Participant"
-        title="Enrollment"
+        overline="Founding Access"
+        title="Choose a Founding Plan"
         subtitle={
           <>
-            Introductory pricing is admin-configurable. Current status:{" "}
+            Introductory pricing is admin-configurable. Founding Participant
+            Status:{" "}
             <StatusChip
               tone={enrolled ? "success" : "muted"}
               className="ml-1 align-middle normal-case tracking-normal"
             >
-              {foundingStatusLabel(user?.foundingStatus ?? "none")}
+              {foundingAccessState(user?.foundingStatus ?? "none")}
             </StatusChip>
           </>
         }
         actions={
           <GoldButton variant="ghost-outline" asChild>
-            <Link to={ROUTES.BILLING}>View billing</Link>
+            <Link to={ROUTES.BILLING}>Payment history</Link>
           </GoldButton>
         }
       />
 
       <InfoCallout className="mb-6">
-        Phase 1 unlocks Success Center planning tools. Budgets and timelines are
-        projections only — live funding is not active.
+        Founding Access unlocks Success Center planning tools. Budgets and
+        timelines are projections only — live funding is not active.
       </InfoCallout>
 
       {loading ? (
@@ -185,8 +186,8 @@ function PlanCard({
 
       <Typography variant="body-sm" className="mt-3 flex-1 text-muted-soft">
         {featured
-          ? `${plan.subtitle} Includes ${plan.centerLimit} Success Centers and distinct Founder Stack status.`
-          : `Access to ${plan.centerLimit} Success Center${plan.centerLimit === 1 ? "" : "s"}. Recurring billing is not live in Phase 1.`}
+          ? `${plan.subtitle} Includes up to ${plan.centerLimit} Success Center categories and distinct Founder Stack status.`
+          : `Founding Access to ${plan.centerLimit} Success Center categor${plan.centerLimit === 1 ? "y" : "ies"}. Recurring billing is not live in Phase 1.`}
       </Typography>
 
       <GoldButton className="mt-6 w-full" onClick={onCheckout}>

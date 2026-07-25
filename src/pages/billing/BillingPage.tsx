@@ -67,10 +67,10 @@ export default function BillingPage() {
       <ParticipantPageHeader
         overline="Account"
         title="Billing & receipts"
-        subtitle="Enrollment payments, refund windows, and chargeback records."
+        subtitle="Your Founding Access payments, receipts, and refund windows in one place."
         actions={
           <GoldButton asChild>
-            <Link to={ROUTES.ENROLLMENT}>New enrollment</Link>
+            <Link to={ROUTES.ENROLLMENT}>Choose a Founding Plan</Link>
           </GoldButton>
         }
       />
@@ -81,10 +81,10 @@ export default function BillingPage() {
         <EmptyState
           icon={Receipt}
           title="No payments yet"
-          description="When you complete Founding Participant checkout, receipts and refund deadlines will appear here."
+          description="When you complete Founding Access checkout, your receipts and refund deadlines will appear here."
           action={
             <GoldButton asChild>
-              <Link to={ROUTES.ENROLLMENT}>Browse enrollment plans</Link>
+              <Link to={ROUTES.ENROLLMENT}>View Founding Plans</Link>
             </GoldButton>
           }
         />
@@ -117,25 +117,35 @@ export default function BillingPage() {
                 <div>Paid: {new Date(p.paidAt).toLocaleString()}</div>
                 <div>Refund deadline: {p.refundDeadline}</div>
                 <div>Refund status: {p.refundStatus}</div>
-                <div>Chargeback: {p.chargebackStatus}</div>
                 {p.refundAmount != null ? (
                   <div>Refund amount: ${p.refundAmount}</div>
                 ) : null}
               </div>
-              {canRequestRefund(p) ? (
-                <div className="mt-4">
+              <div className="mt-4 flex flex-wrap gap-2">
+                {canRequestRefund(p) ? (
                   <GoldButton
                     size="sm"
                     variant="ghost-outline"
                     disabled={requestingId === p.id}
                     onClick={() => void onRequestRefund(p.id)}
                   >
-                    {requestingId === p.id
-                      ? "Requesting…"
-                      : "Request refund"}
+                    {requestingId === p.id ? "Requesting…" : "Request refund"}
                   </GoldButton>
-                </div>
-              ) : null}
+                ) : null}
+                {p.status === "succeeded" ? (
+                  <GoldButton
+                    size="sm"
+                    variant="ghost-outline"
+                    onClick={() =>
+                      toast.message(
+                        "Payment dispute noted. Our team will follow up — full dispute handling arrives with the backend.",
+                      )
+                    }
+                  >
+                    Payment dispute
+                  </GoldButton>
+                ) : null}
+              </div>
             </AppSurfaceCard>
           ))}
         </div>

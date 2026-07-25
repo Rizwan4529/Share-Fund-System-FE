@@ -149,7 +149,7 @@ export default function AdminParticipantsPage() {
                 }}
               />
               <AdminTableIconAction
-                label="Set not enrolled"
+                label="Set not active"
                 icon={UserRoundX}
                 disabled={r.foundingStatus === "none"}
                 onClick={() => void onStatus(r.id, "none")}
@@ -222,7 +222,7 @@ export default function AdminParticipantsPage() {
           <div className="space-y-4 text-sm">
             <DetailRow label="Membership" value={detail.membership} />
             <DetailRow
-              label="Founding status"
+              label="Founding Participant Status"
               value={foundingStatusLabel(detail.foundingStatus)}
             />
             <DetailRow
