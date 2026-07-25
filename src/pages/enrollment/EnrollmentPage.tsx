@@ -57,7 +57,7 @@ export default function EnrollmentPage() {
         }
         actions={
           <GoldButton variant="ghost-outline" asChild>
-            <Link to={ROUTES.BILLING}>Payment history</Link>
+            <Link to={ROUTES.BILLING}>Founding Access Payment History</Link>
           </GoldButton>
         }
       />
@@ -131,7 +131,7 @@ export default function EnrollmentPage() {
           to={ROUTES.BILLING}
           className="font-semibold text-ink-heading hover:underline"
         >
-          Payment history
+          Founding Access Payment History
         </Link>
       </div>
     </AppPageContainer>

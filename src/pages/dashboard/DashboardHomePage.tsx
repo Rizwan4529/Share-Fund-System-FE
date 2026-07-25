@@ -233,7 +233,7 @@ export default function DashboardHomePage() {
               size="compact"
               variant="muted"
               title="No payments yet"
-              description="Receipts and refund windows appear here after a successful enrollment."
+              description="Receipts and refund windows appear here after a successful Founding Access payment."
             />
           ) : (
             <ul className="space-y-2 text-sm">

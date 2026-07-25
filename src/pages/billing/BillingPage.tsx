@@ -67,7 +67,7 @@ export default function BillingPage() {
       <ParticipantPageHeader
         overline="Account"
         title="Billing & receipts"
-        subtitle="Your Founding Access payments, receipts, and refund windows in one place."
+        subtitle="View your Founding Access payments, receipts, refund eligibility, and transaction history."
         actions={
           <GoldButton asChild>
             <Link to={ROUTES.ENROLLMENT}>Choose a Founding Plan</Link>
@@ -80,8 +80,8 @@ export default function BillingPage() {
       ) : payments.length === 0 ? (
         <EmptyState
           icon={Receipt}
-          title="No payments yet"
-          description="When you complete Founding Access checkout, your receipts and refund deadlines will appear here."
+          title="No payment history yet"
+          description="Your receipts, refund eligibility dates, and payment records will appear here after checkout."
           action={
             <GoldButton asChild>
               <Link to={ROUTES.ENROLLMENT}>View Founding Plans</Link>

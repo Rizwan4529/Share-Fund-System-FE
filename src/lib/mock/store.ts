@@ -63,9 +63,24 @@ function normalizeStoredUser(user: AuthUser): AuthUser {
   return {
     ...user,
     bmisProfile: user.bmisProfile ?? { ...emptyBmis },
-    successProfile: user.successProfile ?? emptySuccessProfile(),
+    successProfile: {
+      ...emptySuccessProfile(),
+      ...(user.successProfile ?? {}),
+    },
     questionnaireAnswers: user.questionnaireAnswers ?? [],
   };
+}
+
+/** Merge any newly seeded disclosure kinds into a persisted store. */
+function mergeDisclosures(
+  stored: Phase1Store["disclosures"] | undefined,
+): Phase1Store["disclosures"] {
+  const existing = stored ?? [];
+  const byKind = new Map(existing.map((d) => [d.kind, d]));
+  for (const seed of SEED_DISCLOSURES) {
+    if (!byKind.has(seed.kind)) byKind.set(seed.kind, seed);
+  }
+  return [...byKind.values()];
 }
 
 const defaultStore: Phase1Store = {
@@ -145,6 +160,7 @@ function readStore(): Phase1Store {
       successCenters: (parsed.successCenters ?? SEED_SUCCESS_CENTERS).map(
         (center) => ({ ...center, programs: center.programs ?? [] }),
       ),
+      disclosures: mergeDisclosures(parsed.disclosures),
       user: parsed.user ? normalizeStoredUser(parsed.user) : null,
       accounts: (parsed.accounts ?? []).map(normalizeStoredUser),
     };

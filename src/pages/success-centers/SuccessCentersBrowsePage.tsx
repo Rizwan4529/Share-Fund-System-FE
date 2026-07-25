@@ -54,7 +54,7 @@ export default function SuccessCentersBrowsePage() {
 
   const toggle = (id: string) => {
     if (!canSelect) {
-      toast.message("Enroll first to unlock Success Center selection.");
+      toast.message("Get Founding Access first to unlock Success Center selection.");
       return;
     }
     setSelected((prev) => {

@@ -153,7 +153,7 @@ function buildSuggestions(status: AffordabilityStatus): string[] {
     case "increase_income_first":
       return [
         "Explore ways to increase income before activating a paid plan.",
-        "Start with the free Personal Growth and Career Development center to build toward eligibility.",
+        "Start with free Education planning resources to build toward eligibility.",
         "Reduce an essential or existing commitment to free up cash flow.",
       ];
     default:

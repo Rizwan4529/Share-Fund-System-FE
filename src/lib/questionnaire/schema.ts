@@ -58,6 +58,19 @@ export const SUCCESS_PROFILE_STEPS: StepDef[] = [
       { key: "country", label: "Country", type: "text", placeholder: "United States" },
       { key: "region", label: "State / Region", type: "text", placeholder: "California" },
       {
+        key: "currency",
+        label: "Preferred currency",
+        type: "select",
+        options: [
+          { value: "USD", label: "USD — US Dollar" },
+          { value: "CAD", label: "CAD — Canadian Dollar" },
+          { value: "EUR", label: "EUR — Euro" },
+          { value: "GBP", label: "GBP — British Pound" },
+          { value: "AUD", label: "AUD — Australian Dollar" },
+          { value: "MXN", label: "MXN — Mexican Peso" },
+        ],
+      },
+      {
         key: "incomeSource",
         label: "Primary income source",
         type: "text",
@@ -178,6 +191,18 @@ export const SUCCESS_PROFILE_STEPS: StepDef[] = [
         label: "I already have a provider / vendor for this goal.",
         type: "boolean",
       },
+      {
+        key: "activationCadence",
+        label: "Preferred activation option",
+        type: "select",
+        options: [
+          { value: "monthly", label: "Monthly" },
+          { value: "3_month", label: "Every 3 months" },
+          { value: "6_month", label: "Every 6 months" },
+          { value: "full_term", label: "Full term" },
+        ],
+        help: "How often you prefer to schedule activation toward this goal.",
+      },
     ],
   },
   {
@@ -233,6 +258,13 @@ export const SUCCESS_PROFILE_STEPS: StepDef[] = [
         type: "boolean",
         required: true,
       },
+      {
+        key: "understandsEstimates",
+        label:
+          "I understand recommendations and timelines are estimates, not guarantees.",
+        type: "boolean",
+        required: true,
+      },
     ],
   },
 ];
@@ -246,6 +278,7 @@ export const REQUIRED_PROFILE_FIELDS: (keyof SuccessProfile)[] = [
   "selectedProgramId",
   "goalAmount",
   "infoAccurate",
+  "understandsEstimates",
 ];
 
 /** 0–100 completion percentage across the required profile fields. */

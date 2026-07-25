@@ -31,7 +31,8 @@ export type DisclosureKind =
   | "terms"
   | "privacy"
   | "refund_policy"
-  | "checkout_acknowledgment";
+  | "checkout_acknowledgment"
+  | "partner_sponsored_notice";
 
 export type BmisProfile = {
   goalSummary: string;
@@ -131,6 +132,8 @@ export type SuccessProfile = {
   priorityNote: string;
   /* Attestation */
   infoAccurate: boolean;
+  /** Participant acknowledges recommendations/timelines are estimates. */
+  understandsEstimates: boolean;
 };
 
 export type FounderStackOffer = {

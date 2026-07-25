@@ -93,6 +93,7 @@ export function emptySuccessProfile(): SuccessProfile {
     openToLowerCostOrLongerTimeline: false,
     priorityNote: "",
     infoAccurate: false,
+    understandsEstimates: false,
   };
 }
 
@@ -146,9 +147,9 @@ export const SEED_SUCCESS_CENTERS: SuccessCenter[] = [
   {
     id: "transportation",
     name: "Transportation",
-    blurb: "Vehicle purchase, repairs, and commuting costs.",
+    blurb: "Vehicle purchase and commuting goals.",
     filter: "financial",
-    long: "Plan for a purchase, repairs, or ongoing transportation costs with a clear activation target.",
+    long: "Plan for a vehicle purchase or commuting goal with a clear activation target. Routine repairs and maintenance are not a separate program — BMIS may suggest a transportation reserve from improved cash flow instead.",
     active: true,
     notices: PHASE1_NOTICE,
     content: "Transportation Success Center planning space.",
@@ -158,18 +159,10 @@ export const SEED_SUCCESS_CENTERS: SuccessCenter[] = [
         name: "Vehicle Purchase",
         blurb: "Plan toward a reliable vehicle.",
         activationPercent: 6,
-        educationSummary: "Set a realistic vehicle target and timeline.",
+        educationSummary:
+          "Set a realistic vehicle target and timeline. Routine repairs and maintenance are covered via a BMIS-suggested transportation reserve from improved cash flow — not a separate program.",
         timelineNote: "Typically planned over 12–24 months.",
         eligibilityNote: "Open to all participants.",
-      },
-      {
-        id: "transportation-repairs",
-        name: "Repairs & Maintenance",
-        blurb: "Prepare for repairs and keep a vehicle running.",
-        activationPercent: 5,
-        educationSummary: "Build a maintenance reserve so repairs don't derail you.",
-        timelineNote: "Typically planned over 3–9 months.",
-        eligibilityNote: "For current vehicle owners.",
       },
     ],
   },
@@ -327,17 +320,17 @@ export const SEED_SUCCESS_CENTERS: SuccessCenter[] = [
     ],
   },
   {
-    id: "personal-growth",
-    name: "Personal Growth and Career Development",
-    blurb: "Education, training, certifications, and careers.",
+    id: "education",
+    name: "Education",
+    blurb: "Tuition, certifications, and training goals.",
     filter: "financial",
-    long: "Organize education, training, certification, and career-development costs into a clear planning target.",
+    long: "Organize tuition, certification, and training costs into a clear planning target. Personal Growth & Career Development remains a separate future program.",
     active: true,
     notices: PHASE1_NOTICE,
-    content: "Personal Growth and Career Development planning space.",
+    content: "Education Success Center planning space.",
     programs: [
       {
-        id: "personal-education",
+        id: "education-tuition",
         name: "Education & Tuition",
         blurb: "Plan for tuition or a course of study.",
         activationPercent: 5,
@@ -346,7 +339,7 @@ export const SEED_SUCCESS_CENTERS: SuccessCenter[] = [
         eligibilityNote: "For participants pursuing education.",
       },
       {
-        id: "personal-certification",
+        id: "education-certification",
         name: "Certification & Training",
         blurb: "Fund a certification or skill-building program.",
         activationPercent: 4,
@@ -406,6 +399,14 @@ export const SEED_DISCLOSURES: DisclosureDoc[] = [
     version: "1.0.0",
     updatedAt: "2026-07-01",
     body: "I understand that Phase 1 provides planning tools and projections only. No live funding is moving. I acknowledge the Founding Participant disclosure, Terms, Privacy Policy, and Refund Policy as presented at checkout.",
+  },
+  {
+    id: "disc-partner-sponsored",
+    kind: "partner_sponsored_notice",
+    title: "Professional-Partner and Sponsored-Content Notices",
+    version: "1.0.0",
+    updatedAt: "2026-07-01",
+    body: "Placeholder — Professional-partner and sponsored-content notices. When professional partners or sponsored content appear in Success Centers or related materials, they will be clearly identified. Final legal wording will be supplied and approved by the platform owner. This is not approved wording.",
   },
 ];
 

@@ -13,6 +13,7 @@ const KINDS: DisclosureKind[] = [
   "privacy",
   "refund_policy",
   "checkout_acknowledgment",
+  "partner_sponsored_notice",
 ];
 
 export default function LegalPage() {

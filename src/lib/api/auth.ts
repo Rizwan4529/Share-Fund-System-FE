@@ -56,7 +56,10 @@ function normalizeUser(user: AuthUser): AuthUser {
     questionnaireComplete: user.questionnaireComplete ?? false,
     questionnaireAnswers: user.questionnaireAnswers ?? [],
     bmisProfile: user.bmisProfile ?? emptyBmisProfile(),
-    successProfile: user.successProfile ?? emptySuccessProfile(),
+    successProfile: {
+      ...emptySuccessProfile(),
+      ...(user.successProfile ?? {}),
+    },
     recommendationId: user.recommendationId ?? null,
     membership:
       user.role === "admin"
