@@ -22,7 +22,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/queries/useDashboard";
-import { foundingStatusLabel } from "@/lib/auth/roles";
+import { foundingAccessState, foundingStatusLabel } from "@/lib/auth/roles";
+import { AFFORDABILITY_LABELS } from "@/lib/recommendations/engine";
 import { getFirstName, getTimeGreeting } from "@/lib/app/greeting";
 import { ROUTES } from "@/utils/constants";
 
@@ -59,7 +60,7 @@ export default function DashboardHomePage() {
         subtitle="BMIS planning dashboard — projections only in Phase 1."
         actions={
           <StatusChip tone={enrolled ? "success" : "muted"}>
-            {foundingStatusLabel(user?.foundingStatus ?? "none")}
+            {foundingAccessState(user?.foundingStatus ?? "none")}
           </StatusChip>
         }
       />
@@ -81,7 +82,7 @@ export default function DashboardHomePage() {
               description={
                 data.centerLimit > 0
                   ? `Your plan allows up to ${data.centerLimit}. Pick the categories that match your goal.`
-                  : "Enroll as a Founding Participant to unlock selection."
+                  : "Get Founding Access to unlock selection."
               }
               action={
                 <GoldButton asChild size="app">
@@ -92,7 +93,7 @@ export default function DashboardHomePage() {
                         : ROUTES.ENROLLMENT
                     }
                   >
-                    {data.centerLimit > 0 ? "Choose centers" : "Enroll now"}
+                    {data.centerLimit > 0 ? "Choose categories" : "Get Founding Access"}
                   </Link>
                 </GoldButton>
               }
@@ -113,20 +114,22 @@ export default function DashboardHomePage() {
         </AppSurfaceCard>
 
         <AppSurfaceCard>
-          <SectionLabel tone="navy">Founding status</SectionLabel>
+          <SectionLabel tone="navy">Founding Participant Status</SectionLabel>
           <Typography
             as="p"
             variant="h5"
             className="mt-3 font-display text-[20px] font-bold text-ink-heading"
           >
-            {foundingStatusLabel(user?.foundingStatus ?? "none")}
+            {foundingAccessState(user?.foundingStatus ?? "none")}
           </Typography>
           <Typography variant="caption" className="mt-2 block text-muted-soft">
-            Center limit: {data.centerLimit || "—"}
+            {enrolled
+              ? `${foundingStatusLabel(user?.foundingStatus ?? "none")} · limit ${data.centerLimit || "—"}`
+              : "Get Founding Access to unlock planning."}
           </Typography>
           <GoldButton asChild className="mt-5 w-full">
             <Link to={ROUTES.ENROLLMENT}>
-              {enrolled ? "Manage enrollment" : "Enroll now"}
+              {enrolled ? "Manage Founding Access" : "Get Founding Access"}
             </Link>
           </GoldButton>
         </AppSurfaceCard>
@@ -134,7 +137,11 @@ export default function DashboardHomePage() {
         <MetricCard
           label="Projected budget"
           value={budget != null ? `$${budget.toLocaleString()}` : "—"}
-          hint="Simulation"
+          hint={
+            data.recommendation
+              ? AFFORDABILITY_LABELS[data.recommendation.affordability]
+              : "Simulation"
+          }
           icon={<Wallet className="size-4 text-info" />}
         />
         <MetricCard
@@ -144,17 +151,29 @@ export default function DashboardHomePage() {
           icon={<Target className="size-4 text-info" />}
         />
         <AppSurfaceCard>
-          <SectionLabel tone="info">Questionnaire</SectionLabel>
-          <Typography variant="body-sm" className="mt-3 text-ink-heading">
-            {data.questionnaireComplete ? "Complete" : "Not started"}
+          <SectionLabel tone="info">Success Profile</SectionLabel>
+          <Typography
+            as="p"
+            variant="h5"
+            className="mt-3 font-display text-[22px] font-bold text-ink-heading"
+          >
+            {data.profileCompletion}%
           </Typography>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{ width: `${data.profileCompletion}%` }}
+            />
+          </div>
           <GoldButton
             asChild
-            className="mt-5 w-full"
+            className="mt-4 w-full"
             variant={data.questionnaireComplete ? "ghost-outline" : "gold"}
           >
             <Link to={ROUTES.QUESTIONNAIRE}>
-              {data.questionnaireComplete ? "Review answers" : "Start questionnaire"}
+              {data.questionnaireComplete
+                ? "Review Success Profile"
+                : "Complete Success Profile"}
             </Link>
           </GoldButton>
         </AppSurfaceCard>
@@ -163,7 +182,7 @@ export default function DashboardHomePage() {
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <AppSurfaceCard>
           <div className="mb-4 flex items-center justify-between">
-            <SectionLabel tone="navy">Enrollment history</SectionLabel>
+            <SectionLabel tone="navy">Founding Access history</SectionLabel>
             <Link
               to={ROUTES.BILLING}
               className="text-xs font-bold text-info hover:underline"
@@ -176,8 +195,8 @@ export default function DashboardHomePage() {
               icon={ClipboardList}
               size="compact"
               variant="muted"
-              title="No enrollments yet"
-              description="Your Founding Participant plans will show up here after checkout."
+              title="No Founding Access yet"
+              description="Your Founding Access plans will show up here after checkout."
             />
           ) : (
             <ul className="space-y-2 text-sm">
@@ -214,7 +233,7 @@ export default function DashboardHomePage() {
               size="compact"
               variant="muted"
               title="No payments yet"
-              description="Receipts and refund windows appear here after a successful enrollment."
+              description="Receipts and refund windows appear here after a successful Founding Access payment."
             />
           ) : (
             <ul className="space-y-2 text-sm">

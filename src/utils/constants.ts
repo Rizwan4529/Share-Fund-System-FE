@@ -89,18 +89,18 @@ export const ACCOUNT_SECTIONS = [
 
 export const JOURNEY_STEPS: [string, string][] = [
   ["Create your account", "Secure login with saved participant data."],
-  ["Complete your BMIS profile", "Your identity and home base in the system."],
-  ["Answer the questionnaire", "Short questions that shape your projections."],
-  ["Choose Success Centers", "Pick the goal categories included in your plan."],
-  ["Enroll as Founding Participant", "Pay once to unlock planning access."],
+  ["Complete your Success Profile", "A short BMIS intake that shapes your plan."],
+  ["Explore Success Centers", "Browse categories and specialized programs."],
+  ["Choose your categories", "Pick the goal categories included in your plan."],
+  ["Get Founding Access", "Pay once to unlock planning access."],
   ["Review projections", "Budget and timeline estimates — clearly labeled."],
 ];
 
 export const INCLUDED_ITEMS = [
-  "BMIS profile and questionnaire",
-  "Success Center planning spaces",
+  "Success Profile and BMIS intake",
+  "Success Center categories and programs",
   "Rule-based budget and timeline projections",
-  "Founding Participant enrollment and receipts",
+  "Founding Access enrollment and receipts",
 ];
 
 /** Seed list used when mock store has not loaded yet. */
@@ -140,9 +140,9 @@ export function getCategoryLabel(id: string): string {
 
 export function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/dashboard")) return "Dashboard";
-  if (pathname.startsWith("/questionnaire")) return "BMIS questionnaire";
+  if (pathname.startsWith("/questionnaire")) return "Success Profile";
   if (pathname.startsWith("/success-centers")) return "Success Centers";
-  if (pathname.startsWith("/enrollment")) return "Enrollment";
+  if (pathname.startsWith("/enrollment")) return "Founding Access";
   if (pathname.startsWith("/billing")) return "Billing";
   if (pathname.startsWith("/recommendation")) return "Projections";
   if (pathname.startsWith("/account")) return "Account";

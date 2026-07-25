@@ -21,13 +21,25 @@ export type CheckoutPlanOption = {
   separateOffer?: boolean;
 };
 
+/** Singular / plural unit label for a Founding Access selection mode. */
+export function selectionUnitLabel(
+  mode: "categories" | "programs" | "count",
+  count: number,
+): string {
+  const one = count === 1;
+  if (mode === "programs") return one ? "program" : "programs";
+  if (mode === "count") return one ? "selection" : "selections";
+  return one ? "category" : "categories";
+}
+
 export async function getEnrollmentPlans(): Promise<CheckoutPlanOption[]> {
   await delay(120);
   const { pricing } = getStore().settings;
+  const mode = pricing.selectionMode;
   const plans: CheckoutPlanOption[] = [
     {
       plan: "founding_one",
-      title: "Founding Participant — 1 Success Center",
+      title: `Founding Access — 1 ${selectionUnitLabel(mode, 1)}`,
       subtitle: "Founding Participant Introductory Pricing",
       price: pricing.foundingPriceOne,
       centerLimit: 1,
@@ -35,7 +47,7 @@ export async function getEnrollmentPlans(): Promise<CheckoutPlanOption[]> {
     },
     {
       plan: "founding_bundle",
-      title: `Founding Participant — ${pricing.bundleCenterCount} Success Centers`,
+      title: `Founding Access — ${pricing.bundleCenterCount} ${selectionUnitLabel(mode, pricing.bundleCenterCount)}`,
       subtitle: "Founding Participant Introductory Pricing",
       price: pricing.foundingPriceBundle,
       centerLimit: pricing.bundleCenterCount,
@@ -45,7 +57,7 @@ export async function getEnrollmentPlans(): Promise<CheckoutPlanOption[]> {
   if (pricing.founderStack.active && pricing.founderStack.available) {
     plans.push({
       plan: "founder_stack",
-      title: "Founder Stack",
+      title: `Founder Stack — up to ${pricing.founderStack.successCenterCount} ${selectionUnitLabel(mode, pricing.founderStack.successCenterCount)}`,
       subtitle: pricing.founderStack.benefits,
       price: pricing.founderStack.price,
       centerLimit: pricing.founderStack.successCenterCount,

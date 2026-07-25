@@ -18,6 +18,7 @@ import { filterRowsBySearch } from "@/hooks/useAdminTableSearch";
 import { useClientTablePage } from "@/hooks/useClientTablePage";
 import { fetchAdminRecommendations } from "@/lib/api/admin";
 import { reviewRecommendation } from "@/lib/api/recommendations";
+import { AFFORDABILITY_LABELS } from "@/lib/recommendations/engine";
 import type { Recommendation } from "@/types";
 
 export default function AdminRecommendationsPage() {
@@ -34,7 +35,7 @@ export default function AdminRecommendationsPage() {
         rows,
         search,
         (r) =>
-          `${r.userName} ${r.status} ${r.recommendedBudget} ${r.projectedTimelineMonths}`,
+          `${r.userName} ${r.status} ${r.recommendedBudget} ${r.projectedTimelineMonths} ${AFFORDABILITY_LABELS[r.affordability]}`,
       ),
     [rows, search],
   );
@@ -124,6 +125,17 @@ export default function AdminRecommendationsPage() {
             </>
           );
         },
+        enableSorting: true,
+      },
+      {
+        id: "affordability",
+        accessorFn: (r) => AFFORDABILITY_LABELS[r.affordability],
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Affordability" />
+        ),
+        cell: ({ row }) => (
+          <span>{AFFORDABILITY_LABELS[row.original.affordability]}</span>
+        ),
         enableSorting: true,
       },
       {

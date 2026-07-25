@@ -23,6 +23,7 @@ import {
   SEED_PAYMENTS,
   SEED_RECOMMENDATIONS,
   SEED_SUCCESS_CENTERS,
+  emptySuccessProfile,
   formatAuditTime,
 } from "./phase1Seed";
 
@@ -56,6 +57,31 @@ const emptyBmis: BmisProfile = {
   preferredContact: "",
   notes: "",
 };
+
+/** Backfill fields added after an account was first persisted. */
+function normalizeStoredUser(user: AuthUser): AuthUser {
+  return {
+    ...user,
+    bmisProfile: user.bmisProfile ?? { ...emptyBmis },
+    successProfile: {
+      ...emptySuccessProfile(),
+      ...(user.successProfile ?? {}),
+    },
+    questionnaireAnswers: user.questionnaireAnswers ?? [],
+  };
+}
+
+/** Merge any newly seeded disclosure kinds into a persisted store. */
+function mergeDisclosures(
+  stored: Phase1Store["disclosures"] | undefined,
+): Phase1Store["disclosures"] {
+  const existing = stored ?? [];
+  const byKind = new Map(existing.map((d) => [d.kind, d]));
+  for (const seed of SEED_DISCLOSURES) {
+    if (!byKind.has(seed.kind)) byKind.set(seed.kind, seed);
+  }
+  return [...byKind.values()];
+}
 
 const defaultStore: Phase1Store = {
   user: null,
@@ -118,6 +144,10 @@ function readStore(): Phase1Store {
         rules: {
           ...DEFAULT_PRICING_SETTINGS.rules,
           ...(parsed.settings?.rules ?? {}),
+          planPresets: {
+            ...DEFAULT_PRICING_SETTINGS.rules.planPresets,
+            ...(parsed.settings?.rules?.planPresets ?? {}),
+          },
           caps: {
             ...DEFAULT_PRICING_SETTINGS.rules.caps,
             ...(parsed.settings?.rules?.caps ?? {}),
@@ -127,6 +157,12 @@ function readStore(): Phase1Store {
             DEFAULT_PRICING_SETTINGS.rules.customRules,
         },
       },
+      successCenters: (parsed.successCenters ?? SEED_SUCCESS_CENTERS).map(
+        (center) => ({ ...center, programs: center.programs ?? [] }),
+      ),
+      disclosures: mergeDisclosures(parsed.disclosures),
+      user: parsed.user ? normalizeStoredUser(parsed.user) : null,
+      accounts: (parsed.accounts ?? []).map(normalizeStoredUser),
     };
   } catch {
     return structuredClone(defaultStore);
@@ -207,6 +243,7 @@ export function createUserFromSignup(name: string, email: string): AuthUser {
     questionnaireComplete: false,
     questionnaireAnswers: [],
     bmisProfile: { ...emptyBmis },
+    successProfile: emptySuccessProfile(),
     recommendationId: null,
   };
 }

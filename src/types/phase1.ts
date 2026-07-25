@@ -31,7 +31,8 @@ export type DisclosureKind =
   | "terms"
   | "privacy"
   | "refund_policy"
-  | "checkout_acknowledgment";
+  | "checkout_acknowledgment"
+  | "partner_sponsored_notice";
 
 export type BmisProfile = {
   goalSummary: string;
@@ -45,6 +46,24 @@ export type QuestionnaireAnswer = {
   value: string;
 };
 
+/* ─── Success Center Category → Program hierarchy ─── */
+
+/** A specialized program that lives inside a Success Center category. */
+export type SuccessProgram = {
+  id: string;
+  name: string;
+  blurb: string;
+  /** % of the goal required to activate the program (admin-configurable). */
+  activationPercent: number;
+  educationSummary: string;
+  timelineNote: string;
+  eligibilityNote: string;
+};
+
+/**
+ * A Success Center **category**. Each category contains specialized programs.
+ * (`filter` is the coarse grouping used by browse chips.)
+ */
 export type SuccessCenter = {
   id: string;
   name: string;
@@ -56,6 +75,65 @@ export type SuccessCenter = {
   active: boolean;
   notices: string;
   content: string;
+  programs: SuccessProgram[];
+};
+
+/* ─── Participant Success Profile (core BMIS intake) ─── */
+
+export type ParticipantType =
+  | "individual"
+  | "household"
+  | "group"
+  | "professional"
+  | "business"
+  | "organizational";
+
+export type GoalCadence = "one_time" | "recurring";
+
+export type GoalPriority = "urgent" | "important" | "long_term";
+
+export type ActivationCadence = "monthly" | "3_month" | "6_month" | "full_term";
+
+/**
+ * Core Participant Success Profile shared across every Success Center.
+ * Program-specific questions are captured separately in `questionnaireAnswers`.
+ */
+export type SuccessProfile = {
+  /* Participant information */
+  participantType: ParticipantType | "";
+  country: string;
+  region: string;
+  currency: string;
+  incomeSource: string;
+  netMonthlyIncome: number;
+  essentialExpenses: number;
+  monthlyDebt: number;
+  currentSavings: number;
+  emergencySavings: number;
+  existingCommitments: number;
+  comfortableMonthlyActivation: number;
+  /* Goal information */
+  selectedCategoryId: string;
+  selectedProgramId: string;
+  goalCadence: GoalCadence | "";
+  goalAmount: number;
+  monthlyObligation: number;
+  desiredCompletionDate: string;
+  preferredFundingMonths: number;
+  goalPriority: GoalPriority | "";
+  hasVerifiedProvider: boolean;
+  activationCadence: ActivationCadence | "";
+  /* Financial-planning questions */
+  desiredResult: string;
+  currentObstacle: string;
+  wouldReduceExpense: boolean;
+  wouldIncreaseIncome: boolean;
+  openToLowerCostOrLongerTimeline: boolean;
+  priorityNote: string;
+  /* Attestation */
+  infoAccurate: boolean;
+  /** Participant acknowledges recommendations/timelines are estimates. */
+  understandsEstimates: boolean;
 };
 
 export type FounderStackOffer = {
@@ -69,11 +147,19 @@ export type FounderStackOffer = {
   active: boolean;
 };
 
+/**
+ * What a Founding Access allotment unlocks. Admin-configurable, defaulting to
+ * `categories` (e.g. $50 = 1 category, $100 = 3, $500 = up to 8).
+ */
+export type FoundingSelectionMode = "categories" | "programs" | "count";
+
 export type PricingConfig = {
   regularPricePerCenter: number;
   foundingPriceOne: number;
   foundingPriceBundle: number;
   bundleCenterCount: number;
+  /** How Founding Access allotments are counted for participants. */
+  selectionMode: FoundingSelectionMode;
   promoStart: string;
   promoEnd: string;
   billing: BillingStructure;
@@ -89,6 +175,18 @@ export type PlatformRules = {
   defaultTimelineMonths: number;
   recommendationBudgetFactor: number;
   recommendationTimelineFactor: number;
+  /** Default % of a goal required to activate a program. */
+  activationPercentDefault: number;
+  /** Scheduled payments round up to the nearest multiple of this ($). */
+  roundingUnit: number;
+  /** Portion of available monthly cash flow considered safe to commit. */
+  safeCapacityFactor: number;
+  /** Month presets that drive the Fast / Moderate / Long plan options. */
+  planPresets: {
+    fastMonths: number;
+    moderateMonths: number;
+    longMonths: number;
+  };
   caps: {
     maxRecommendedBudget: number;
     minMonthlySetAside: number;
@@ -143,11 +241,45 @@ export type PaymentRecord = {
   accountStatusAfterRefund: string | null;
 };
 
+export type PlanKind = "fast" | "moderate" | "long" | "one_time";
+
+/** Whether the participant can comfortably fund a plan right now. */
+export type AffordabilityStatus =
+  | "eligible"
+  | "eligible_with_adjustment"
+  | "build_savings_first"
+  | "increase_income_first"
+  | "not_currently_eligible";
+
+export type RecommendationPlan = {
+  id: PlanKind;
+  label: string;
+  /** Months over which the activation requirement is scheduled (1 = one-time). */
+  months: number;
+  activationPercent: number;
+  activationRequirement: number;
+  scheduledPayment: number;
+  fundingRangeLow: number;
+  fundingRangeHigh: number;
+  affordable: boolean;
+};
+
 export type Recommendation = {
   id: string;
   userId: string;
   userName: string;
+  /* BMIS engine outputs */
+  goalAmount: number;
+  availableCashFlow: number;
+  safeCapacity: number;
+  plans: RecommendationPlan[];
+  affordability: AffordabilityStatus;
+  /** Alternative next-step suggestions when a plan is not yet affordable. */
+  suggestions: string[];
+  selectedPlanId: PlanKind | null;
+  /** Back-compat: mirrors the Moderate plan's activation requirement. */
   recommendedBudget: number;
+  /** Back-compat: mirrors the Moderate plan's month count. */
   projectedTimelineMonths: number;
   status: RecommendationStatus;
   notes: string;
@@ -209,6 +341,8 @@ export type AuthUser = UserProfile & {
   questionnaireComplete: boolean;
   questionnaireAnswers: QuestionnaireAnswer[];
   bmisProfile: BmisProfile;
+  /** Structured Success Profile that feeds the BMIS recommendation engine. */
+  successProfile: SuccessProfile;
   recommendationId: string | null;
   /** Demo-only: pause hides profile activity until resumed. */
   paused?: boolean;
