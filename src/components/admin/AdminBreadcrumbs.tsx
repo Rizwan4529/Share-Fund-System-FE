@@ -14,6 +14,7 @@ const ADMIN_CRUMBS: Array<{ path: string; name: string; end?: boolean }> = [
   { path: ROUTES.ADMIN_RULES, name: "Rules" },
   { path: ROUTES.ADMIN_RECOMMENDATIONS, name: "Recommendations" },
   { path: ROUTES.ADMIN_DISCLOSURES, name: "Disclosures" },
+  { path: ROUTES.ADMIN_AUDIT, name: "Audit log" },
   { path: ROUTES.ADMIN_SETTINGS, name: "Settings" },
 ];
 
