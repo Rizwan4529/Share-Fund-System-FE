@@ -1,14 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { AlertCircle, Pencil, Plus, SlidersHorizontal } from "lucide-react";
+import { AlertCircle, Pencil, Plus, SlidersHorizontal, Tags } from "lucide-react";
 
 import {
   ADMIN_TABLE_SECTION,
   ADMIN_TABLE_SLOT,
+  AdminGhostButton,
   AdminGoldButton,
   AdminPageHeader,
   AdminTableIconAction,
   AdminTableToolbar,
+  SettingCategoryManageDrawer,
   SettingFormDrawer,
 } from "@/components/admin";
 import { DataTableColumnHeaderCommon } from "@/components/common/DataTableColumnHeaderCommon";
@@ -27,15 +29,12 @@ import {
 } from "@/lib/settings/value";
 import {
   useGetSettingsByCategoryQuery,
+  useListSettingCategoriesQuery,
   useListSettingsQuery,
 } from "@/store/api/settingsApi";
-import {
-  SETTING_CATEGORIES,
-  type Setting,
-  type SettingCategory,
-} from "@/types/settings";
+import type { Setting } from "@/types/settings";
 
-type CategoryFilter = "all" | SettingCategory;
+type CategoryFilter = "all" | string;
 type DrawerMode = "create" | "edit";
 
 export default function AdminSettingsPage() {
@@ -44,14 +43,23 @@ export default function AdminSettingsPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("create");
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [manageOpen, setManageOpen] = useState(false);
+
+  const categoriesQuery = useListSettingCategoriesQuery();
+  const categories = categoriesQuery.data ?? [];
+
+  useEffect(() => {
+    if (categoryFilter === "all" || !categoriesQuery.isSuccess) return;
+    const exists = categories.some((category) => category.slug === categoryFilter);
+    if (!exists) setCategoryFilter("all");
+  }, [categoryFilter, categories, categoriesQuery.isSuccess]);
 
   const listQuery = useListSettingsQuery(undefined, {
     skip: categoryFilter !== "all",
   });
-  const categoryQuery = useGetSettingsByCategoryQuery(
-    categoryFilter as SettingCategory,
-    { skip: categoryFilter === "all" },
-  );
+  const categoryQuery = useGetSettingsByCategoryQuery(categoryFilter, {
+    skip: categoryFilter === "all",
+  });
 
   const activeQuery = categoryFilter === "all" ? listQuery : categoryQuery;
   const settings = activeQuery.data ?? [];
@@ -104,7 +112,8 @@ export default function AdminSettingsPage() {
         header: ({ column }) => (
           <DataTableColumnHeaderCommon column={column} title="Category" />
         ),
-        cell: ({ row }) => settingCategoryLabel(row.original.category),
+        cell: ({ row }) =>
+          settingCategoryLabel(row.original.category, categories),
         enableSorting: true,
       },
       {
@@ -160,7 +169,7 @@ export default function AdminSettingsPage() {
         ),
       },
     ],
-    [],
+    [categories],
   );
 
   const tableBody = () => {
@@ -203,7 +212,7 @@ export default function AdminSettingsPage() {
           description={
             categoryFilter === "all"
               ? "Create the first platform setting to get started."
-              : `No settings in ${settingCategoryLabel(categoryFilter)}.`
+              : `No settings in ${settingCategoryLabel(categoryFilter, categories)}.`
           }
           action={
             <AdminGoldButton type="button" onClick={openCreate}>
@@ -234,10 +243,20 @@ export default function AdminSettingsPage() {
         title="Settings"
         subtitle="Manage versioned platform settings. Changes are recorded in each setting’s history."
         actions={
-          <AdminGoldButton type="button" onClick={openCreate}>
-            <Plus className="size-4" />
-            Add setting
-          </AdminGoldButton>
+          <>
+            <AdminGhostButton
+              type="button"
+              className="gap-1.5"
+              onClick={() => setManageOpen(true)}
+            >
+              <Tags className="size-4" />
+              Manage categories
+            </AdminGhostButton>
+            <AdminGoldButton type="button" onClick={openCreate}>
+              <Plus className="size-4" />
+              Add setting
+            </AdminGoldButton>
+          </>
         }
       />
 
@@ -248,9 +267,9 @@ export default function AdminSettingsPage() {
       >
         <TabsList className="flex h-auto flex-wrap gap-x-4 gap-y-0">
           <TabsTrigger value="all">All</TabsTrigger>
-          {SETTING_CATEGORIES.map((category) => (
-            <TabsTrigger key={category} value={category}>
-              {settingCategoryLabel(category)}
+          {categories.map((category) => (
+            <TabsTrigger key={category._id} value={category.slug}>
+              {category.label}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -270,6 +289,10 @@ export default function AdminSettingsPage() {
         onOpenChange={setDrawerOpen}
         mode={drawerMode}
         settingKey={editingKey}
+      />
+      <SettingCategoryManageDrawer
+        open={manageOpen}
+        onOpenChange={setManageOpen}
       />
     </section>
   );

@@ -1,8 +1,10 @@
 import { baseApi } from "@/store/api/baseApi";
 import type {
+  CreateSettingCategoryRequest,
   InsertSettingRequest,
   Setting,
   SettingCategory,
+  UpdateSettingCategoryRequest,
   UpdateSettingRequest,
 } from "@/types/settings";
 import { API_PATHS } from "@/utils/constants";
@@ -22,7 +24,7 @@ export const settingsApi = baseApi.injectEndpoints({
             ]
           : [{ type: "Setting", id: "LIST" }],
     }),
-    getSettingsByCategory: builder.query<Setting[], SettingCategory>({
+    getSettingsByCategory: builder.query<Setting[], string>({
       query: (category) => API_PATHS.SETTINGS_CATEGORY(category),
       providesTags: (result, _error, category) =>
         result
@@ -65,6 +67,52 @@ export const settingsApi = baseApi.injectEndpoints({
         { type: "Setting", id: "LIST" },
       ],
     }),
+    listSettingCategories: builder.query<SettingCategory[], void>({
+      query: () => API_PATHS.SETTING_CATEGORIES,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map((category) => ({
+                type: "SettingCategory" as const,
+                id: category._id,
+              })),
+              { type: "SettingCategory", id: "LIST" },
+            ]
+          : [{ type: "SettingCategory", id: "LIST" }],
+    }),
+    createSettingCategory: builder.mutation<
+      SettingCategory,
+      CreateSettingCategoryRequest
+    >({
+      query: (body) => ({
+        url: API_PATHS.SETTING_CATEGORIES,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [{ type: "SettingCategory", id: "LIST" }],
+    }),
+    updateSettingCategory: builder.mutation<
+      SettingCategory,
+      { id: string } & UpdateSettingCategoryRequest
+    >({
+      query: ({ id, ...body }) => ({
+        url: API_PATHS.SETTING_CATEGORY_BY_ID(id),
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "SettingCategory", id },
+        { type: "SettingCategory", id: "LIST" },
+        { type: "Setting", id: "LIST" },
+      ],
+    }),
+    deleteSettingCategory: builder.mutation<SettingCategory, string>({
+      query: (id) => ({
+        url: API_PATHS.SETTING_CATEGORY_BY_ID(id),
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "SettingCategory", id: "LIST" }],
+    }),
   }),
 });
 
@@ -74,4 +122,8 @@ export const {
   useGetSettingByKeyQuery,
   useInsertSettingMutation,
   useUpdateSettingMutation,
+  useListSettingCategoriesQuery,
+  useCreateSettingCategoryMutation,
+  useUpdateSettingCategoryMutation,
+  useDeleteSettingCategoryMutation,
 } = settingsApi;

@@ -36,10 +36,10 @@ import {
 import {
   useGetSettingByKeyQuery,
   useInsertSettingMutation,
+  useListSettingCategoriesQuery,
   useUpdateSettingMutation,
 } from "@/store/api/settingsApi";
 import {
-  SETTING_CATEGORIES,
   SETTING_DATA_TYPES,
   type SettingVersionEntry,
 } from "@/types/settings";
@@ -51,19 +51,13 @@ type SettingFormDrawerProps = {
   settingKey?: string | null;
 };
 
-const CATEGORY_OPTIONS = SETTING_CATEGORIES.map((category) => ({
-  value: category,
-  label: settingCategoryLabel(category),
-}));
-
 const DATA_TYPE_OPTIONS = SETTING_DATA_TYPES.map((dataType) => ({
   value: dataType,
   label: dataType.charAt(0).toUpperCase() + dataType.slice(1),
 }));
 
-const CREATE_DEFAULTS: InsertSettingFormValues = {
+const CREATE_DEFAULTS: Omit<InsertSettingFormValues, "category"> = {
   key: "",
-  category: "founder",
   dataType: "number",
   valueInput: "",
   description: "",
@@ -135,15 +129,20 @@ function CreateSettingForm({
   onClose: () => void;
 }) {
   const [insertSetting, insertState] = useInsertSettingMutation();
+  const categoriesQuery = useListSettingCategoriesQuery(undefined, {
+    skip: !open,
+  });
+  const categories = categoriesQuery.data ?? [];
+  const firstCategory = categories[0]?.slug ?? "";
   const form = useForm<InsertSettingFormValues>({
     resolver: zodResolver(insertSettingFormSchema),
-    defaultValues: CREATE_DEFAULTS,
+    defaultValues: { ...CREATE_DEFAULTS, category: firstCategory },
   });
   const dataType = form.watch("dataType");
 
   useEffect(() => {
-    if (open) form.reset(CREATE_DEFAULTS);
-  }, [open, form]);
+    if (open) form.reset({ ...CREATE_DEFAULTS, category: firstCategory });
+  }, [open, firstCategory, form]);
 
   const onSubmit = async (values: InsertSettingFormValues) => {
     try {
@@ -176,8 +175,18 @@ function CreateSettingForm({
         name="category"
         label="Category"
         required
-        options={CATEGORY_OPTIONS}
-        placeholder="Select category"
+        options={categories.map((category) => ({
+          value: category.slug,
+          label: category.label,
+        }))}
+        disabled={categoriesQuery.isLoading || categories.length === 0}
+        placeholder={
+          categoriesQuery.isLoading
+            ? "Loading categories…"
+            : categories.length === 0
+              ? "Add a category first"
+              : "Select category"
+        }
       />
       <Select
         control={form.control}
@@ -210,7 +219,10 @@ function CreateSettingForm({
         >
           Cancel
         </Button>
-        <GoldButton type="submit" disabled={insertState.isLoading}>
+        <GoldButton
+          type="submit"
+          disabled={insertState.isLoading || categories.length === 0}
+        >
           {insertState.isLoading ? <ButtonSpinner className="size-4" /> : null}
           Create setting
         </GoldButton>
@@ -228,6 +240,9 @@ function EditSettingForm({
   settingKey: string;
   onClose: () => void;
 }) {
+  const categoriesQuery = useListSettingCategoriesQuery(undefined, {
+    skip: !open,
+  });
   const settingQuery = useGetSettingByKeyQuery(settingKey, {
     skip: !open,
   });
@@ -293,7 +308,7 @@ function EditSettingForm({
       <ReadOnlyField label="Key" value={setting.key} />
       <ReadOnlyField
         label="Category"
-        value={settingCategoryLabel(setting.category)}
+        value={settingCategoryLabel(setting.category, categoriesQuery.data)}
       />
       <ReadOnlyField label="Data type" value={setting.dataType} />
       <SettingValueField

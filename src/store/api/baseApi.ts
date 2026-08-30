@@ -67,6 +67,7 @@ export const baseApi = createApi({
     "LegalDocument",
     "LegalAcceptance",
     "Setting",
+    "SettingCategory",
     "FounderPlan",
     "SuccessCenterProgram",
   ],

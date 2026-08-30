@@ -19,6 +19,8 @@ export const API_PATHS = {
   SETTINGS: "/settings/",
   SETTINGS_CATEGORY: (category: string) => `/settings/category/${category}`,
   SETTING_BY_KEY: (key: string) => `/settings/${encodeURIComponent(key)}`,
+  SETTING_CATEGORIES: "/setting-categories/",
+  SETTING_CATEGORY_BY_ID: (id: string) => `/setting-categories/${id}`,
   FOUNDER_PLANS: "/founder-plans/",
   FOUNDER_PLAN_BY_ID: (id: string) => `/founder-plans/${id}`,
   FOUNDER_PLAN_AVAILABILITY: (id: string) =>

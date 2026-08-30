@@ -1,4 +1,4 @@
-import type { SettingDataType } from "@/types/settings";
+import type { SettingCategory, SettingDataType } from "@/types/settings";
 
 export function parseSettingValue(
   raw: string,
@@ -81,11 +81,32 @@ export function optionalTrimmed(value?: string): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-export function settingCategoryLabel(category: string): string {
+export function settingCategoryLabel(
+  category: string,
+  categories?: SettingCategory[],
+): string {
+  const match = categories?.find((item) => item.slug === category);
+  if (match?.label) return match.label;
   return category
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, (char) => char.toUpperCase())
     .trim();
+}
+
+export function slugFromLabel(label: string): string {
+  const words = label
+    .trim()
+    .split(/[\s_-]+/)
+    .map((word) => word.replace(/[^a-zA-Z0-9]/g, ""))
+    .filter(Boolean);
+  if (!words.length) return "";
+  return words
+    .map((word, index) => {
+      const lower = word.toLowerCase();
+      if (index === 0) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join("");
 }
 
 export function formatSettingDate(value?: string): string {

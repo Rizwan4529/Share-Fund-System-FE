@@ -34,6 +34,7 @@ export {
   adminTableRowClass,
 } from "./AdminTableScroll";
 export { AdminTopBar } from "./AdminTopBar";
+export { SettingCategoryManageDrawer } from "./SettingCategoryManageDrawer";
 export { SettingFormDrawer } from "./SettingFormDrawer";
 export { SettingValueField } from "./SettingValueField";
 export { FounderPlanFormDrawer } from "./FounderPlanFormDrawer";

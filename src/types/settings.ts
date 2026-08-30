@@ -1,19 +1,3 @@
-export const SETTING_CATEGORIES = [
-  "founder",
-  "activation",
-  "allocation",
-  "reserve",
-  "platformFee",
-  "threshold",
-  "discretionary",
-  "pricing",
-  "avalanche",
-  "followMe",
-  "growthPeriod",
-  "queue",
-  "statisticalPricing",
-] as const;
-
 export const SETTING_DATA_TYPES = [
   "number",
   "percentage",
@@ -21,8 +5,17 @@ export const SETTING_DATA_TYPES = [
   "array",
 ] as const;
 
-export type SettingCategory = (typeof SETTING_CATEGORIES)[number];
 export type SettingDataType = (typeof SETTING_DATA_TYPES)[number];
+
+export type SettingCategory = {
+  _id: string;
+  slug: string;
+  label: string;
+  description?: string;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
 
 export type SettingVersionEntry = {
   value: unknown;
@@ -34,7 +27,7 @@ export type SettingVersionEntry = {
 export type Setting = {
   _id: string;
   key: string;
-  category: SettingCategory;
+  category: string;
   value: unknown;
   dataType: SettingDataType;
   description?: string;
@@ -47,7 +40,7 @@ export type Setting = {
 
 export type InsertSettingRequest = {
   key: string;
-  category: SettingCategory;
+  category: string;
   value: unknown;
   dataType: SettingDataType;
   description?: string;
@@ -59,3 +52,12 @@ export type UpdateSettingRequest = {
   reason?: string;
   effectiveDate?: string;
 };
+
+export type CreateSettingCategoryRequest = {
+  slug: string;
+  label: string;
+  description?: string;
+  order?: number;
+};
+
+export type UpdateSettingCategoryRequest = Partial<CreateSettingCategoryRequest>;
