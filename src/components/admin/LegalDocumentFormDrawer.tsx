@@ -3,44 +3,48 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { DrawerCommon } from "@/components/common/DrawerCommon";
+import { DrawerCommon } from "../common/DrawerCommon";
+import { DatePicker, FormCommon, Input, Select } from "../common/FormCommon";
+import { GoldButton } from "../common/GoldButton";
+import { Spinner } from "../common/LoadingScreen";
+import { ButtonSpinner } from "../common/LoadingStates";
+import { RichTextField } from "../common/RichTextField";
+import { Typography } from "../common/Typography";
+import { Button } from "../ui/button";
+import { getApiErrorMessage } from "../../lib/api/getApiErrorMessage";
+import { sanitizeLegalHtml, toEditorHtml } from "../../lib/legal/html";
 import {
-  DatePicker,
-  FormCommon,
-  Input,
-  Textarea,
-} from "@/components/common/FormCommon";
-import { GoldButton } from "@/components/common/GoldButton";
-import { Spinner } from "@/components/common/LoadingScreen";
-import { ButtonSpinner } from "@/components/common/LoadingStates";
-import { Typography } from "@/components/common/Typography";
-import { Button } from "@/components/ui/button";
-import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
-import { legalDocumentTypeLabel } from "@/lib/legal/labels";
-import { optionalTrimmed, toDateInput } from "@/lib/settings/value";
+  legalDocumentTypeLabel,
+  legalDocumentTypeOptions,
+} from "../../lib/legal/labels";
+import { optionalTrimmed, toDateInput } from "../../lib/settings/value";
 import {
   legalDocumentFormSchema,
   type LegalDocumentFormValues,
-} from "@/lib/schemas/legal";
+} from "../../lib/schemas/legal";
 import {
   useCreateLegalDocumentMutation,
   useListLegalDocumentVersionsQuery,
   usePublishLegalDocumentMutation,
   useUpdateLegalDocumentMutation,
-} from "@/store/api/legalApi";
-import type { LegalDocumentType } from "@/types/auth";
+} from "../../store/api/legalApi";
+import {
+  LEGAL_DOCUMENT_TYPES,
+  type LegalDocumentType,
+} from "../../types/auth";
 
 type LegalDocumentFormDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: "create" | "edit";
   documentType: LegalDocumentType | null;
+  existingTypes?: LegalDocumentType[];
 };
 
 const EMPTY_FORM = (
-  documentType: LegalDocumentType,
+  documentType?: LegalDocumentType | null,
 ): LegalDocumentFormValues => ({
-  documentType,
+  documentType: documentType ?? "terms",
   title: "",
   content: "",
   effectiveDate: "",
@@ -51,10 +55,10 @@ export function LegalDocumentFormDrawer({
   onOpenChange,
   mode,
   documentType,
+  existingTypes = [],
 }: LegalDocumentFormDrawerProps) {
   const close = () => onOpenChange(false);
-  const type = documentType ?? "terms";
-  const versionsQuery = useListLegalDocumentVersionsQuery(type, {
+  const versionsQuery = useListLegalDocumentVersionsQuery(documentType ?? "terms", {
     skip: !open || mode !== "edit" || !documentType,
   });
   const [createDocument, createState] = useCreateLegalDocumentMutation();
@@ -64,52 +68,62 @@ export function LegalDocumentFormDrawer({
   const versions = versionsQuery.data ?? [];
   const latest = versions[0];
   const isDraft = latest?.status === "draft";
+  const typeOptions = legalDocumentTypeOptions(existingTypes);
+  const canCreateAny = typeOptions.some((option) => !option.disabled);
 
   const form = useForm<LegalDocumentFormValues>({
     resolver: zodResolver(legalDocumentFormSchema),
-    defaultValues: EMPTY_FORM(type),
+    defaultValues: EMPTY_FORM(documentType),
   });
 
   useEffect(() => {
-    if (!open || !documentType) return;
+    if (!open) return;
     if (mode === "create") {
-      form.reset(EMPTY_FORM(documentType));
+      const firstAvailable =
+        documentType && !existingTypes.includes(documentType)
+          ? documentType
+          : (LEGAL_DOCUMENT_TYPES.find((type) => !existingTypes.includes(type)) ??
+            "terms");
+      form.reset(EMPTY_FORM(firstAvailable));
       return;
     }
-    if (!latest) return;
+    if (!documentType || !latest) return;
     form.reset({
       documentType,
       title: latest.title,
-      content: latest.content,
+      content: toEditorHtml(latest.content),
       effectiveDate: toDateInput(latest.effectiveDate),
     });
-  }, [open, mode, documentType, latest, form]);
+  }, [open, mode, documentType, latest, existingTypes, form]);
 
   const busy =
     createState.isLoading || updateState.isLoading || publishState.isLoading;
+  const selectedType = form.watch("documentType");
 
   const onSave = async (values: LegalDocumentFormValues) => {
-    if (!documentType) return;
+    const content = sanitizeLegalHtml(toEditorHtml(values.content));
     try {
       if (mode === "create") {
         await createDocument({
-          documentType,
+          documentType: values.documentType,
           title: values.title.trim(),
-          content: values.content.trim(),
+          content,
         }).unwrap();
         toast.success("Draft created. Publish it when the wording is final.");
-      } else {
-        await updateDocument({
-          documentType,
-          title: values.title.trim(),
-          content: values.content.trim(),
-        }).unwrap();
-        toast.success(
-          latest?.status === "published"
-            ? "New draft version created. Publish it to go live."
-            : "Draft updated.",
-        );
+        close();
+        return;
       }
+      if (!documentType) return;
+      await updateDocument({
+        documentType,
+        title: values.title.trim(),
+        content,
+      }).unwrap();
+      toast.success(
+        latest?.status === "published"
+          ? "New draft version created. Publish it to go live."
+          : "Draft updated.",
+      );
     } catch (error) {
       toast.error(getApiErrorMessage(error, "Could not save document."));
     }
@@ -118,16 +132,17 @@ export function LegalDocumentFormDrawer({
   const onPublish = async () => {
     if (!documentType || !latest) return;
     const values = form.getValues();
+    const content = sanitizeLegalHtml(toEditorHtml(values.content));
     try {
       let version = latest.version;
       if (
         values.title.trim() !== latest.title ||
-        values.content.trim() !== latest.content
+        content !== latest.content
       ) {
         const saved = await updateDocument({
           documentType,
           title: values.title.trim(),
-          content: values.content.trim(),
+          content,
         }).unwrap();
         version = saved.version;
       }
@@ -145,15 +160,16 @@ export function LegalDocumentFormDrawer({
 
   const title =
     mode === "create"
-      ? `Add ${legalDocumentTypeLabel(type)}`
-      : `Edit ${legalDocumentTypeLabel(type)}`;
+      ? "Add legal document"
+      : `Edit ${legalDocumentTypeLabel(documentType ?? selectedType)}`;
 
   return (
     <DrawerCommon
       open={open}
       onOpenChange={onOpenChange}
       title={title}
-      description="Saving a published document creates a new draft. Old versions stay retrievable for acceptances."
+      description="Choose the document type, then write the wording in the rich editor. Saving a published document creates a new draft."
+      className="sm:max-w-lg md:max-w-2xl"
     >
       {mode === "edit" && versionsQuery.isLoading ? (
         <div className="flex min-h-40 items-center justify-center">
@@ -161,6 +177,41 @@ export function LegalDocumentFormDrawer({
         </div>
       ) : (
         <FormCommon form={form} onSubmit={onSave} className="space-y-4">
+          <Select
+            control={form.control}
+            name="documentType"
+            label="Document type"
+            required
+            disabled={mode === "edit"}
+            placeholder="Select a document type"
+            options={
+              mode === "edit"
+                ? [
+                    {
+                      value: documentType ?? selectedType,
+                      label: legalDocumentTypeLabel(
+                        documentType ?? selectedType,
+                      ),
+                    },
+                  ]
+                : typeOptions
+            }
+          />
+          {mode === "create" && !canCreateAny ? (
+            <>
+              <Typography variant="body-sm" color="muted">
+                Every document type already has a version. Edit an existing
+                document to create a new draft.
+              </Typography>
+              <div className="flex justify-end">
+                <Button type="button" variant="outline" onClick={close}>
+                  Close
+                </Button>
+              </div>
+            </>
+          ) : null}
+          {mode === "create" && !canCreateAny ? null : (
+            <>
           <Input
             control={form.control}
             name="title"
@@ -168,13 +219,12 @@ export function LegalDocumentFormDrawer({
             required
             placeholder="Terms of Use"
           />
-          <Textarea
+          <RichTextField
             control={form.control}
             name="content"
             label="Content"
             required
-            rows={12}
-            placeholder="Document body"
+            placeholder="Write the legal document…"
           />
           {isDraft ? (
             <DatePicker
@@ -235,6 +285,8 @@ export function LegalDocumentFormDrawer({
               </ol>
             </div>
           ) : null}
+            </>
+          )}
         </FormCommon>
       )}
     </DrawerCommon>

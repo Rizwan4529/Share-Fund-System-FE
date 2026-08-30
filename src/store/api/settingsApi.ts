@@ -111,7 +111,10 @@ export const settingsApi = baseApi.injectEndpoints({
         url: API_PATHS.SETTING_CATEGORY_BY_ID(id),
         method: "DELETE",
       }),
-      invalidatesTags: [{ type: "SettingCategory", id: "LIST" }],
+      invalidatesTags: [
+        { type: "SettingCategory", id: "LIST" },
+        { type: "Setting", id: "LIST" },
+      ],
     }),
   }),
 });

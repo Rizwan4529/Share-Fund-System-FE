@@ -3,6 +3,7 @@ import { CircleAlert } from "lucide-react";
 
 import { Checkbox } from "@/components/common/FormCommon";
 import { EmptyState } from "@/components/common/EmptyState";
+import { LegalDocumentHtml } from "@/components/common/LegalDocumentHtml";
 import { Spinner } from "@/components/common/LoadingScreen";
 import { Typography } from "@/components/common/Typography";
 import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
@@ -64,8 +65,11 @@ function SignupLegalDocument({
       <Typography variant="caption" color="muted" className="mb-2 block">
         Version {document.version}
       </Typography>
-      <div className="mb-3 max-h-32 overflow-y-auto whitespace-pre-wrap rounded-md border border-line bg-white px-3 py-2 text-[13px] leading-relaxed text-muted-soft">
-        {document.content}
+      <div className="mb-3 max-h-32 overflow-y-auto rounded-md border border-line bg-white px-3 py-2">
+        <LegalDocumentHtml
+          className="text-[13px] text-muted-soft"
+          content={document.content}
+        />
       </div>
       <Checkbox
         control={control}

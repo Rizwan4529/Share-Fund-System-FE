@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { CircleAlert } from "lucide-react";
 
 import { EmptyState } from "@/components/common/EmptyState";
+import { LegalDocumentHtml } from "@/components/common/LegalDocumentHtml";
 import { Spinner } from "@/components/common/LoadingScreen";
 import { Typography } from "@/components/common/Typography";
 import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
@@ -94,12 +95,7 @@ export default function LegalPage() {
             >
               Version {data.version} · Updated {formatUpdatedAt(data.updatedAt)}
             </Typography>
-            <Typography
-              variant="body"
-              className="mt-6 whitespace-pre-wrap leading-relaxed"
-            >
-              {data.content}
-            </Typography>
+            <LegalDocumentHtml className="mt-6" content={data.content} />
           </article>
         ) : null}
       </div>

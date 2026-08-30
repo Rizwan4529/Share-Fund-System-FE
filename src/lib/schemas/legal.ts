@@ -1,13 +1,16 @@
 import { z } from "zod";
 
-import { LEGAL_DOCUMENT_TYPES } from "@/types/auth";
+import { legalHtmlHasText } from "../legal/html";
+import { LEGAL_DOCUMENT_TYPES } from "../../types/auth";
 
 export const legalDocumentFormSchema = z.object({
   documentType: z.enum(LEGAL_DOCUMENT_TYPES, {
     error: "Document type is required",
   }),
   title: z.string().min(1, "Title is required"),
-  content: z.string().min(1, "Content is required"),
+  content: z
+    .string()
+    .refine(legalHtmlHasText, "Content is required"),
   effectiveDate: z.string().optional(),
 });
 

@@ -16,6 +16,18 @@ export function legalDocumentTypeLabel(type: string): string {
     .replace(/^./, (char) => char.toUpperCase());
 }
 
+export function legalDocumentTypeOptions(
+  existingTypes: LegalDocumentType[] = [],
+) {
+  return LEGAL_DOCUMENT_TYPES.map((documentType) => ({
+    value: documentType,
+    label: existingTypes.includes(documentType)
+      ? `${legalDocumentTypeLabel(documentType)} (already added)`
+      : legalDocumentTypeLabel(documentType),
+    disabled: existingTypes.includes(documentType),
+  }));
+}
+
 export function summarizeLegalDocuments(
   documents: LegalDocument[],
 ): LegalDocumentRow[] {

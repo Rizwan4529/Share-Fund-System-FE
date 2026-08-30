@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { GoldButton } from "@/components/common/GoldButton";
+import { LegalDocumentHtml } from "@/components/common/LegalDocumentHtml";
 import { Typography } from "@/components/common/Typography";
 import {
   AppPageContainer,
@@ -160,14 +161,19 @@ export default function EnrollmentCheckoutPage() {
             <SectionLabel tone="navy">
               Acknowledgment · v{ackQuery.data?.version ?? "—"}
             </SectionLabel>
-            <Typography variant="body-sm" className="text-muted-soft">
-              {ackQuery.isError
-                ? getApiErrorMessage(
-                    ackQuery.error,
-                    "No published checkout acknowledgment was found.",
-                  )
-                : ackQuery.data?.content}
-            </Typography>
+            {ackQuery.isError ? (
+              <Typography variant="body-sm" className="text-muted-soft">
+                {getApiErrorMessage(
+                  ackQuery.error,
+                  "No published checkout acknowledgment was found.",
+                )}
+              </Typography>
+            ) : ackQuery.data ? (
+              <LegalDocumentHtml
+                className="text-muted-soft"
+                content={ackQuery.data.content}
+              />
+            ) : null}
             <div className="flex items-start gap-3 pt-1">
               <Checkbox
                 id="ack"

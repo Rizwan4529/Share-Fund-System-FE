@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { AdminTableIconAction } from "@/components/admin/AdminTableIconAction";
+import { DialogCommon } from "@/components/common/DialogCommon";
 import { DrawerCommon } from "@/components/common/DrawerCommon";
 import { FormCommon, Input, Textarea } from "@/components/common/FormCommon";
 import { GoldButton } from "@/components/common/GoldButton";
@@ -150,7 +151,7 @@ export function SettingCategoryManageDrawer({
       open={open}
       onOpenChange={onOpenChange}
       title="Manage categories"
-      description="Add, rename, or remove setting categories. A category cannot be deleted while settings still use it."
+      description="Add, rename, or remove setting categories. Deleting a category also deletes every setting in it."
     >
       <div className="space-y-5">
         <FormCommon form={form} onSubmit={onSubmit} className="space-y-3">
@@ -247,36 +248,23 @@ export function SettingCategoryManageDrawer({
           )}
         </div>
 
-        {pendingDelete ? (
-          <div className="space-y-3 rounded-md border border-destructive/30 bg-error-bg/40 p-3">
-            <Typography variant="body-sm">
-              Delete <strong>{pendingDelete.label}</strong>? This is blocked if
-              any settings still use it.
-            </Typography>
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setPendingDelete(null)}
-                disabled={deleteState.isLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => void onDelete()}
-                disabled={deleteState.isLoading}
-              >
-                {deleteState.isLoading ? (
-                  <ButtonSpinner className="size-4" />
-                ) : null}
-                Delete
-              </Button>
-            </div>
-          </div>
-        ) : null}
       </div>
+      <DialogCommon
+        open={Boolean(pendingDelete)}
+        onOpenChange={(next) => {
+          if (!next) setPendingDelete(null);
+        }}
+        title={
+          pendingDelete
+            ? `Delete ${pendingDelete.label}?`
+            : "Delete category?"
+        }
+        description="This permanently deletes the category and every setting that uses it. This cannot be undone."
+        confirmLabel="Delete category"
+        confirmVariant="destructive"
+        confirmLoading={deleteState.isLoading}
+        onConfirm={onDelete}
+      />
     </DrawerCommon>
   );
 }

@@ -5,6 +5,7 @@ import { AlertCircle, Pencil, Plus } from "lucide-react";
 import {
   ADMIN_TABLE_SECTION,
   ADMIN_TABLE_SLOT,
+  AdminGoldButton,
   AdminPageHeader,
   AdminStatusPill,
   AdminTableIconAction,
@@ -57,7 +58,12 @@ export default function AdminDisclosuresPage() {
   const { pageRows, totalDataCount, onFetchData } =
     useClientTablePage(filtered);
 
-  const openCreate = (documentType: LegalDocumentType) => {
+  const existingTypes = useMemo(
+    () => rows.filter((row) => row.latest).map((row) => row.documentType),
+    [rows],
+  );
+
+  const openCreate = (documentType: LegalDocumentType | null = null) => {
     setDrawerMode("create");
     setEditingType(documentType);
     setDrawerOpen(true);
@@ -209,7 +215,13 @@ export default function AdminDisclosuresPage() {
     <section className={ADMIN_TABLE_SECTION}>
       <AdminPageHeader
         title="Disclosures & legal"
-        subtitle="Edit versioned legal documents. Saving a published document creates a new draft — publish only when the wording is final."
+        subtitle="Add or edit versioned legal documents in a rich text editor. Saving a published document creates a new draft — publish only when the wording is final."
+        // actions={
+        //   <AdminGoldButton type="button" onClick={() => openCreate()}>
+        //     <Plus className="size-4" />
+        //     Add document
+        //   </AdminGoldButton>
+        // }
       />
       <AdminTableToolbar
         search={search}
@@ -223,6 +235,7 @@ export default function AdminDisclosuresPage() {
         onOpenChange={setDrawerOpen}
         mode={drawerMode}
         documentType={editingType}
+        existingTypes={existingTypes}
       />
     </section>
   );
