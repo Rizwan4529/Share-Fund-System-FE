@@ -1,155 +1,230 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus, Power, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  LayoutGrid,
+  Pencil,
+  Plus,
+  Power,
+  PowerOff,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
   ADMIN_TABLE_SECTION,
   ADMIN_TABLE_SLOT,
+  AdminGoldButton,
   AdminPageHeader,
+  AdminStatusPill,
   AdminTableIconAction,
   AdminTableToolbar,
-} from "@/components/admin";
-import { DialogCommon } from "@/components/common/DialogCommon";
-import { DrawerCommon } from "@/components/common/DrawerCommon";
-import { DataTableColumnHeaderCommon } from "@/components/common/DataTableColumnHeaderCommon";
-import { DataTableCommon } from "@/components/common/DataTableCommon";
-import { GoldButton } from "@/components/common/GoldButton";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { filterRowsBySearch } from "@/hooks/useAdminTableSearch";
-import { useClientTablePage } from "@/hooks/useClientTablePage";
+  SuccessCenterCategoryFormDrawer,
+  SuccessCenterProgramFormDrawer,
+} from "../../components/admin";
+import { DialogCommon } from "../../components/common/DialogCommon";
+import { DataTableColumnHeaderCommon } from "../../components/common/DataTableColumnHeaderCommon";
+import { DataTableCommon } from "../../components/common/DataTableCommon";
+import { EmptyState } from "../../components/common/EmptyState";
+import { Spinner } from "../../components/common/LoadingScreen";
 import {
-  saveSuccessCenter,
-  setSuccessCenterActive,
-} from "@/lib/api/successCenters";
-import { fetchAdminSuccessCenters } from "@/lib/api/admin";
-import type { SuccessCenter } from "@/types";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/common/TabsCommon";
+import { Button } from "../../components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import { filterRowsBySearch } from "../../hooks/useAdminTableSearch";
+import { useClientTablePage } from "../../hooks/useClientTablePage";
+import { getApiErrorMessage } from "../../lib/api/getApiErrorMessage";
+import { categoryNameById } from "../../lib/success-centers/labels";
+import {
+  useDeleteSuccessCenterCategoryMutation,
+  useDeleteSuccessCenterProgramMutation,
+  useListSuccessCenterCategoriesQuery,
+  useListSuccessCenterProgramsQuery,
+  useUpdateSuccessCenterCategoryMutation,
+  useUpdateSuccessCenterProgramMutation,
+} from "../../store/api/successCentersApi";
+import type {
+  SuccessCenterCategory,
+  SuccessCenterCategoryStatus,
+  SuccessCenterProgram,
+  SuccessCenterProgramStatus,
+} from "../../types/successCenters";
+
+type MainTab = "categories" | "programs";
+type DrawerMode = "create" | "edit";
+type CategoryStatusFilter = "all" | SuccessCenterCategoryStatus;
+type ProgramStatusFilter = "all" | SuccessCenterProgramStatus;
 
 export default function AdminSuccessCentersPage() {
-  const [centers, setCenters] = useState<SuccessCenter[]>([]);
-  const [editing, setEditing] = useState<SuccessCenter | null>(null);
-  const [drawerMode, setDrawerMode] = useState<"create" | "edit">("edit");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [confirmTarget, setConfirmTarget] = useState<SuccessCenter | null>(
+  const [mainTab, setMainTab] = useState<MainTab>("categories");
+  const [search, setSearch] = useState("");
+  const [categoryStatusFilter, setCategoryStatusFilter] =
+    useState<CategoryStatusFilter>("all");
+  const [programStatusFilter, setProgramStatusFilter] =
+    useState<ProgramStatusFilter>("all");
+  const [programCategoryFilter, setProgramCategoryFilter] =
+    useState<string>("all");
+
+  const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
+  const [categoryDrawerMode, setCategoryDrawerMode] =
+    useState<DrawerMode>("create");
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(
     null,
   );
-  const [search, setSearch] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [pendingDeleteCategory, setPendingDeleteCategory] =
+    useState<SuccessCenterCategory | null>(null);
 
-  const filtered = useMemo(
-    () =>
-      filterRowsBySearch(
-        centers,
-        search,
-        (c) =>
-          `${c.name} ${c.filter} ${c.active ? "yes active" : "no inactive"}`,
-      ),
-    [centers, search],
-  );
-  const { pageRows, totalDataCount, onFetchData } =
-    useClientTablePage(filtered);
+  const [programDrawerOpen, setProgramDrawerOpen] = useState(false);
+  const [programDrawerMode, setProgramDrawerMode] =
+    useState<DrawerMode>("create");
+  const [editingProgramId, setEditingProgramId] = useState<string | null>(null);
+  const [pendingDeleteProgram, setPendingDeleteProgram] =
+    useState<SuccessCenterProgram | null>(null);
 
-  const reload = () => void fetchAdminSuccessCenters().then(setCenters);
-  useEffect(() => {
-    reload();
-  }, []);
+  const categoriesQuery = useListSuccessCenterCategoriesQuery();
+  const programsQuery = useListSuccessCenterProgramsQuery();
+  const [updateCategory] = useUpdateSuccessCenterCategoryMutation();
+  const [deleteCategory, deleteCategoryState] =
+    useDeleteSuccessCenterCategoryMutation();
+  const [updateProgram] = useUpdateSuccessCenterProgramMutation();
+  const [deleteProgram, deleteProgramState] =
+    useDeleteSuccessCenterProgramMutation();
 
-  const openCreate = () => {
-    setDrawerMode("create");
-    setEditing({
-      id: `sc-${Date.now()}`,
-      name: "New Success Center",
-      blurb: "",
-      long: "",
-      filter: "essentials",
-      active: false,
-      notices: "Planning tools only. No live funding in Phase 1.",
-      content: "",
-      programs: [],
-    });
-    setDrawerOpen(true);
+  const categories = categoriesQuery.data ?? [];
+  const programs = programsQuery.data ?? [];
+
+  const programCountByCategory = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const program of programs) {
+      const key = String(program.categoryId);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return counts;
+  }, [programs]);
+
+  const filteredCategories = useMemo(() => {
+    const byStatus =
+      categoryStatusFilter === "all"
+        ? categories
+        : categories.filter((c) => c.status === categoryStatusFilter);
+    return filterRowsBySearch(
+      byStatus,
+      search,
+      (c) => `${c.name} ${c.slug} ${c.description ?? ""} ${c.status}`,
+    );
+  }, [categories, categoryStatusFilter, search]);
+
+  const filteredPrograms = useMemo(() => {
+    let rows = programs;
+    if (programStatusFilter !== "all") {
+      rows = rows.filter((p) => p.status === programStatusFilter);
+    }
+    if (programCategoryFilter !== "all") {
+      rows = rows.filter(
+        (p) => String(p.categoryId) === programCategoryFilter,
+      );
+    }
+    return filterRowsBySearch(
+      rows,
+      search,
+      (p) =>
+        `${p.name} ${p.description ?? ""} ${p.status} ${p.programType} ${categoryNameById(categories, String(p.categoryId))}`,
+    );
+  }, [
+    programs,
+    programStatusFilter,
+    programCategoryFilter,
+    search,
+    categories,
+  ]);
+
+  const categoryPage = useClientTablePage(filteredCategories);
+  const programPage = useClientTablePage(filteredPrograms);
+
+  const openCreateCategory = () => {
+    setCategoryDrawerMode("create");
+    setEditingCategoryId(null);
+    setCategoryDrawerOpen(true);
   };
 
-  const openEdit = (center: SuccessCenter) => {
-    setDrawerMode("edit");
-    setEditing({ ...center });
-    setDrawerOpen(true);
+  const openEditCategory = (category: SuccessCenterCategory) => {
+    setCategoryDrawerMode("edit");
+    setEditingCategoryId(category._id);
+    setCategoryDrawerOpen(true);
   };
 
-  const closeDrawer = (open: boolean) => {
-    setDrawerOpen(open);
-    if (!open) setEditing(null);
+  const openCreateProgram = () => {
+    setProgramDrawerMode("create");
+    setEditingProgramId(null);
+    setProgramDrawerOpen(true);
   };
 
-  const onSave = async () => {
-    if (!editing) return;
-    setSaving(true);
+  const openEditProgram = (program: SuccessCenterProgram) => {
+    setProgramDrawerMode("edit");
+    setEditingProgramId(program._id);
+    setProgramDrawerOpen(true);
+  };
+
+  const onToggleCategory = async (category: SuccessCenterCategory) => {
+    const status = category.status === "active" ? "inactive" : "active";
     try {
-      await saveSuccessCenter(editing);
-      toast.success("Success Center saved.");
-      closeDrawer(false);
-      reload();
-    } finally {
-      setSaving(false);
+      await updateCategory({ id: category._id, status }).unwrap();
+      toast.success(
+        status === "active" ? "Category activated." : "Category deactivated.",
+      );
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Could not update category."));
     }
   };
 
-  const onConfirmToggle = async () => {
-    if (!confirmTarget) return;
-    const nextActive = !confirmTarget.active;
-    await setSuccessCenterActive(confirmTarget.id, nextActive);
-    toast.success(nextActive ? "Activated." : "Deactivated.");
-    setConfirmTarget(null);
-    reload();
+  const onConfirmDeleteCategory = async () => {
+    if (!pendingDeleteCategory) return;
+    try {
+      await deleteCategory(pendingDeleteCategory._id).unwrap();
+      toast.success("Category deleted.");
+      setPendingDeleteCategory(null);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Could not delete category."));
+    }
   };
 
-  const isCreate = drawerMode === "create";
-
-  const addProgram = () => {
-    if (!editing) return;
-    setEditing({
-      ...editing,
-      programs: [
-        ...editing.programs,
-        {
-          id: `prog-${Date.now()}`,
-          name: "New program",
-          blurb: "",
-          activationPercent: 5,
-          educationSummary: "",
-          timelineNote: "",
-          eligibilityNote: "",
-        },
-      ],
-    });
+  const onCycleProgramStatus = async (program: SuccessCenterProgram) => {
+    const status =
+      program.status === "published" ? "inactive" : "published";
+    try {
+      await updateProgram({ id: program._id, status }).unwrap();
+      toast.success(
+        status === "published"
+          ? "Program published."
+          : "Program set inactive.",
+      );
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Could not update program."));
+    }
   };
 
-  const updateProgram = (
-    id: string,
-    patch: Partial<SuccessCenter["programs"][number]>,
-  ) => {
-    if (!editing) return;
-    setEditing({
-      ...editing,
-      programs: editing.programs.map((p) =>
-        p.id === id ? { ...p, ...patch } : p,
-      ),
-    });
+  const onConfirmDeleteProgram = async () => {
+    if (!pendingDeleteProgram) return;
+    try {
+      await deleteProgram(pendingDeleteProgram._id).unwrap();
+      toast.success("Program deleted.");
+      setPendingDeleteProgram(null);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Could not delete program."));
+    }
   };
 
-  const removeProgram = (id: string) => {
-    if (!editing) return;
-    setEditing({
-      ...editing,
-      programs: editing.programs.filter((p) => p.id !== id),
-    });
-  };
-
-  const columns = useMemo<ColumnDef<SuccessCenter>[]>(
+  const categoryColumns = useMemo<ColumnDef<SuccessCenterCategory>[]>(
     () => [
       {
         accessorKey: "name",
@@ -168,31 +243,32 @@ export default function AdminSuccessCentersPage() {
         enableSorting: true,
       },
       {
-        accessorKey: "filter",
+        accessorKey: "slug",
         header: ({ column }) => (
-          <DataTableColumnHeaderCommon column={column} title="Filter" />
+          <DataTableColumnHeaderCommon column={column} title="Slug" />
         ),
-        cell: ({ row }) => (
-          <span className="capitalize">{row.original.filter}</span>
+      },
+      {
+        accessorKey: "order",
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Order" />
         ),
         enableSorting: true,
       },
       {
         id: "programs",
-        accessorFn: (c) => c.programs.length,
         header: ({ column }) => (
           <DataTableColumnHeaderCommon column={column} title="Programs" />
         ),
-        cell: ({ row }) => <span>{row.original.programs.length}</span>,
-        enableSorting: true,
+        cell: ({ row }) =>
+          programCountByCategory.get(row.original._id) ?? 0,
       },
       {
-        id: "active",
-        accessorFn: (c) => (c.active ? "Yes" : "No"),
+        accessorKey: "status",
         header: ({ column }) => (
-          <DataTableColumnHeaderCommon column={column} title="Active" />
+          <DataTableColumnHeaderCommon column={column} title="Status" />
         ),
-        enableSorting: true,
+        cell: ({ row }) => <AdminStatusPill status={row.original.status} />,
       },
       {
         id: "actions",
@@ -200,309 +276,403 @@ export default function AdminSuccessCentersPage() {
         enableHiding: false,
         header: () => <span>Actions</span>,
         cell: ({ row }) => {
-          const c = row.original;
+          const active = row.original.status === "active";
           return (
-            <div className="flex items-center justify-end gap-0.5">
+            <div className="flex justify-end gap-1">
               <AdminTableIconAction
                 label="Edit"
                 icon={Pencil}
                 tone="info"
-                onClick={() => openEdit(c)}
+                onClick={() => openEditCategory(row.original)}
               />
               <AdminTableIconAction
-                label={c.active ? "Deactivate" : "Activate"}
-                icon={Power}
-                tone={c.active ? "danger" : "success"}
-                onClick={() => setConfirmTarget(c)}
+                label={active ? "Deactivate" : "Activate"}
+                icon={active ? PowerOff : Power}
+                tone={active ? "danger" : "success"}
+                onClick={() => void onToggleCategory(row.original)}
+              />
+              <AdminTableIconAction
+                label="Delete"
+                icon={Trash2}
+                tone="danger"
+                onClick={() => setPendingDeleteCategory(row.original)}
               />
             </div>
           );
         },
       },
     ],
-    [],
+    [programCountByCategory],
   );
+
+  const programColumns = useMemo<ColumnDef<SuccessCenterProgram>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon
+            column={column}
+            title="Name"
+            className="ml-1"
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="font-semibold text-ink-heading">
+            {row.original.name}
+          </span>
+        ),
+        enableSorting: true,
+      },
+      {
+        id: "category",
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Category" />
+        ),
+        cell: ({ row }) =>
+          categoryNameById(categories, String(row.original.categoryId)),
+      },
+      {
+        accessorKey: "programType",
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Type" />
+        ),
+        cell: ({ row }) => row.original.programType,
+      },
+      {
+        accessorKey: "order",
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Order" />
+        ),
+        enableSorting: true,
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Status" />
+        ),
+        cell: ({ row }) => <AdminStatusPill status={row.original.status} />,
+      },
+      {
+        id: "actions",
+        enableSorting: false,
+        enableHiding: false,
+        header: () => <span>Actions</span>,
+        cell: ({ row }) => {
+          const published = row.original.status === "published";
+          return (
+            <div className="flex justify-end gap-1">
+              <AdminTableIconAction
+                label="Edit"
+                icon={Pencil}
+                tone="info"
+                onClick={() => openEditProgram(row.original)}
+              />
+              <AdminTableIconAction
+                label={published ? "Set inactive" : "Publish"}
+                icon={published ? PowerOff : Power}
+                tone={published ? "danger" : "success"}
+                onClick={() => void onCycleProgramStatus(row.original)}
+              />
+              <AdminTableIconAction
+                label="Delete"
+                icon={Trash2}
+                tone="danger"
+                onClick={() => setPendingDeleteProgram(row.original)}
+              />
+            </div>
+          );
+        },
+      },
+    ],
+    [categories],
+  );
+
+  const categoriesBody = () => {
+    if (categoriesQuery.isLoading) {
+      return (
+        <div className="flex min-h-48 flex-1 items-center justify-center">
+          <Spinner />
+        </div>
+      );
+    }
+    if (categoriesQuery.isError) {
+      return (
+        <EmptyState
+          icon={AlertCircle}
+          variant="error"
+          title="Could not load categories"
+          description={getApiErrorMessage(
+            categoriesQuery.error,
+            "The category list could not be loaded.",
+          )}
+          action={
+            <Button
+              type="button"
+              variant="outline"
+              onClick={categoriesQuery.refetch}
+            >
+              Try again
+            </Button>
+          }
+        />
+      );
+    }
+    if (categories.length === 0) {
+      return (
+        <EmptyState
+          icon={LayoutGrid}
+          title="No categories yet"
+          description="Create the first Success Center category."
+          action={
+            <AdminGoldButton type="button" onClick={openCreateCategory}>
+              <Plus className="size-4" />
+              Add category
+            </AdminGoldButton>
+          }
+        />
+      );
+    }
+    return (
+      <DataTableCommon
+        columns={categoryColumns}
+        data={categoryPage.pageRows}
+        totalDataCount={categoryPage.totalDataCount}
+        onFetchData={categoryPage.onFetchData}
+        fillViewport={false}
+        className="min-h-0 flex-1"
+        emptyMessage="No categories match your filters."
+      />
+    );
+  };
+
+  const programsBody = () => {
+    if (programsQuery.isLoading) {
+      return (
+        <div className="flex min-h-48 flex-1 items-center justify-center">
+          <Spinner />
+        </div>
+      );
+    }
+    if (programsQuery.isError) {
+      return (
+        <EmptyState
+          icon={AlertCircle}
+          variant="error"
+          title="Could not load programs"
+          description={getApiErrorMessage(
+            programsQuery.error,
+            "The program list could not be loaded.",
+          )}
+          action={
+            <Button
+              type="button"
+              variant="outline"
+              onClick={programsQuery.refetch}
+            >
+              Try again
+            </Button>
+          }
+        />
+      );
+    }
+    if (programs.length === 0) {
+      return (
+        <EmptyState
+          icon={LayoutGrid}
+          title="No programs yet"
+          description="Create a program under an existing category."
+          action={
+            <AdminGoldButton
+              type="button"
+              onClick={openCreateProgram}
+              disabled={categories.length === 0}
+            >
+              <Plus className="size-4" />
+              Add program
+            </AdminGoldButton>
+          }
+        />
+      );
+    }
+    return (
+      <DataTableCommon
+        columns={programColumns}
+        data={programPage.pageRows}
+        totalDataCount={programPage.totalDataCount}
+        onFetchData={programPage.onFetchData}
+        fillViewport={false}
+        className="min-h-0 flex-1"
+        emptyMessage="No programs match your filters."
+      />
+    );
+  };
 
   return (
     <section className={ADMIN_TABLE_SECTION}>
       <AdminPageHeader
         title="Success Centers"
-        subtitle="Create, edit, activate, and deactivate Success Centers."
+        subtitle="Manage Success Center categories and specialized programs. Active categories and published programs appear for participants."
         actions={
-          <GoldButton size="sm" onClick={openCreate}>
-            + New Success Center
-          </GoldButton>
+          mainTab === "categories" ? (
+            <AdminGoldButton type="button" onClick={openCreateCategory}>
+              <Plus className="size-4" />
+              Add category
+            </AdminGoldButton>
+          ) : (
+            <AdminGoldButton
+              type="button"
+              onClick={openCreateProgram}
+              disabled={categories.length === 0}
+            >
+              <Plus className="size-4" />
+              Add program
+            </AdminGoldButton>
+          )
         }
       />
 
-      <AdminTableToolbar
-        search={search}
-        onSearchChange={setSearch}
-        placeholder="Search name, filter, or active status…"
-        resultCount={filtered.length}
-      />
-
-      <div className={ADMIN_TABLE_SLOT}>
-        <DataTableCommon
-          columns={columns}
-          data={pageRows}
-          totalDataCount={totalDataCount}
-          onFetchData={onFetchData}
-          fillViewport={false}
-          className="min-h-0 flex-1"
-          emptyMessage="No Success Centers yet."
-        />
-      </div>
-
-      <DrawerCommon
-        open={drawerOpen}
-        onOpenChange={closeDrawer}
-        title={isCreate ? "New Success Center" : "Edit Success Center"}
-        description="Update name, category, content, and availability."
-        footer={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => closeDrawer(false)}
-              disabled={saving}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="gold"
-              onClick={() => void onSave()}
-              disabled={saving}
-            >
-              Save
-            </Button>
-          </>
-        }
+      <Tabs
+        value={mainTab}
+        onValueChange={(value) => {
+          setMainTab(value as MainTab);
+          setSearch("");
+        }}
+        className="mt-4 flex min-h-0 flex-1 flex-col gap-2"
       >
-        {editing ? (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="sc-name">Name</Label>
-              <Input
-                id="sc-name"
-                value={editing.name}
-                onChange={(e) =>
-                  setEditing({ ...editing, name: e.target.value })
-                }
-                placeholder="Name"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="sc-filter">Category</Label>
-              <select
-                id="sc-filter"
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                value={editing.filter}
-                onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    filter: e.target.value as SuccessCenter["filter"],
-                  })
+        <TabsList>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsTrigger value="programs">Programs</TabsTrigger>
+        </TabsList>
+
+        <TabsContent
+          value="categories"
+          className="mt-0 flex min-h-0 flex-1 flex-col gap-0"
+        >
+          <AdminTableToolbar
+            search={search}
+            onSearchChange={setSearch}
+            placeholder="Search name, slug, or status…"
+            resultCount={filteredCategories.length}
+            endSlot={
+              <Select
+                value={categoryStatusFilter}
+                onValueChange={(value) =>
+                  setCategoryStatusFilter(value as CategoryStatusFilter)
                 }
               >
-                <option value="essentials">Essentials</option>
-                <option value="financial">Financial</option>
-                <option value="business">Business</option>
-              </select>
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5">
-              <div>
-                <Label htmlFor="sc-active">Active</Label>
-                <p className="text-xs text-muted-foreground">
-                  Inactive centers are hidden from participants.
-                </p>
-              </div>
-              <Switch
-                id="sc-active"
-                checked={editing.active}
-                onCheckedChange={(v) =>
-                  setEditing({ ...editing, active: v })
-                }
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="sc-blurb">Short blurb</Label>
-              <Input
-                id="sc-blurb"
-                value={editing.blurb}
-                onChange={(e) =>
-                  setEditing({ ...editing, blurb: e.target.value })
-                }
-                placeholder="Short blurb"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="sc-long">Long description</Label>
-              <Textarea
-                id="sc-long"
-                value={editing.long}
-                onChange={(e) =>
-                  setEditing({ ...editing, long: e.target.value })
-                }
-                placeholder="Long description"
-                className="min-h-28"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="sc-content">Content</Label>
-              <Textarea
-                id="sc-content"
-                value={editing.content}
-                onChange={(e) =>
-                  setEditing({ ...editing, content: e.target.value })
-                }
-                placeholder="Additional content shown on the detail page"
-                className="min-h-24"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="sc-notices">Notices</Label>
-              <Textarea
-                id="sc-notices"
-                value={editing.notices}
-                onChange={(e) =>
-                  setEditing({ ...editing, notices: e.target.value })
-                }
-                placeholder="Notices"
-                className="min-h-24"
-              />
-            </div>
+                <SelectTrigger className="h-11 w-full sm:w-44">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            }
+          />
+          <div className={ADMIN_TABLE_SLOT}>{categoriesBody()}</div>
+        </TabsContent>
 
-            <div className="space-y-3 border-t border-border pt-4">
-              <div className="flex items-center justify-between gap-2">
-                <Label>Programs</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={addProgram}
+        <TabsContent
+          value="programs"
+          className="mt-0 flex min-h-0 flex-1 flex-col gap-0"
+        >
+          <AdminTableToolbar
+            search={search}
+            onSearchChange={setSearch}
+            placeholder="Search program, category, or status…"
+            resultCount={filteredPrograms.length}
+            endSlot={
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <Select
+                  value={programCategoryFilter}
+                  onValueChange={setProgramCategoryFilter}
                 >
-                  <Plus className="size-4" />
-                  Add program
-                </Button>
+                  <SelectTrigger className="h-11 w-full sm:w-48">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category._id} value={category._id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={programStatusFilter}
+                  onValueChange={(value) =>
+                    setProgramStatusFilter(value as ProgramStatusFilter)
+                  }
+                >
+                  <SelectTrigger className="h-11 w-full sm:w-48">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="in_development">
+                      In development
+                    </SelectItem>
+                    <SelectItem value="coming_soon">Coming soon</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              {editing.programs.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  No programs yet. Add specialized programs participants can
-                  explore under this category.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {editing.programs.map((program) => (
-                    <div
-                      key={program.id}
-                      className="space-y-2 rounded-lg border border-border bg-background p-3"
-                    >
-                      <div className="flex items-start gap-2">
-                        <Input
-                          value={program.name}
-                          placeholder="Program name"
-                          onChange={(e) =>
-                            updateProgram(program.id, { name: e.target.value })
-                          }
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          className="shrink-0 text-error hover:bg-error-bg/50 hover:text-error"
-                          onClick={() => removeProgram(program.id)}
-                          aria-label={`Remove ${program.name}`}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                      <Input
-                        value={program.blurb}
-                        placeholder="Short blurb"
-                        onChange={(e) =>
-                          updateProgram(program.id, { blurb: e.target.value })
-                        }
-                      />
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">
-                            Activation %
-                          </Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            step="any"
-                            value={program.activationPercent}
-                            onChange={(e) =>
-                              updateProgram(program.id, {
-                                activationPercent: Number(e.target.value),
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">
-                            Timeline note
-                          </Label>
-                          <Input
-                            value={program.timelineNote}
-                            placeholder="e.g. 6–12 months"
-                            onChange={(e) =>
-                              updateProgram(program.id, {
-                                timelineNote: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                      <Textarea
-                        value={program.educationSummary}
-                        placeholder="Education summary"
-                        className="min-h-16"
-                        onChange={(e) =>
-                          updateProgram(program.id, {
-                            educationSummary: e.target.value,
-                          })
-                        }
-                      />
-                      <Input
-                        value={program.eligibilityNote}
-                        placeholder="Eligibility note"
-                        onChange={(e) =>
-                          updateProgram(program.id, {
-                            eligibilityNote: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ) : null}
-      </DrawerCommon>
+            }
+          />
+          <div className={ADMIN_TABLE_SLOT}>{programsBody()}</div>
+        </TabsContent>
+      </Tabs>
+
+      <SuccessCenterCategoryFormDrawer
+        open={categoryDrawerOpen}
+        onOpenChange={setCategoryDrawerOpen}
+        mode={categoryDrawerMode}
+        categoryId={editingCategoryId}
+      />
+      <SuccessCenterProgramFormDrawer
+        open={programDrawerOpen}
+        onOpenChange={setProgramDrawerOpen}
+        mode={programDrawerMode}
+        programId={editingProgramId}
+        defaultCategoryId={
+          programCategoryFilter === "all" ? null : programCategoryFilter
+        }
+      />
 
       <DialogCommon
-        open={Boolean(confirmTarget)}
+        open={Boolean(pendingDeleteCategory)}
         onOpenChange={(open) => {
-          if (!open) setConfirmTarget(null);
+          if (!open) setPendingDeleteCategory(null);
         }}
-        title={
-          confirmTarget?.active
-            ? `Deactivate ${confirmTarget.name}?`
-            : `Activate ${confirmTarget?.name ?? ""}?`
-        }
+        title="Delete category?"
         description={
-          confirmTarget?.active
-            ? "This Success Center will be hidden from participants until reactivated."
-            : "This Success Center will become available for participant selection."
+          pendingDeleteCategory
+            ? `Delete “${pendingDeleteCategory.name}”? Categories with programs cannot be deleted.`
+            : undefined
         }
-        confirmLabel={confirmTarget?.active ? "Deactivate" : "Activate"}
-        confirmVariant={confirmTarget?.active ? "destructive" : "gold"}
-        onConfirm={onConfirmToggle}
+        confirmLabel="Delete"
+        confirmLoading={deleteCategoryState.isLoading}
+        onConfirm={onConfirmDeleteCategory}
+      />
+      <DialogCommon
+        open={Boolean(pendingDeleteProgram)}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteProgram(null);
+        }}
+        title="Delete program?"
+        description={
+          pendingDeleteProgram
+            ? `Delete “${pendingDeleteProgram.name}”? This cannot be undone.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        confirmLoading={deleteProgramState.isLoading}
+        onConfirm={onConfirmDeleteProgram}
       />
     </section>
   );

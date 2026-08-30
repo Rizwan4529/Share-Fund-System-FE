@@ -34,7 +34,12 @@ export const API_PATHS = {
   FOUNDER_PLAN_BY_ID: (id: string) => `/founder-plans/${id}`,
   FOUNDER_PLAN_AVAILABILITY: (id: string) =>
     `/founder-plans/${id}/availability`,
+  SUCCESS_CENTER_CATEGORIES: "/success-center-categories/",
+  SUCCESS_CENTER_CATEGORY_BY_ID: (id: string) =>
+    `/success-center-categories/${id}`,
   SUCCESS_CENTER_PROGRAMS: "/success-center-programs/",
+  SUCCESS_CENTER_PROGRAM_BY_ID: (id: string) =>
+    `/success-center-programs/${id}`,
 } as const;
 
 export const ROUTES = {

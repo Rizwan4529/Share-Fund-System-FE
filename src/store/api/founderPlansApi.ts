@@ -1,12 +1,11 @@
-import { baseApi } from "@/store/api/baseApi";
+import { baseApi } from "./baseApi";
 import type {
   CreateFounderPlanRequest,
   FounderPlan,
-  SuccessCenterProgramOption,
   ToggleFounderPlanAvailabilityRequest,
   UpdateFounderPlanRequest,
-} from "@/types/founderPlans";
-import { API_PATHS } from "@/utils/constants";
+} from "../../types/founderPlans";
+import { API_PATHS } from "../../utils/constants";
 
 export const founderPlansApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -63,12 +62,6 @@ export const founderPlansApi = baseApi.injectEndpoints({
         { type: "FounderPlan", id: "LIST" },
       ],
     }),
-    listSuccessCenterPrograms: builder.query<SuccessCenterProgramOption[], void>(
-      {
-        query: () => API_PATHS.SUCCESS_CENTER_PROGRAMS,
-        providesTags: [{ type: "SuccessCenterProgram", id: "LIST" }],
-      },
-    ),
   }),
 });
 
@@ -78,5 +71,4 @@ export const {
   useCreateFounderPlanMutation,
   useUpdateFounderPlanMutation,
   useToggleFounderPlanAvailabilityMutation,
-  useListSuccessCenterProgramsQuery,
 } = founderPlansApi;

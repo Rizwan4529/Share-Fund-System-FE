@@ -40,3 +40,5 @@ export { SettingValueField } from "./SettingValueField";
 export { LegalDocumentFormDrawer } from "./LegalDocumentFormDrawer";
 export { FounderPlanFormDrawer } from "./FounderPlanFormDrawer";
 export { ProgramPickerField } from "./ProgramPickerField";
+export { SuccessCenterCategoryFormDrawer } from "./SuccessCenterCategoryFormDrawer";
+export { SuccessCenterProgramFormDrawer } from "./SuccessCenterProgramFormDrawer";

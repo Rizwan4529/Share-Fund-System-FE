@@ -1,10 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { BookOpen, CalendarClock, Calculator, SearchX, Target } from "lucide-react";
+import {
+  BookOpen,
+  CalendarClock,
+  Calculator,
+  SearchX,
+  Target,
+} from "lucide-react";
 
-import { EmptyState } from "@/components/common/EmptyState";
-import { GoldButton } from "@/components/common/GoldButton";
-import { Typography } from "@/components/common/Typography";
+import { EmptyState } from "../../components/common/EmptyState";
+import { GoldButton } from "../../components/common/GoldButton";
+import { Spinner } from "../../components/common/LoadingScreen";
+import { Typography } from "../../components/common/Typography";
 import {
   AppPageContainer,
   AppSurfaceCard,
@@ -12,45 +19,72 @@ import {
   ParticipantPageHeader,
   SectionLabel,
   StatusChip,
-} from "@/components/member/app";
-import { getSuccessCenter } from "@/lib/api/successCenters";
-import { getPlatformSettings } from "@/lib/api/settings";
-import { cn } from "@/lib/utils";
-import type { PlatformSettings, SuccessCenter, SuccessProgram } from "@/types";
-import { ROUTES } from "@/utils/constants";
+} from "../../components/member/app";
+import { cn } from "../../lib/utils";
+import {
+  useGetSuccessCenterCategoryByIdQuery,
+  useListSuccessCenterProgramsQuery,
+} from "../../store/api/successCentersApi";
+import type { SuccessCenterProgram } from "../../types/successCenters";
+import { ROUTES } from "../../utils/constants";
 
 export default function SuccessCenterDetailPage() {
   const { centerId = "" } = useParams();
-  const [center, setCenter] = useState<SuccessCenter | null>(null);
-  const [settings, setSettings] = useState<PlatformSettings | null>(null);
-  const [activeProgramId, setActiveProgramId] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [activeProgramId, setActiveProgramId] = useState("");
+
+  const categoryQuery = useGetSuccessCenterCategoryByIdQuery(centerId, {
+    skip: !centerId,
+  });
+  const programsQuery = useListSuccessCenterProgramsQuery(
+    { categoryId: centerId, status: "published" },
+    { skip: !centerId },
+  );
+
+  const category = categoryQuery.data;
+  const programs = useMemo(
+    () =>
+      (programsQuery.data ?? [])
+        .slice()
+        .sort(
+          (a, b) =>
+            (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name),
+        ),
+    [programsQuery.data],
+  );
 
   useEffect(() => {
-    setLoading(true);
-    void Promise.all([getSuccessCenter(centerId), getPlatformSettings()])
-      .then(([c, s]) => {
-        setCenter(c);
-        setSettings(s);
-        setActiveProgramId(c?.programs[0]?.id ?? "");
-      })
-      .finally(() => setLoading(false));
-  }, [centerId]);
+    if (!programs.length) {
+      setActiveProgramId("");
+      return;
+    }
+    setActiveProgramId((prev) =>
+      programs.some((p) => p._id === prev) ? prev : programs[0]!._id,
+    );
+  }, [programs]);
 
   const activeProgram = useMemo(
-    () => center?.programs.find((p) => p.id === activeProgramId) ?? null,
-    [center, activeProgramId],
+    () => programs.find((p) => p._id === activeProgramId) ?? null,
+    [programs, activeProgramId],
   );
+
+  const loading = categoryQuery.isLoading || programsQuery.isLoading;
+  const notFound =
+    !loading &&
+    (categoryQuery.isError ||
+      !category ||
+      category.status !== "active");
 
   if (loading) {
     return (
       <AppPageContainer>
-        <div className="h-40 animate-pulse rounded-panel bg-muted" />
+        <div className="flex min-h-40 items-center justify-center">
+          <Spinner />
+        </div>
       </AppPageContainer>
     );
   }
 
-  if (!center) {
+  if (notFound || !category) {
     return (
       <AppPageContainer>
         <EmptyState
@@ -71,8 +105,11 @@ export default function SuccessCenterDetailPage() {
     <AppPageContainer>
       <ParticipantPageHeader
         overline="Success Center category"
-        title={center.name}
-        subtitle={center.blurb}
+        title={category.name}
+        subtitle={
+          category.description ||
+          "Explore specialized programs in this Success Center."
+        }
         actions={
           <GoldButton variant="ghost-outline" asChild>
             <Link to={ROUTES.SUCCESS_CENTERS}>All categories</Link>
@@ -84,17 +121,19 @@ export default function SuccessCenterDetailPage() {
         <AppSurfaceCard padding="md" className="h-fit">
           <SectionLabel tone="navy">Programs</SectionLabel>
           <Typography variant="body-sm" className="mt-2 text-muted-soft">
-            {center.long}
+            {category.programsIntroduction ||
+              category.description ||
+              "Choose a program to view planning tools and education."}
           </Typography>
           <div className="mt-4 space-y-2">
-            {center.programs.map((program) => (
+            {programs.map((program) => (
               <button
-                key={program.id}
+                key={program._id}
                 type="button"
-                onClick={() => setActiveProgramId(program.id)}
+                onClick={() => setActiveProgramId(program._id)}
                 className={cn(
                   "w-full rounded-lg border px-3.5 py-2.5 text-left transition",
-                  program.id === activeProgramId
+                  program._id === activeProgramId
                     ? "border-primary bg-primary-light/60"
                     : "border-line hover:border-info/40",
                 )}
@@ -103,45 +142,44 @@ export default function SuccessCenterDetailPage() {
                   {program.name}
                 </span>
                 <span className="mt-0.5 block text-xs text-muted-soft">
-                  {program.blurb}
+                  {program.description || program.programType}
                 </span>
               </button>
             ))}
+            {programs.length === 0 ? (
+              <Typography variant="body-sm" className="text-muted-soft">
+                No published programs in this category yet.
+              </Typography>
+            ) : null}
           </div>
         </AppSurfaceCard>
 
         <div className="space-y-4">
           {activeProgram ? (
-            <ProgramDetail
-              program={activeProgram}
-              defaultActivation={
-                settings?.rules.activationPercentDefault ?? 5
-              }
-            />
+            <ProgramDetail program={activeProgram} />
           ) : (
             <AppSurfaceCard>
               <Typography variant="body-sm" className="text-muted-soft">
-                This category has no programs yet.
+                This category has no published programs yet.
               </Typography>
             </AppSurfaceCard>
           )}
-          <InfoCallout>{center.notices}</InfoCallout>
+          <InfoCallout>
+            Planning tools only. No live funding in Phase 1.
+          </InfoCallout>
         </div>
       </div>
     </AppPageContainer>
   );
 }
 
-function ProgramDetail({
-  program,
-  defaultActivation,
-}: {
-  program: SuccessProgram;
-  defaultActivation: number;
-}) {
+function ProgramDetail({ program }: { program: SuccessCenterProgram }) {
   const [goal, setGoal] = useState("");
   const activationPercent =
-    program.activationPercent > 0 ? program.activationPercent : defaultActivation;
+    program.activationRules?.defaultActivationPercentage &&
+    program.activationRules.defaultActivationPercentage > 0
+      ? program.activationRules.defaultActivationPercentage
+      : 5;
   const goalNum = Number(goal) || 0;
   const activationEstimate = Math.round(goalNum * (activationPercent / 100));
 
@@ -162,9 +200,11 @@ function ProgramDetail({
           <StatusChip tone="gold">{activationPercent}% activation</StatusChip>
         </div>
         <Typography variant="body" className="mt-3 text-[15px] text-ink-heading">
-          {program.blurb}
+          {program.description || "Program planning overview."}
         </Typography>
-        <p className="mt-3 text-sm text-muted-soft">{program.eligibilityNote}</p>
+        <p className="mt-3 text-sm text-muted-soft capitalize">
+          {program.programType} · {program.goalNature.replace(/_/g, " ")}
+        </p>
       </AppSurfaceCard>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -174,7 +214,8 @@ function ProgramDetail({
             <SectionLabel tone="info">Education</SectionLabel>
           </div>
           <Typography variant="body-sm" className="text-muted-soft">
-            {program.educationSummary}
+            {program.educationalContent ||
+              "Educational content for this program will appear here."}
           </Typography>
         </AppSurfaceCard>
 
@@ -184,7 +225,9 @@ function ProgramDetail({
             <SectionLabel tone="navy">Projected timeline</SectionLabel>
           </div>
           <Typography variant="body-sm" className="text-muted-soft">
-            {program.timelineNote}
+            {program.activationRules?.growthPeriodDays
+              ? `Growth period of about ${program.activationRules.growthPeriodDays} days (planning estimate).`
+              : "Timeline estimates appear after you complete your Success Profile."}
           </Typography>
         </AppSurfaceCard>
       </div>

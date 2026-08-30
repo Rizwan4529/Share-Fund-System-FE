@@ -70,6 +70,7 @@ export const baseApi = createApi({
     "Setting",
     "SettingCategory",
     "FounderPlan",
+    "SuccessCenterCategory",
     "SuccessCenterProgram",
   ],
   endpoints: () => ({}),

@@ -26,9 +26,9 @@ import {
 import {
   useCreateFounderPlanMutation,
   useGetFounderPlanByIdQuery,
-  useListSuccessCenterProgramsQuery,
   useUpdateFounderPlanMutation,
-} from "@/store/api/founderPlansApi";
+} from "../../store/api/founderPlansApi";
+import { useListSuccessCenterProgramsQuery } from "../../store/api/successCentersApi";
 import {
   FOUNDER_PLAN_BMIS_LEVELS,
   FOUNDER_PLAN_NAMES,

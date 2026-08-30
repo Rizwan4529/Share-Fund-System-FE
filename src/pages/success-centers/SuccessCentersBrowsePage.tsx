@@ -3,10 +3,9 @@ import { Link } from "react-router-dom";
 import { LayoutGrid, Lock } from "lucide-react";
 import { toast } from "sonner";
 
-import { EmptyState } from "@/components/common/EmptyState";
-import { FilterChips } from "@/components/common/FilterChips";
-import { GoldButton } from "@/components/common/GoldButton";
-import { Typography } from "@/components/common/Typography";
+import { EmptyState } from "../../components/common/EmptyState";
+import { GoldButton } from "../../components/common/GoldButton";
+import { Typography } from "../../components/common/Typography";
 import {
   AppPageContainer,
   AppSurfaceCard,
@@ -14,47 +13,57 @@ import {
   ParticipantPageHeader,
   SectionLabel,
   StatusChip,
-} from "@/components/member/app";
-import { useAuth } from "@/context/AuthContext";
+} from "../../components/member/app";
+import { useAuth } from "../../context/AuthContext";
+import { selectSuccessCenters } from "../../lib/api/successCenters";
+import { cn } from "../../lib/utils";
 import {
-  listSuccessCenters,
-  selectSuccessCenters,
-} from "@/lib/api/successCenters";
-import type { SuccessCenter } from "@/types";
-import { ROUTES, SUCCESS_CENTER_FILTERS } from "@/utils/constants";
-import { cn } from "@/lib/utils";
-
-type CenterFilter = (typeof SUCCESS_CENTER_FILTERS)[number]["id"];
+  useListSuccessCenterCategoriesQuery,
+  useListSuccessCenterProgramsQuery,
+} from "../../store/api/successCentersApi";
+import { ROUTES } from "../../utils/constants";
 
 export default function SuccessCentersBrowsePage() {
   const { user, refresh } = useAuth();
-  const [centers, setCenters] = useState<SuccessCenter[]>([]);
-  const [filter, setFilter] = useState<CenterFilter>("all");
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    void listSuccessCenters({ activeOnly: true })
-      .then(setCenters)
-      .finally(() => setLoading(false));
-  }, []);
+  const categoriesQuery = useListSuccessCenterCategoriesQuery();
+  const programsQuery = useListSuccessCenterProgramsQuery({
+    status: "published",
+  });
+
+  const categories = useMemo(
+    () =>
+      (categoriesQuery.data ?? [])
+        .filter((c) => c.status === "active")
+        .slice()
+        .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)),
+    [categoriesQuery.data],
+  );
+
+  const programCountByCategory = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const program of programsQuery.data ?? []) {
+      const key = String(program.categoryId);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return counts;
+  }, [programsQuery.data]);
 
   useEffect(() => {
     setSelected(user?.selectedCenterIds ?? []);
   }, [user?.selectedCenterIds]);
 
-  const filtered = useMemo(() => {
-    if (filter === "all") return centers;
-    return centers.filter((c) => c.filter === filter);
-  }, [centers, filter]);
-
   const limit = user?.centerLimit ?? 0;
   const canSelect = limit > 0;
+  const loading = categoriesQuery.isLoading || programsQuery.isLoading;
 
   const toggle = (id: string) => {
     if (!canSelect) {
-      toast.message("Get Founding Access first to unlock Success Center selection.");
+      toast.message(
+        "Get Founding Access first to unlock Success Center selection.",
+      );
       return;
     }
     setSelected((prev) => {
@@ -108,33 +117,27 @@ export default function SuccessCentersBrowsePage() {
         </InfoCallout>
       ) : null}
 
-      <FilterChips
-        options={SUCCESS_CENTER_FILTERS}
-        value={filter}
-        onChange={setFilter}
-        className="mb-5"
-      />
-
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-44 animate-pulse rounded-panel bg-muted" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : categories.length === 0 ? (
         <EmptyState
           icon={LayoutGrid}
-          title="No Success Centers in this filter"
-          description="Try another category or check back after admin activates more centers."
+          title="No Success Centers available"
+          description="Check back after an admin activates categories."
           variant="muted"
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((center) => {
-            const isOn = selected.includes(center.id);
+          {categories.map((center) => {
+            const isOn = selected.includes(center._id);
+            const programCount = programCountByCategory.get(center._id) ?? 0;
             return (
               <AppSurfaceCard
-                key={center.id}
+                key={center._id}
                 className={cn(
                   "flex flex-col transition",
                   isOn && "border-info/40 ring-2 ring-info/25",
@@ -142,9 +145,11 @@ export default function SuccessCentersBrowsePage() {
                 padding="md"
               >
                 <div className="mb-2 flex items-start justify-between gap-2">
-                  <SectionLabel tone="navy">{center.filter}</SectionLabel>
-                  {center.tag ? (
-                    <StatusChip tone="gold">{center.tag}</StatusChip>
+                  <SectionLabel tone="navy">
+                    {center.icon?.trim() || "Category"}
+                  </SectionLabel>
+                  {center.slug ? (
+                    <StatusChip tone="gold">{center.slug}</StatusChip>
                   ) : null}
                 </div>
                 <Typography
@@ -158,19 +163,19 @@ export default function SuccessCentersBrowsePage() {
                   variant="body-sm"
                   className="mt-2 flex-1 text-muted-soft"
                 >
-                  {center.blurb}
+                  {center.description || "Explore programs in this category."}
                 </Typography>
                 <Typography
                   variant="caption"
                   className="mt-3 block font-semibold text-info"
                 >
-                  {center.programs.length} program
-                  {center.programs.length === 1 ? "" : "s"}
+                  {programCount} program
+                  {programCount === 1 ? "" : "s"}
                 </Typography>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <GoldButton
                     variant={isOn ? "ghost-outline" : "gold"}
-                    onClick={() => toggle(center.id)}
+                    onClick={() => toggle(center._id)}
                   >
                     {!canSelect ? (
                       <>
@@ -183,7 +188,7 @@ export default function SuccessCentersBrowsePage() {
                     )}
                   </GoldButton>
                   <GoldButton variant="ghost-outline" asChild>
-                    <Link to={`/success-centers/${center.id}`}>
+                    <Link to={`/success-centers/${center._id}`}>
                       Explore Programs
                     </Link>
                   </GoldButton>

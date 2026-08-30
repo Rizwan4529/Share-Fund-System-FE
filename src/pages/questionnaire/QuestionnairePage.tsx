@@ -26,7 +26,15 @@ import {
   type FieldDef,
 } from "@/lib/questionnaire/schema";
 import { cn } from "@/lib/utils";
-import type { SuccessCenter, SuccessProfile } from "@/types";
+import {
+  useListSuccessCenterCategoriesQuery,
+  useListSuccessCenterProgramsQuery,
+} from "@/store/api/successCentersApi";
+import type { SuccessProfile } from "@/types";
+import type {
+  SuccessCenterCategory,
+  SuccessCenterProgram,
+} from "@/types/successCenters";
 import { ROUTES } from "@/utils/constants";
 
 const selectClass =
@@ -36,17 +44,29 @@ export default function QuestionnairePage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
   const [profile, setProfile] = useState<SuccessProfile | null>(null);
-  const [categories, setCategories] = useState<SuccessCenter[]>([]);
   const [stepIdx, setStepIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const categoriesQuery = useListSuccessCenterCategoriesQuery();
+  const programsQuery = useListSuccessCenterProgramsQuery({
+    status: "published",
+  });
+
+  const categories = useMemo(
+    () =>
+      (categoriesQuery.data ?? [])
+        .filter((c) => c.status === "active")
+        .slice()
+        .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)),
+    [categoriesQuery.data],
+  );
 
   useEffect(() => {
     void (async () => {
       try {
         const data = await getSuccessProfile();
         setProfile(data.profile);
-        setCategories(data.categories);
       } finally {
         setLoading(false);
       }
@@ -54,14 +74,19 @@ export default function QuestionnairePage() {
   }, []);
 
   const programs = useMemo(() => {
-    if (!profile) return [];
-    return (
-      categories.find((c) => c.id === profile.selectedCategoryId)?.programs ?? []
+    if (!profile?.selectedCategoryId) return [] as SuccessCenterProgram[];
+    return (programsQuery.data ?? []).filter(
+      (p) => String(p.categoryId) === profile.selectedCategoryId,
     );
-  }, [categories, profile]);
+  }, [programsQuery.data, profile?.selectedCategoryId]);
 
   const step = SUCCESS_PROFILE_STEPS[stepIdx]!;
   const isLast = stepIdx === SUCCESS_PROFILE_STEPS.length - 1;
+  const pageLoading =
+    loading ||
+    !profile ||
+    categoriesQuery.isLoading ||
+    programsQuery.isLoading;
 
   const set = (key: keyof SuccessProfile, value: SuccessProfile[keyof SuccessProfile]) =>
     setProfile((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -112,7 +137,7 @@ export default function QuestionnairePage() {
     }
   };
 
-  if (loading || !profile) {
+  if (pageLoading) {
     return (
       <AppPageContainer>
         <div className="h-40 animate-pulse rounded-panel bg-muted" />
@@ -223,8 +248,8 @@ function QuestionnaireField({
 }: {
   field: FieldDef;
   profile: SuccessProfile;
-  categories: SuccessCenter[];
-  programs: SuccessCenter["programs"];
+  categories: SuccessCenterCategory[];
+  programs: SuccessCenterProgram[];
   onChange: (
     key: keyof SuccessProfile,
     value: SuccessProfile[keyof SuccessProfile],
@@ -294,7 +319,7 @@ function QuestionnaireField({
         >
           <option value="">Select a category…</option>
           {categories.map((c) => (
-            <option key={c.id} value={c.id}>
+            <option key={c._id} value={c._id}>
               {c.name}
             </option>
           ))}
@@ -308,7 +333,7 @@ function QuestionnaireField({
         >
           <option value="">Select a program…</option>
           {programs.map((p) => (
-            <option key={p.id} value={p.id}>
+            <option key={p._id} value={p._id}>
               {p.name}
             </option>
           ))}
