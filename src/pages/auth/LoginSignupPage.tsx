@@ -13,6 +13,7 @@ import {
   AuthPhoneField,
   AuthSocialButtons,
   SignupLegalStep,
+  useSignupLegalReady,
 } from "@/components/auth";
 import {
   authFieldItemClass,
@@ -51,6 +52,9 @@ export default function LoginSignupPage() {
     useState<CountryOption | null>(null);
   const [login, loginState] = useLoginMutation();
   const [registerUser, registerState] = useRegisterMutation();
+  const signupLegal = useSignupLegalReady(
+    mode !== "signup" || signupStep !== 2,
+  );
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -304,7 +308,7 @@ export default function LoginSignupPage() {
                 type="submit"
                 size="auth"
                 className="mt-1 w-full"
-                disabled={busy}
+                disabled={busy || !signupLegal.isReady}
               >
                 {registerState.isLoading ? <ButtonSpinner /> : null}
                 Create account{" "}

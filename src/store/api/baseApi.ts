@@ -66,6 +66,7 @@ export const baseApi = createApi({
   tagTypes: [
     "LegalDocument",
     "LegalAcceptance",
+    "AuditLog",
     "Setting",
     "SettingCategory",
     "FounderPlan",

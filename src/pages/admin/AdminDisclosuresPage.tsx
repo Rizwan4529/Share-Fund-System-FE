@@ -1,111 +1,138 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil } from "lucide-react";
-import { toast } from "sonner";
+import { AlertCircle, Pencil, Plus } from "lucide-react";
 
 import {
   ADMIN_TABLE_SECTION,
   ADMIN_TABLE_SLOT,
   AdminPageHeader,
+  AdminStatusPill,
   AdminTableIconAction,
   AdminTableToolbar,
+  LegalDocumentFormDrawer,
 } from "@/components/admin";
-import { DrawerCommon } from "@/components/common/DrawerCommon";
 import { DataTableColumnHeaderCommon } from "@/components/common/DataTableColumnHeaderCommon";
 import { DataTableCommon } from "@/components/common/DataTableCommon";
+import { EmptyState } from "@/components/common/EmptyState";
+import { Spinner } from "@/components/common/LoadingScreen";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { filterRowsBySearch } from "@/hooks/useAdminTableSearch";
 import { useClientTablePage } from "@/hooks/useClientTablePage";
-import { listDisclosures, saveDisclosure } from "@/lib/api/disclosures";
-import type { DisclosureDoc } from "@/types";
+import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
+import {
+  legalDocumentTypeLabel,
+  summarizeLegalDocuments,
+  type LegalDocumentRow,
+} from "@/lib/legal/labels";
+import { formatSettingDate } from "@/lib/settings/value";
+import { useListLegalDocumentsQuery } from "@/store/api/legalApi";
+import type { LegalDocumentType } from "@/types/auth";
+
+type DrawerMode = "create" | "edit";
 
 export default function AdminDisclosuresPage() {
-  const [docs, setDocs] = useState<DisclosureDoc[]>([]);
-  const [editing, setEditing] = useState<DisclosureDoc | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>("edit");
+  const [editingType, setEditingType] = useState<LegalDocumentType | null>(
+    null,
+  );
+
+  const listQuery = useListLegalDocumentsQuery();
+  const rows = useMemo(
+    () => summarizeLegalDocuments(listQuery.data ?? []),
+    [listQuery.data],
+  );
 
   const filtered = useMemo(
     () =>
       filterRowsBySearch(
-        docs,
+        rows,
         search,
-        (d) => `${d.title} ${d.kind} ${d.version} ${d.updatedAt}`,
+        (row) =>
+          `${legalDocumentTypeLabel(row.documentType)} ${row.latest?.title ?? ""} ${row.latest?.status ?? ""}`,
       ),
-    [docs, search],
+    [rows, search],
   );
   const { pageRows, totalDataCount, onFetchData } =
     useClientTablePage(filtered);
 
-  const reload = () => void listDisclosures().then(setDocs);
-  useEffect(() => {
-    reload();
-  }, []);
-
-  const openEdit = (doc: DisclosureDoc) => {
-    setEditing({ ...doc });
+  const openCreate = (documentType: LegalDocumentType) => {
+    setDrawerMode("create");
+    setEditingType(documentType);
     setDrawerOpen(true);
   };
 
-  const closeDrawer = (open: boolean) => {
-    setDrawerOpen(open);
-    if (!open) setEditing(null);
+  const openEdit = (documentType: LegalDocumentType) => {
+    setDrawerMode("edit");
+    setEditingType(documentType);
+    setDrawerOpen(true);
   };
 
-  const onSave = async (bump: boolean) => {
-    if (!editing) return;
-    setSaving(true);
-    try {
-      await saveDisclosure(editing, bump);
-      toast.success(bump ? "Saved with new version." : "Saved.");
-      closeDrawer(false);
-      reload();
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const columns = useMemo<ColumnDef<DisclosureDoc>[]>(
+  const columns = useMemo<ColumnDef<LegalDocumentRow>[]>(
     () => [
       {
-        accessorKey: "title",
+        accessorKey: "documentType",
         header: ({ column }) => (
           <DataTableColumnHeaderCommon
             column={column}
-            title="Title"
+            title="Type"
             className="ml-1"
           />
         ),
         cell: ({ row }) => (
           <span className="font-semibold text-ink-heading">
-            {row.original.title}
+            {legalDocumentTypeLabel(row.original.documentType)}
           </span>
         ),
         enableSorting: true,
       },
       {
-        accessorKey: "kind",
+        id: "title",
+        accessorFn: (row) => row.latest?.title ?? "",
         header: ({ column }) => (
-          <DataTableColumnHeaderCommon column={column} title="Kind" />
+          <DataTableColumnHeaderCommon column={column} title="Title" />
         ),
+        cell: ({ row }) => row.original.latest?.title ?? "—",
         enableSorting: true,
       },
       {
-        accessorKey: "version",
+        id: "publishedVersion",
+        accessorFn: (row) => row.published?.version ?? 0,
         header: ({ column }) => (
-          <DataTableColumnHeaderCommon column={column} title="Version" />
+          <DataTableColumnHeaderCommon column={column} title="Published" />
         ),
-        cell: ({ row }) => `v${row.original.version}`,
+        cell: ({ row }) =>
+          row.original.published
+            ? `v${row.original.published.version}`
+            : "None",
         enableSorting: true,
       },
       {
-        accessorKey: "updatedAt",
+        id: "status",
+        accessorFn: (row) =>
+          row.latest?.status === "draft" ? "draft" : (row.latest?.status ?? ""),
+        header: ({ column }) => (
+          <DataTableColumnHeaderCommon column={column} title="Status" />
+        ),
+        cell: ({ row }) => {
+          if (!row.original.latest) {
+            return <AdminStatusPill status="inactive" />;
+          }
+          if (row.original.latest.status === "draft") {
+            return <AdminStatusPill status="draft" />;
+          }
+          return <AdminStatusPill status="published" />;
+        },
+        enableSorting: true,
+      },
+      {
+        id: "updatedAt",
+        accessorFn: (row) => row.latest?.updatedAt ?? "",
         header: ({ column }) => (
           <DataTableColumnHeaderCommon column={column} title="Updated" />
         ),
+        cell: ({ row }) => formatSettingDate(row.original.latest?.updatedAt),
         enableSorting: true,
       },
       {
@@ -115,12 +142,21 @@ export default function AdminDisclosuresPage() {
         header: () => <span>Actions</span>,
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <AdminTableIconAction
-              label="Edit"
-              icon={Pencil}
-              tone="info"
-              onClick={() => openEdit(row.original)}
-            />
+            {row.original.latest ? (
+              <AdminTableIconAction
+                label="Edit"
+                icon={Pencil}
+                tone="info"
+                onClick={() => openEdit(row.original.documentType)}
+              />
+            ) : (
+              <AdminTableIconAction
+                label="Add"
+                icon={Plus}
+                tone="success"
+                onClick={() => openCreate(row.original.documentType)}
+              />
+            )}
           </div>
         ),
       },
@@ -128,80 +164,66 @@ export default function AdminDisclosuresPage() {
     [],
   );
 
+  const tableBody = () => {
+    if (listQuery.isLoading) {
+      return (
+        <div className="flex min-h-48 flex-1 items-center justify-center">
+          <Spinner />
+        </div>
+      );
+    }
+
+    if (listQuery.isError) {
+      return (
+        <EmptyState
+          icon={AlertCircle}
+          variant="error"
+          title="Could not load legal documents"
+          description={getApiErrorMessage(
+            listQuery.error,
+            "The legal document list could not be loaded.",
+          )}
+          action={
+            <Button type="button" variant="outline" onClick={listQuery.refetch}>
+              Try again
+            </Button>
+          }
+        />
+      );
+    }
+
+    return (
+      <DataTableCommon
+        columns={columns}
+        data={pageRows}
+        totalDataCount={totalDataCount}
+        onFetchData={onFetchData}
+        fillViewport={false}
+        className="min-h-0 flex-1"
+        emptyMessage="No legal documents match your search."
+      />
+    );
+  };
+
   return (
     <section className={ADMIN_TABLE_SECTION}>
       <AdminPageHeader
         title="Disclosures & legal"
-        subtitle="Edit platform disclosures. Saving with a version bump records a new version for acceptances."
+        subtitle="Edit versioned legal documents. Saving a published document creates a new draft — publish only when the wording is final."
       />
       <AdminTableToolbar
         search={search}
         onSearchChange={setSearch}
-        placeholder="Search title, kind, or version…"
+        placeholder="Search type, title, or status…"
         resultCount={filtered.length}
       />
-      <div className={ADMIN_TABLE_SLOT}>
-        <DataTableCommon
-          columns={columns}
-          data={pageRows}
-          totalDataCount={totalDataCount}
-          onFetchData={onFetchData}
-          fillViewport={false}
-          className="min-h-0 flex-1"
-          emptyMessage="No disclosure documents yet."
-        />
-      </div>
-
-      <DrawerCommon
+      <div className={ADMIN_TABLE_SLOT}>{tableBody()}</div>
+      <LegalDocumentFormDrawer
         open={drawerOpen}
-        onOpenChange={closeDrawer}
-        title={editing?.title ?? "Edit disclosure"}
-        description="Edit legal copy. Use bump version when participants must re-accept."
-        footer={
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => closeDrawer(false)}
-              disabled={saving}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void onSave(false)}
-              disabled={saving}
-            >
-              Save without bump
-            </Button>
-            <Button
-              type="button"
-              variant="gold"
-              onClick={() => void onSave(true)}
-              disabled={saving}
-            >
-              Save & bump version
-            </Button>
-          </>
-        }
-      >
-        {editing ? (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="disclosure-body">Body</Label>
-              <Textarea
-                id="disclosure-body"
-                className="min-h-64"
-                value={editing.body}
-                onChange={(e) =>
-                  setEditing({ ...editing, body: e.target.value })
-                }
-              />
-            </div>
-          </div>
-        ) : null}
-      </DrawerCommon>
+        onOpenChange={setDrawerOpen}
+        mode={drawerMode}
+        documentType={editingType}
+      />
     </section>
   );
 }

@@ -7,7 +7,7 @@ export { AuthFormBack, AuthFormShell } from "./AuthFormShell";
 export { AuthPasswordField } from "./AuthPasswordField";
 export { AuthPhoneField } from "./AuthPhoneField";
 export { AuthSocialButtons } from "./AuthSocialButtons";
-export { SignupLegalStep } from "./SignupLegalStep";
+export { SignupLegalStep, useSignupLegalReady } from "./SignupLegalStep";
 export { AuthStepIcon } from "./AuthStepIcon";
 export { AuthTabSwitcher } from "./AuthTabSwitcher";
 export { VerifyWelcomeCard } from "./VerifyWelcomeCard";

@@ -12,10 +12,19 @@ export const API_PATHS = {
   REGISTER: "/register/",
   VERIFY_EMAIL: "/verify-email",
   RESEND_LINK: "/resend-link",
+  LEGAL_DOCUMENTS: "/legal-documents/",
   LEGAL_DOCUMENT: (documentType: string) => `/legal-documents/${documentType}`,
+  LEGAL_DOCUMENT_VERSIONS: (documentType: string) =>
+    `/legal-documents/${documentType}/versions`,
+  LEGAL_DOCUMENT_VERSION: (documentType: string, version: number) =>
+    `/legal-documents/${documentType}/versions/${version}`,
+  LEGAL_DOCUMENT_PUBLISH: (documentType: string, version: number) =>
+    `/legal-documents/${documentType}/versions/${version}/publish`,
   LEGAL_ACCEPTANCES: "/legal-acceptances/",
+  LEGAL_ACCEPTANCES_ME: "/legal-acceptances/me",
   LEGAL_ACCEPTANCE_CURRENT: (documentType: string) =>
     `/legal-acceptances/me/${documentType}/current`,
+  AUDIT_LOGS: "/audit-logs/",
   SETTINGS: "/settings/",
   SETTINGS_CATEGORY: (category: string) => `/settings/category/${category}`,
   SETTING_BY_KEY: (key: string) => `/settings/${encodeURIComponent(key)}`,
@@ -54,6 +63,7 @@ export const ROUTES = {
   ADMIN_RULES: "/admin/rules",
   ADMIN_RECOMMENDATIONS: "/admin/recommendations",
   ADMIN_DISCLOSURES: "/admin/disclosures",
+  ADMIN_AUDIT: "/admin/audit",
   ADMIN_SETTINGS: "/admin/settings",
   /* PHASE2_PARKED — kept for reference; routes redirect away */
   DASHBOARD_PROGRESS: "/dashboard/progress",

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import {
   BarChart3,
   BookOpen,
+  ClipboardList,
   FileText,
   Flag,
   Gift,
@@ -32,6 +33,7 @@ export function AdminNavIcon({
     content: <BookOpen {...props} />,
     recommendations: <Sparkles {...props} />,
     disclosures: <FileText {...props} />,
+    audit: <ClipboardList {...props} />,
     rules: <Scale {...props} />,
     analytics: <BarChart3 {...props} />,
     marketing: <Megaphone {...props} />,

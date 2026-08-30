@@ -37,5 +37,6 @@ export { AdminTopBar } from "./AdminTopBar";
 export { SettingCategoryManageDrawer } from "./SettingCategoryManageDrawer";
 export { SettingFormDrawer } from "./SettingFormDrawer";
 export { SettingValueField } from "./SettingValueField";
+export { LegalDocumentFormDrawer } from "./LegalDocumentFormDrawer";
 export { FounderPlanFormDrawer } from "./FounderPlanFormDrawer";
 export { ProgramPickerField } from "./ProgramPickerField";

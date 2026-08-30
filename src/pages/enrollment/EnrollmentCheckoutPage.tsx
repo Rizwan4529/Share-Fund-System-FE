@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -15,12 +15,16 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
-import { acceptDisclosures } from "@/lib/api/auth";
-import { getDisclosureByKind } from "@/lib/api/disclosures";
+import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
 import { processMockCheckout } from "@/lib/api/enrollment";
 import { toCheckoutOption } from "@/lib/founder-plans/checkout";
 import { useListFounderPlansQuery } from "@/store/api/founderPlansApi";
-import type { DisclosureDoc } from "@/types";
+import {
+  useGetLegalDocumentQuery,
+  useGetMyCurrentAcceptanceQuery,
+  useRecordAcceptanceMutation,
+} from "@/store/api/legalApi";
+import { CHECKOUT_LEGAL_TYPES } from "@/types/auth";
 import { ROUTES } from "@/utils/constants";
 
 export default function EnrollmentCheckoutPage() {
@@ -29,13 +33,19 @@ export default function EnrollmentCheckoutPage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
   const plansQuery = useListFounderPlansQuery();
-  const [ack, setAck] = useState<DisclosureDoc | null>(null);
+  const ackQuery = useGetLegalDocumentQuery("checkout_acknowledgment");
+  const [recordAcceptance] = useRecordAcceptanceMutation();
+  const currentQueries = {
+    checkout_acknowledgment: useGetMyCurrentAcceptanceQuery(
+      "checkout_acknowledgment",
+    ),
+    founding_disclosure: useGetMyCurrentAcceptanceQuery("founding_disclosure"),
+    terms: useGetMyCurrentAcceptanceQuery("terms"),
+    privacy: useGetMyCurrentAcceptanceQuery("privacy"),
+    refund_policy: useGetMyCurrentAcceptanceQuery("refund_policy"),
+  };
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    void getDisclosureByKind("checkout_acknowledgment").then(setAck);
-  }, []);
 
   const plan = useMemo(() => {
     const match = (plansQuery.data ?? []).find((item) => item._id === planId);
@@ -48,15 +58,20 @@ export default function EnrollmentCheckoutPage() {
       toast.error("Please acknowledge the checkout disclosures.");
       return;
     }
+    if (!ackQuery.data) {
+      toast.error("Checkout acknowledgment is not published yet.");
+      return;
+    }
     setBusy(true);
     try {
-      await acceptDisclosures([
-        "checkout_acknowledgment",
-        "founding_disclosure",
-        "terms",
-        "privacy",
-        "refund_policy",
-      ]);
+      for (const documentType of CHECKOUT_LEGAL_TYPES) {
+        const current = currentQueries[documentType].data;
+        if (current?.accepted) continue;
+        await recordAcceptance({
+          documentType,
+          context: "checkout",
+        }).unwrap();
+      }
       const result = await processMockCheckout({ option: plan, forceFail });
       await refresh();
       if (result.payment.status === "succeeded") {
@@ -69,7 +84,9 @@ export default function EnrollmentCheckoutPage() {
         navigate(ROUTES.BILLING);
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Checkout failed.");
+      toast.error(
+        getApiErrorMessage(err, "Checkout failed. Please try again."),
+      );
     } finally {
       setBusy(false);
     }
@@ -141,15 +158,21 @@ export default function EnrollmentCheckoutPage() {
 
           <div className="mt-6 space-y-3 rounded-lg border border-line bg-bg-card p-4">
             <SectionLabel tone="navy">
-              Acknowledgment · v{ack?.version ?? "—"}
+              Acknowledgment · v{ackQuery.data?.version ?? "—"}
             </SectionLabel>
             <Typography variant="body-sm" className="text-muted-soft">
-              {ack?.body}
+              {ackQuery.isError
+                ? getApiErrorMessage(
+                    ackQuery.error,
+                    "No published checkout acknowledgment was found.",
+                  )
+                : ackQuery.data?.content}
             </Typography>
             <div className="flex items-start gap-3 pt-1">
               <Checkbox
                 id="ack"
                 checked={accepted}
+                disabled={!ackQuery.data}
                 onCheckedChange={(v) => setAccepted(v === true)}
               />
               <Label htmlFor="ack" className="text-sm leading-snug text-ink-heading">
@@ -166,12 +189,16 @@ export default function EnrollmentCheckoutPage() {
             Card entry is simulated for Phase 1. Live Stripe Elements will replace
             this mock when the backend is ready.
           </Typography>
-          <GoldButton disabled={busy} className="w-full" onClick={() => void pay(false)}>
+          <GoldButton
+            disabled={busy || !ackQuery.data}
+            className="w-full"
+            onClick={() => void pay(false)}
+          >
             {busy ? "Processing…" : `Pay $${plan.price}`}
           </GoldButton>
           <GoldButton
             variant="ghost-outline"
-            disabled={busy}
+            disabled={busy || !ackQuery.data}
             className="w-full"
             onClick={() => void pay(true)}
           >

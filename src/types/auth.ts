@@ -63,16 +63,19 @@ export type ResendLinkRequest = {
   email: string;
 };
 
-export type LegalDocumentType =
-  | "disclaimer"
-  | "founding_disclosure"
-  | "terms"
-  | "privacy"
-  | "refund_policy"
-  | "checkout_acknowledgment"
-  | "success_center_notice"
-  | "partner_disclosure"
-  | "other";
+export const LEGAL_DOCUMENT_TYPES = [
+  "disclaimer",
+  "founding_disclosure",
+  "terms",
+  "privacy",
+  "refund_policy",
+  "checkout_acknowledgment",
+  "success_center_notice",
+  "partner_disclosure",
+  "other",
+] as const;
+
+export type LegalDocumentType = (typeof LEGAL_DOCUMENT_TYPES)[number];
 
 export type LegalAcceptanceContext =
   | "signup"
@@ -88,8 +91,41 @@ export type LegalDocument = {
   version: number;
   status: string;
   effectiveDate?: string;
+  updatedBy?: {
+    _id?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  } | string;
   createdAt?: string;
   updatedAt?: string;
+};
+
+export type CreateLegalDocumentRequest = {
+  documentType: LegalDocumentType;
+  title: string;
+  content: string;
+};
+
+export type UpdateLegalDocumentRequest = {
+  title?: string;
+  content?: string;
+};
+
+export type PublishLegalDocumentRequest = {
+  documentType: LegalDocumentType;
+  version: number;
+  effectiveDate?: string;
+};
+
+export type LegalAcceptance = {
+  _id: string;
+  userId: string;
+  legalDocumentId?: string | { _id: string; version?: number };
+  documentType: LegalDocumentType;
+  documentVersion: number;
+  acceptedAt: string;
+  context: LegalAcceptanceContext;
 };
 
 export type LegalAcceptanceCurrent = {
@@ -113,6 +149,14 @@ export const SIGNUP_LEGAL_TYPES = [
 ] as const;
 
 export type SignupLegalType = (typeof SIGNUP_LEGAL_TYPES)[number];
+
+export const CHECKOUT_LEGAL_TYPES = [
+  "checkout_acknowledgment",
+  "founding_disclosure",
+  "terms",
+  "privacy",
+  "refund_policy",
+] as const;
 
 export type PersistedAuth = {
   user: BackendUser;
