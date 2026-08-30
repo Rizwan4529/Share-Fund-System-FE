@@ -25,7 +25,7 @@ const HOW_ITEMS = [
   {
     icon: Wallet,
     title: "Enroll as a Founding Participant",
-    desc: "Pay once for Success Center access ($50 / $100 / Founder Stack).",
+    desc: "Pay once for Success Center access using the founder plan prices set by admin.",
   },
   {
     icon: LayoutGrid,

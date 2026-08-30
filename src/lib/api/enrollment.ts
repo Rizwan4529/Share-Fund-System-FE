@@ -12,7 +12,8 @@ import type {
 } from "@/types";
 
 export type CheckoutPlanOption = {
-  plan: EnrollmentPlan;
+  plan: string;
+  name: EnrollmentPlan;
   title: string;
   subtitle: string;
   price: number;
@@ -32,44 +33,8 @@ export function selectionUnitLabel(
   return one ? "category" : "categories";
 }
 
-export async function getEnrollmentPlans(): Promise<CheckoutPlanOption[]> {
-  await delay(120);
-  const { pricing } = getStore().settings;
-  const mode = pricing.selectionMode;
-  const plans: CheckoutPlanOption[] = [
-    {
-      plan: "founding_one",
-      title: `Founding Access — 1 ${selectionUnitLabel(mode, 1)}`,
-      subtitle: "Founding Participant Introductory Pricing",
-      price: pricing.foundingPriceOne,
-      centerLimit: 1,
-      foundingStatus: "founding_participant",
-    },
-    {
-      plan: "founding_bundle",
-      title: `Founding Access — ${pricing.bundleCenterCount} ${selectionUnitLabel(mode, pricing.bundleCenterCount)}`,
-      subtitle: "Founding Participant Introductory Pricing",
-      price: pricing.foundingPriceBundle,
-      centerLimit: pricing.bundleCenterCount,
-      foundingStatus: "founding_participant",
-    },
-  ];
-  if (pricing.founderStack.active && pricing.founderStack.available) {
-    plans.push({
-      plan: "founder_stack",
-      title: `Founder Stack — up to ${pricing.founderStack.successCenterCount} ${selectionUnitLabel(mode, pricing.founderStack.successCenterCount)}`,
-      subtitle: pricing.founderStack.benefits,
-      price: pricing.founderStack.price,
-      centerLimit: pricing.founderStack.successCenterCount,
-      foundingStatus: "founder_stack",
-      separateOffer: true,
-    });
-  }
-  return plans;
-}
-
 export async function processMockCheckout(input: {
-  plan: EnrollmentPlan;
+  option: CheckoutPlanOption;
   /** Simulate failure for testing failed-payment recording. */
   forceFail?: boolean;
 }): Promise<{ enrollment: Enrollment; payment: PaymentRecord }> {
@@ -78,9 +43,7 @@ export async function processMockCheckout(input: {
   const store = getStore();
   if (!store.user) throw new Error("Not authenticated");
 
-  const plans = await getEnrollmentPlans();
-  const option = plans.find((p) => p.plan === input.plan);
-  if (!option) throw new Error("Unknown enrollment plan");
+  const option = input.option;
 
   const now = new Date();
   const paidAt = now.toISOString();
@@ -93,7 +56,7 @@ export async function processMockCheckout(input: {
     userId: store.user.id,
     userName: store.user.name,
     userEmail: store.user.email,
-    plan: input.plan,
+    plan: option.name,
     centerLimit: option.centerLimit,
     amount: option.price,
     status,
@@ -107,7 +70,7 @@ export async function processMockCheckout(input: {
     userName: store.user.name,
     userEmail: store.user.email,
     enrollmentId,
-    plan: input.plan,
+    plan: option.name,
     amount: option.price,
     status,
     paidAt,
@@ -151,8 +114,8 @@ export async function processMockCheckout(input: {
   appendAudit(
     store.user.email,
     status === "succeeded"
-      ? `Enrollment payment succeeded (${option.plan}, $${option.price})`
-      : `Enrollment payment failed (${option.plan})`,
+      ? `Enrollment payment succeeded (${option.name}, $${option.price})`
+      : `Enrollment payment failed (${option.name})`,
     status === "succeeded" ? "ok" : "danger",
   );
 

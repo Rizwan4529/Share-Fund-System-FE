@@ -17,35 +17,33 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { acceptDisclosures } from "@/lib/api/auth";
 import { getDisclosureByKind } from "@/lib/api/disclosures";
-import {
-  getEnrollmentPlans,
-  processMockCheckout,
-  type CheckoutPlanOption,
-} from "@/lib/api/enrollment";
-import type { DisclosureDoc, EnrollmentPlan } from "@/types";
+import { processMockCheckout } from "@/lib/api/enrollment";
+import { toCheckoutOption } from "@/lib/founder-plans/checkout";
+import { useListFounderPlansQuery } from "@/store/api/founderPlansApi";
+import type { DisclosureDoc } from "@/types";
 import { ROUTES } from "@/utils/constants";
 
 export default function EnrollmentCheckoutPage() {
   const [params] = useSearchParams();
-  const planId = (params.get("plan") ?? "founding_one") as EnrollmentPlan;
+  const planId = params.get("plan") ?? "";
   const navigate = useNavigate();
   const { refresh } = useAuth();
-  const [plans, setPlans] = useState<CheckoutPlanOption[] | null>(null);
+  const plansQuery = useListFounderPlansQuery();
   const [ack, setAck] = useState<DisclosureDoc | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    void getEnrollmentPlans().then(setPlans);
     void getDisclosureByKind("checkout_acknowledgment").then(setAck);
   }, []);
 
-  const plan = useMemo(
-    () => plans?.find((p) => p.plan === planId) ?? null,
-    [plans, planId],
-  );
+  const plan = useMemo(() => {
+    const match = (plansQuery.data ?? []).find((item) => item._id === planId);
+    return match ? toCheckoutOption(match) : null;
+  }, [plansQuery.data, planId]);
 
   const pay = async (forceFail = false) => {
+    if (!plan) return;
     if (!accepted) {
       toast.error("Please acknowledge the checkout disclosures.");
       return;
@@ -59,7 +57,7 @@ export default function EnrollmentCheckoutPage() {
         "privacy",
         "refund_policy",
       ]);
-      const result = await processMockCheckout({ plan: planId, forceFail });
+      const result = await processMockCheckout({ option: plan, forceFail });
       await refresh();
       if (result.payment.status === "succeeded") {
         toast.success(
@@ -77,7 +75,7 @@ export default function EnrollmentCheckoutPage() {
     }
   };
 
-  if (plans === null) {
+  if (plansQuery.isLoading) {
     return (
       <AppPageContainer>
         <div className="h-40 animate-pulse rounded-panel bg-muted" />

@@ -205,7 +205,10 @@ export type CustomPlatformRule = {
 export type EnrollmentPlan =
   | "founding_one"
   | "founding_bundle"
-  | "founder_stack";
+  | "founder_stack"
+  | "essential_100"
+  | "expanded_500"
+  | "premium_1000";
 
 export type Enrollment = {
   id: string;

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, BadgeCheck, Layers, Sparkles } from "lucide-react";
 
 import { EmptyState } from "@/components/common/EmptyState";
 import { GoldButton } from "@/components/common/GoldButton";
+import { Spinner } from "@/components/common/LoadingScreen";
 import { Typography } from "@/components/common/Typography";
 import {
   AppPageContainer,
@@ -13,29 +13,23 @@ import {
   SectionLabel,
   StatusChip,
 } from "@/components/member/app";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import {
-  getEnrollmentPlans,
-  type CheckoutPlanOption,
-} from "@/lib/api/enrollment";
+import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
+import type { CheckoutPlanOption } from "@/lib/api/enrollment";
+import { toCheckoutOption } from "@/lib/founder-plans/checkout";
 import { foundingAccessState } from "@/lib/auth/roles";
+import { useListFounderPlansQuery } from "@/store/api/founderPlansApi";
 import { ROUTES } from "@/utils/constants";
 import { cn } from "@/lib/utils";
 
 export default function EnrollmentPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [plans, setPlans] = useState<CheckoutPlanOption[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    void getEnrollmentPlans()
-      .then(setPlans)
-      .finally(() => setLoading(false));
-  }, []);
-
-  const founding = plans.filter((p) => !p.separateOffer);
-  const founderStack = plans.filter((p) => p.separateOffer);
+  const plansQuery = useListFounderPlansQuery();
+  const plans = (plansQuery.data ?? []).map(toCheckoutOption);
+  const founding = plans.filter((plan) => !plan.separateOffer);
+  const founderStack = plans.filter((plan) => plan.separateOffer);
   const enrolled = (user?.foundingStatus ?? "none") !== "none";
 
   return (
@@ -45,8 +39,8 @@ export default function EnrollmentPage() {
         title="Choose a Founding Plan"
         subtitle={
           <>
-            Introductory pricing is admin-configurable. Founding Participant
-            Status:{" "}
+            Prices and limits come from the founder plans configured by admin.
+            Founding Participant Status:{" "}
             <StatusChip
               tone={enrolled ? "success" : "muted"}
               className="ml-1 align-middle normal-case tracking-normal"
@@ -67,57 +61,75 @@ export default function EnrollmentPage() {
         timelines are projections only — live funding is not active.
       </InfoCallout>
 
-      {loading ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="h-56 animate-pulse rounded-panel bg-muted" />
-          <div className="h-56 animate-pulse rounded-panel bg-muted" />
+      {plansQuery.isLoading ? (
+        <div className="flex min-h-48 items-center justify-center">
+          <Spinner />
         </div>
-      ) : founding.length === 0 ? (
+      ) : plansQuery.isError ? (
+        <EmptyState
+          icon={Layers}
+          variant="error"
+          title="Could not load founder plans"
+          description={getApiErrorMessage(
+            plansQuery.error,
+            "Enrollment prices could not be loaded.",
+          )}
+          action={
+            <Button type="button" variant="outline" onClick={plansQuery.refetch}>
+              Try again
+            </Button>
+          }
+        />
+      ) : founding.length === 0 && founderStack.length === 0 ? (
         <EmptyState
           icon={Layers}
           title="No enrollment plans available"
-          description="Pricing offers will appear here once configured in admin settings."
+          description="Founder plans will appear here once an admin creates and activates them."
           variant="muted"
         />
       ) : (
         <>
-          <div className="mb-3 flex items-center gap-2">
-            <SectionLabel tone="info">Introductory pricing</SectionLabel>
-          </div>
-          <div className="mb-8 grid gap-4 md:grid-cols-2">
-            {founding.map((plan) => (
-              <PlanCard
-                key={plan.plan}
-                plan={plan}
-                onCheckout={() =>
-                  navigate(`${ROUTES.ENROLLMENT_CHECKOUT}?plan=${plan.plan}`)
-                }
-              />
-            ))}
-          </div>
+          {founding.length > 0 ? (
+            <>
+              <div className="mb-3 flex items-center gap-2">
+                <SectionLabel tone="info">Founder plans</SectionLabel>
+              </div>
+              <div className="mb-8 grid gap-4 md:grid-cols-2">
+                {founding.map((plan) => (
+                  <PlanCard
+                    key={plan.plan}
+                    plan={plan}
+                    onCheckout={() =>
+                      navigate(`${ROUTES.ENROLLMENT_CHECKOUT}?plan=${plan.plan}`)
+                    }
+                  />
+                ))}
+              </div>
+            </>
+          ) : null}
+
+          {founderStack.length > 0 ? (
+            <>
+              <div className="mb-3 flex items-center gap-2">
+                <SectionLabel tone="navy">Separate offer</SectionLabel>
+                <StatusChip tone="navy">Premium</StatusChip>
+              </div>
+              <div className="grid gap-4 lg:grid-cols-2">
+                {founderStack.map((plan) => (
+                  <PlanCard
+                    key={plan.plan}
+                    plan={plan}
+                    featured
+                    onCheckout={() =>
+                      navigate(`${ROUTES.ENROLLMENT_CHECKOUT}?plan=${plan.plan}`)
+                    }
+                  />
+                ))}
+              </div>
+            </>
+          ) : null}
         </>
       )}
-
-      {founderStack.length > 0 ? (
-        <>
-          <div className="mb-3 flex items-center gap-2">
-            <SectionLabel tone="navy">Separate offer</SectionLabel>
-            <StatusChip tone="navy">Founder Stack</StatusChip>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {founderStack.map((plan) => (
-              <PlanCard
-                key={plan.plan}
-                plan={plan}
-                featured
-                onCheckout={() =>
-                  navigate(`${ROUTES.ENROLLMENT_CHECKOUT}?plan=${plan.plan}`)
-                }
-              />
-            ))}
-          </div>
-        </>
-      ) : null}
 
       <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-soft">
         <Link
@@ -156,7 +168,7 @@ function PlanCard({
     >
       <div className="flex items-start justify-between gap-3">
         <SectionLabel tone={featured ? "navy" : "info"}>
-          {featured ? "Founder Stack" : "Founding pricing"}
+          {featured ? "Premium tier" : "Founder plan"}
         </SectionLabel>
         {featured ? (
           <span className="flex size-9 items-center justify-center rounded-lg bg-info/10 text-info">
@@ -185,9 +197,9 @@ function PlanCard({
       </div>
 
       <Typography variant="body-sm" className="mt-3 flex-1 text-muted-soft">
-        {featured
-          ? `${plan.subtitle} Includes up to ${plan.centerLimit} Success Center categories and distinct Founder Stack status.`
-          : `Founding Access to ${plan.centerLimit} Success Center categor${plan.centerLimit === 1 ? "y" : "ies"}. Recurring billing is not live in Phase 1.`}
+        {plan.subtitle}. Includes {plan.centerLimit} success center program
+        {plan.centerLimit === 1 ? "" : "s"}. Recurring billing is not live in
+        Phase 1.
       </Typography>
 
       <GoldButton className="mt-6 w-full" onClick={onCheckout}>

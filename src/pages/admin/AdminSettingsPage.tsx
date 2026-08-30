@@ -15,11 +15,7 @@ import { DataTableColumnHeaderCommon } from "@/components/common/DataTableColumn
 import { DataTableCommon } from "@/components/common/DataTableCommon";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Spinner } from "@/components/common/LoadingScreen";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/common/TabsCommon";
+import { Tabs, TabsList, TabsTrigger } from "@/components/common/TabsCommon";
 import { Button } from "@/components/ui/button";
 import { filterRowsBySearch } from "@/hooks/useAdminTableSearch";
 import { useClientTablePage } from "@/hooks/useClientTablePage";
@@ -134,10 +130,7 @@ export default function AdminSettingsPage() {
       {
         accessorKey: "effectiveDate",
         header: ({ column }) => (
-          <DataTableColumnHeaderCommon
-            column={column}
-            title="Effective date"
-          />
+          <DataTableColumnHeaderCommon column={column} title="Effective date" />
         ),
         cell: ({ row }) => formatSettingDate(row.original.effectiveDate),
         enableSorting: true,
@@ -190,7 +183,11 @@ export default function AdminSettingsPage() {
             "The settings list could not be loaded.",
           )}
           action={
-            <Button type="button" variant="outline" onClick={activeQuery.refetch}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={activeQuery.refetch}
+            >
               Try again
             </Button>
           }
@@ -247,7 +244,7 @@ export default function AdminSettingsPage() {
       <Tabs
         value={categoryFilter}
         onValueChange={(value) => setCategoryFilter(value as CategoryFilter)}
-        className="mt-0 gap-2"
+        className="mt-4 gap-2"
       >
         <TabsList className="flex h-auto flex-wrap gap-x-4 gap-y-0">
           <TabsTrigger value="all">All</TabsTrigger>
