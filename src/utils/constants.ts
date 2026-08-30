@@ -16,6 +16,9 @@ export const API_PATHS = {
   LEGAL_ACCEPTANCES: "/legal-acceptances/",
   LEGAL_ACCEPTANCE_CURRENT: (documentType: string) =>
     `/legal-acceptances/me/${documentType}/current`,
+  SETTINGS: "/settings/",
+  SETTINGS_CATEGORY: (category: string) => `/settings/category/${category}`,
+  SETTING_BY_KEY: (key: string) => `/settings/${encodeURIComponent(key)}`,
 } as const;
 
 export const ROUTES = {

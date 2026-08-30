@@ -1,5 +1,6 @@
 import { emptySuccessProfile } from "@/lib/mock/phase1Seed";
 import { emptyBmisProfile } from "@/lib/mock/store";
+import { homePathForRole, isAdminUser } from "@/lib/auth/roles";
 import type { AuthUser } from "@/types";
 import type { BackendUser } from "@/types/auth";
 import { ROUTES } from "@/utils/constants";
@@ -17,10 +18,10 @@ export function toSessionUser(user: BackendUser): AuthUser {
     phone: user.phone ?? "",
     location: user.country ?? "",
     avatarInitials: initialsFromName(user.firstName, user.lastName),
-    membership: user.role === "admin" ? "Platform admin" : "Participant",
+    membership: isAdminUser(user.role) ? "Platform admin" : "Participant",
     onboardingComplete: true,
     verified: user.emailVerified,
-    role: user.role === "admin" ? "admin" : "participant",
+    role: isAdminUser(user.role) ? "admin" : "participant",
     foundingStatus: user.foundingParticipant ? "founding_participant" : "none",
     selectedCenterIds: [],
     centerLimit: 0,
@@ -33,7 +34,7 @@ export function toSessionUser(user: BackendUser): AuthUser {
 }
 
 export function postLoginPath(user: BackendUser): string {
-  if (user.role === "admin") return ROUTES.ADMIN;
+  if (isAdminUser(user.role)) return homePathForRole(user.role);
   if (!user.emailVerified) return ROUTES.VERIFY;
-  return ROUTES.DASHBOARD;
+  return homePathForRole(user.role);
 }

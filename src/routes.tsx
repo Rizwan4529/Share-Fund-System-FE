@@ -1,7 +1,12 @@
 import { lazy } from "react";
 import { Navigate, type RouteObject } from "react-router-dom";
 
-import { AdminRoute, GuestRoute, ProtectedRoute } from "@/components/common/ProtectedRoute";
+import {
+  AdminRoute,
+  GuestRoute,
+  ProtectedRoute,
+  RoleHomeRedirect,
+} from "@/components/common/ProtectedRoute";
 import { AppShellLayout } from "@/layouts/AppShellLayout";
 import { AdminShellLayout } from "@/layouts/AdminShellLayout";
 import { AuthSplitLayout } from "@/layouts/AuthSplitLayout";
@@ -66,7 +71,7 @@ const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
 export const routes: RouteObject[] = [
   {
     path: "/",
-    element: <Navigate to={ROUTES.DASHBOARD} replace />,
+    element: <RoleHomeRedirect />,
   },
   {
     path: ROUTES.LEGAL,
@@ -218,6 +223,6 @@ export const routes: RouteObject[] = [
   },
   {
     path: "*",
-    element: <Navigate to={ROUTES.DASHBOARD} replace />,
+    element: <RoleHomeRedirect />,
   },
 ];

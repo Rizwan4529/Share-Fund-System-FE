@@ -1,12 +1,20 @@
 import type { UserRole } from "@/types";
 import type { BackendRole } from "@/types/auth";
+import { ROUTES } from "@/utils/constants";
 
 export type AdminViewRole = "Owner" | "Operator";
+export type AppRole = UserRole | BackendRole;
 
-export function isAdminUser(
-  role: UserRole | BackendRole | undefined,
-): boolean {
+export function isAdminUser(role: AppRole | undefined): boolean {
   return role === "admin";
+}
+
+export function isCustomerUser(role: AppRole | undefined): boolean {
+  return role === "user" || role === "participant";
+}
+
+export function homePathForRole(role: AppRole | undefined): string {
+  return isAdminUser(role) ? ROUTES.ADMIN : ROUTES.DASHBOARD;
 }
 
 export function foundingStatusLabel(
