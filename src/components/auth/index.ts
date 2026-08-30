@@ -1,10 +1,13 @@
 export { AuthBackLink } from "./AuthBackLink";
 export { AuthBrandPanel } from "./AuthBrandPanel";
+export { AuthCountryCombobox } from "./AuthCountryCombobox";
 export { AuthErrorBanner } from "./AuthErrorBanner";
 export { AuthFieldLabel } from "./AuthFieldLabel";
-export { AuthFormShell } from "./AuthFormShell";
+export { AuthFormBack, AuthFormShell } from "./AuthFormShell";
 export { AuthPasswordField } from "./AuthPasswordField";
+export { AuthPhoneField } from "./AuthPhoneField";
 export { AuthSocialButtons } from "./AuthSocialButtons";
+export { SignupLegalStep } from "./SignupLegalStep";
 export { AuthStepIcon } from "./AuthStepIcon";
 export { AuthTabSwitcher } from "./AuthTabSwitcher";
 export { VerifyWelcomeCard } from "./VerifyWelcomeCard";

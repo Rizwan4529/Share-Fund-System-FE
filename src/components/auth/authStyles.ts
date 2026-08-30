@@ -14,6 +14,9 @@ export const authSocialButtonClass = cn(
 
 export const authLabelClass = "text-[13px] font-semibold text-[#33425f]";
 
+export const authFieldItemClass =
+  "gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_label]:text-[#33425f]";
+
 export const authErrorClass = cn(
   "mb-4 flex items-center gap-2.5 rounded-brand border border-error/20 bg-error-bg px-3.5 py-2.5",
 );

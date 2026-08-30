@@ -1,4 +1,3 @@
-import { isAdminEmail } from "@/lib/auth/roles";
 import { delay } from "@/lib/delay";
 import {
   appendAudit,
@@ -10,6 +9,10 @@ import {
 } from "@/lib/mock/store";
 import { emptySuccessProfile } from "@/lib/mock/phase1Seed";
 import type { AuthUser, DisclosureAcceptance } from "@/types";
+
+function isDemoAdminEmail(email: string): boolean {
+  return email.toLowerCase().includes("admin");
+}
 
 function buildAdminUser(email: string): AuthUser {
   const local = email.split("@")[0] ?? "Admin";
@@ -86,7 +89,7 @@ export async function loginUser(
     return user;
   }
 
-  if (isAdminEmail(email)) {
+  if (isDemoAdminEmail(email)) {
     const user = buildAdminUser(email);
     setStore({ user });
     appendAudit(user.email, "Admin signed in");
@@ -150,8 +153,8 @@ export async function getSession(): Promise<AuthUser | null> {
   if (!user) return null;
   const updated = normalizeUser({
     ...user,
-    role: isAdminEmail(user.email) ? "admin" : (user.role ?? "participant"),
-    ...(isAdminEmail(user.email)
+    role: isDemoAdminEmail(user.email) ? "admin" : (user.role ?? "participant"),
+    ...(isDemoAdminEmail(user.email)
       ? { verified: true, onboardingComplete: true, role: "admin" as const }
       : {}),
   });

@@ -1,13 +1,11 @@
 import type { UserRole } from "@/types";
+import type { BackendRole } from "@/types/auth";
 
 export type AdminViewRole = "Owner" | "Operator";
 
-/** Temporary mock admin detection until real JWT roles exist. */
-export function isAdminEmail(email: string): boolean {
-  return email.toLowerCase().includes("admin");
-}
-
-export function isAdminUser(role: UserRole | undefined): boolean {
+export function isAdminUser(
+  role: UserRole | BackendRole | undefined,
+): boolean {
   return role === "admin";
 }
 

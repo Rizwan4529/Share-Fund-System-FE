@@ -4,11 +4,26 @@ import { SEED_SUCCESS_CENTERS } from "@/lib/mock/phase1Seed";
 export const LANDING_URL =
   import.meta.env.VITE_LANDING_URL ?? "http://localhost:5173";
 
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL ?? "http://localhost:3000/api/v1";
+
+export const API_PATHS = {
+  LOGIN: "/login/",
+  REGISTER: "/register/",
+  VERIFY_EMAIL: "/verify-email",
+  RESEND_LINK: "/resend-link",
+  LEGAL_DOCUMENT: (documentType: string) => `/legal-documents/${documentType}`,
+  LEGAL_ACCEPTANCES: "/legal-acceptances/",
+  LEGAL_ACCEPTANCE_CURRENT: (documentType: string) =>
+    `/legal-acceptances/me/${documentType}/current`,
+} as const;
+
 export const ROUTES = {
   LOGIN: "/login",
   SIGNUP: "/signup",
   FORGOT_PASSWORD: "/forgot-password",
   VERIFY: "/verify",
+  VERIFY_EMAIL: "/verify-email/:token",
   ONBOARDING: "/onboarding",
   DASHBOARD: "/dashboard",
   QUESTIONNAIRE: "/questionnaire",
@@ -147,6 +162,7 @@ export function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/recommendation")) return "Projections";
   if (pathname.startsWith("/account")) return "Account";
   if (pathname.startsWith("/legal")) return "Legal";
+  if (pathname.startsWith("/verify")) return "Verify email";
   if (pathname.startsWith("/admin")) return "Admin";
   return "SFS";
 }

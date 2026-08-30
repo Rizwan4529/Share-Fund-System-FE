@@ -1,39 +1,56 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useCallback, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
 
 import {
+  AuthCountryCombobox,
   AuthErrorBanner,
   AuthFieldLabel,
+  AuthFormBack,
   AuthPasswordField,
+  AuthPhoneField,
   AuthSocialButtons,
-  AuthTabSwitcher,
+  SignupLegalStep,
 } from "@/components/auth";
-import { authInputClass } from "@/components/auth/authStyles";
+import {
+  authFieldItemClass,
+  authInputClass,
+} from "@/components/auth/authStyles";
 import { FormCommon, Input, Checkbox } from "@/components/common/FormCommon";
 import { GoldButton } from "@/components/common/GoldButton";
+import { ButtonSpinner } from "@/components/common/LoadingStates";
 import { Typography } from "@/components/common/Typography";
-import { useAuth } from "@/context/AuthContext";
+import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
+import { postLoginPath } from "@/lib/auth/sessionUser";
 import {
   loginSchema,
   signupSchema,
   type LoginFormValues,
   type SignupFormValues,
 } from "@/lib/schemas/auth";
+import { useAppDispatch } from "@/store/hooks";
+import { useLoginMutation, useRegisterMutation } from "@/store/api/authApi";
+import { setCredentials } from "@/store/slices/authSlice";
+import { stripAuthToken } from "@/types/auth";
+import type { CountryOption } from "@/utils/countries";
 import { ROUTES } from "@/utils/constants";
 
 type Mode = "login" | "signup";
 
 export default function LoginSignupPage() {
   const location = useLocation();
-  const [mode, setMode] = useState<Mode>(
-    location.pathname === ROUTES.SIGNUP ? "signup" : "login",
-  );
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const mode: Mode = location.pathname === ROUTES.SIGNUP ? "signup" : "login";
+  const [signupStep, setSignupStep] = useState<1 | 2>(1);
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
-  const { login, signup } = useAuth();
+  const [phoneSyncCountry, setPhoneSyncCountry] =
+    useState<CountryOption | null>(null);
+  const [login, loginState] = useLoginMutation();
+  const [registerUser, registerState] = useRegisterMutation();
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -42,44 +59,107 @@ export default function LoginSignupPage() {
 
   const signupForm = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { fullName: "", email: "", password: "" },
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      phone: "",
+      country: "",
+      acceptTerms: false,
+      acceptPrivacy: false,
+      acceptFounding: false,
+    },
   });
-  const {
-    register: registerSignup,
-    formState: { errors: signupErrors },
-  } = signupForm;
 
-  useEffect(() => {
-    setMode(location.pathname === ROUTES.SIGNUP ? "signup" : "login");
-  }, [location.pathname]);
+  const busy = loginState.isLoading || registerState.isLoading;
 
   const onLogin = async (data: LoginFormValues) => {
     setError("");
     try {
-      await login(data.email, data.password);
-    } catch {
-      setError("Invalid email or password. Please try again.");
+      const result = await login({
+        email: data.email,
+        password: data.password,
+      }).unwrap();
+      dispatch(
+        setCredentials({
+          user: stripAuthToken(result),
+          token: result.token,
+          remember: Boolean(data.remember),
+        }),
+      );
+      navigate(postLoginPath(result), { replace: true });
+    } catch (err) {
+      setError(
+        getApiErrorMessage(err, "Invalid email or password. Please try again."),
+      );
     }
   };
 
+  const onSignupDetails = async () => {
+    setError("");
+    const valid = await signupForm.trigger([
+      "firstName",
+      "lastName",
+      "email",
+      "password",
+      "phone",
+      "country",
+    ]);
+    if (valid) setSignupStep(2);
+  };
+
+  const goSignupDetails = useCallback(() => setSignupStep(1), []);
+
+  const switchMode = (next: Mode) => {
+    setSignupStep(1);
+    setError("");
+    navigate(next === "signup" ? ROUTES.SIGNUP : ROUTES.LOGIN, {
+      replace: true,
+    });
+  };
+
   const onSignup = async (data: SignupFormValues) => {
+    if (signupStep === 1) {
+      await onSignupDetails();
+      return;
+    }
     setError("");
     try {
-      await signup(data.fullName, data.email, data.password);
-    } catch {
-      setError("Could not create account. Please try again.");
+      await registerUser({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+        phone: data.phone,
+        country: data.country,
+      }).unwrap();
+      navigate(ROUTES.VERIFY, { state: { email: data.email } });
+    } catch (err) {
+      setError(
+        getApiErrorMessage(err, "Could not create account. Please try again."),
+      );
     }
   };
 
   return (
     <div>
-      <AuthTabSwitcher mode={mode} onChange={setMode} />
+      {mode === "signup" ? (
+        <AuthFormBack
+          to={signupStep === 1 ? ROUTES.LOGIN : undefined}
+          onClick={signupStep === 2 ? goSignupDetails : undefined}
+        />
+      ) : null}
 
       <Typography
         variant="h3"
         className="text-[27px] font-bold tracking-[-0.6px] text-ink-heading"
       >
-        {mode === "login" ? "Welcome back" : "Create your account"}
+        {mode === "login"
+          ? "Welcome back"
+          : signupStep === 1
+            ? "Create your account"
+            : "Review and accept"}
       </Typography>
       <Typography
         variant="body-sm"
@@ -88,7 +168,9 @@ export default function LoginSignupPage() {
       >
         {mode === "login"
           ? "Log in to continue your Founding Participant account."
-          : "Create a participant account to start BMIS planning."}
+          : signupStep === 1
+            ? "Create a participant account to start BMIS planning."
+            : "Review the documents below and accept them to finish signup."}
       </Typography>
 
       {error ? <AuthErrorBanner message={error} /> : null}
@@ -106,7 +188,7 @@ export default function LoginSignupPage() {
             type="email"
             required
             className={authInputClass}
-            itemClassName="gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_label]:text-[#33425f]"
+            itemClassName={authFieldItemClass}
           />
           <div className="flex flex-col gap-[7px]">
             <AuthFieldLabel
@@ -124,6 +206,7 @@ export default function LoginSignupPage() {
             <AuthPasswordField
               control={loginForm.control}
               name="password"
+              required
               showLabel={false}
               showToggle
               showPw={showPw}
@@ -135,7 +218,13 @@ export default function LoginSignupPage() {
             name="remember"
             label="Remember me for 30 days"
           />
-          <GoldButton type="submit" size="auth" className="mt-1 w-full">
+          <GoldButton
+            type="submit"
+            size="auth"
+            className="mt-1 w-full"
+            disabled={busy}
+          >
+            {loginState.isLoading ? <ButtonSpinner /> : null}
             Log in <ArrowRight className="size-[17px]" strokeWidth={2.3} />
           </GoldButton>
         </FormCommon>
@@ -145,68 +234,84 @@ export default function LoginSignupPage() {
           onSubmit={onSignup}
           className="flex flex-col gap-4"
         >
-          <div className="flex flex-col gap-[7px]">
-            <label
-              htmlFor="signup-full-name"
-              className="text-[13px] font-semibold text-[#33425f]"
-            >
-              Full name <span className="text-destructive">*</span>
-            </label>
-            <input
-              id="signup-full-name"
-              type="text"
-              autoComplete="off"
-              className={authInputClass}
-              {...registerSignup("fullName")}
-            />
-            {signupErrors.fullName ? (
-              <p className="text-sm text-destructive">
-                {signupErrors.fullName.message}
-              </p>
-            ) : null}
-          </div>
-          <Input
-            control={signupForm.control}
-            name="email"
-            label="Email"
-            type="email"
-            required
-            className={authInputClass}
-            itemClassName="gap-[7px] [&_label]:text-[13px] [&_label]:font-semibold [&_label]:text-[#33425f]"
-          />
-          <AuthPasswordField
-            control={signupForm.control}
-            name="password"
-            showStrength
-            showToggle
-            showPw={showPw}
-            onToggle={() => setShowPw(!showPw)}
-          />
-          <GoldButton type="submit" size="auth" className="mt-1 w-full">
-            Create account{" "}
-            <ArrowRight className="size-[17px]" strokeWidth={2.3} />
-          </GoldButton>
-          <Typography
-            variant="caption"
-            className="text-center text-muted-foreground"
-          >
-            By creating an account you agree to the{" "}
-            <Link to="/legal/terms" className="font-semibold underline">
-              Terms
-            </Link>
-            ,{" "}
-            <Link to="/legal/privacy" className="font-semibold underline">
-              Privacy Policy
-            </Link>
-            , and{" "}
-            <Link
-              to="/legal/founding_disclosure"
-              className="font-semibold underline"
-            >
-              Founding Participant disclosure
-            </Link>
-            .
-          </Typography>
+          {signupStep === 1 ? (
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Input
+                  control={signupForm.control}
+                  name="firstName"
+                  label="First name"
+                  required
+                  className={authInputClass}
+                  itemClassName={authFieldItemClass}
+                />
+                <Input
+                  control={signupForm.control}
+                  name="lastName"
+                  label="Last name"
+                  required
+                  className={authInputClass}
+                  itemClassName={authFieldItemClass}
+                />
+              </div>
+              <Input
+                control={signupForm.control}
+                name="email"
+                label="Email"
+                type="email"
+                required
+                className={authInputClass}
+                itemClassName={authFieldItemClass}
+              />
+              <AuthCountryCombobox
+                control={signupForm.control}
+                name="country"
+                required
+                itemClassName={authFieldItemClass}
+                onCountrySelected={setPhoneSyncCountry}
+              />
+              <AuthPhoneField
+                control={signupForm.control}
+                name="phone"
+                countryFieldName="country"
+                required
+                itemClassName={authFieldItemClass}
+                syncCountry={phoneSyncCountry}
+              />
+              <AuthPasswordField
+                control={signupForm.control}
+                name="password"
+                required
+                showStrength
+                showToggle
+                showPw={showPw}
+                onToggle={() => setShowPw(!showPw)}
+              />
+              <GoldButton
+                type="button"
+                size="auth"
+                className="mt-1 w-full"
+                onClick={() => void onSignupDetails()}
+              >
+                Continue{" "}
+                <ArrowRight className="size-[17px]" strokeWidth={2.3} />
+              </GoldButton>
+            </>
+          ) : (
+            <>
+              <SignupLegalStep control={signupForm.control} />
+              <GoldButton
+                type="submit"
+                size="auth"
+                className="mt-1 w-full"
+                disabled={busy}
+              >
+                {registerState.isLoading ? <ButtonSpinner /> : null}
+                Create account{" "}
+                <ArrowRight className="size-[17px]" strokeWidth={2.3} />
+              </GoldButton>
+            </>
+          )}
         </FormCommon>
       )}
 
@@ -220,7 +325,7 @@ export default function LoginSignupPage() {
         <button
           type="button"
           className="font-bold text-gold-dark"
-          onClick={() => setMode(mode === "login" ? "signup" : "login")}
+          onClick={() => switchMode(mode === "login" ? "signup" : "login")}
         >
           {mode === "login" ? "Sign up" : "Log in"}
         </button>

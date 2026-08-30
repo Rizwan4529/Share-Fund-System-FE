@@ -10,6 +10,9 @@ import { ROUTES } from "@/utils/constants";
 const LoginSignupPage = lazy(() => import("@/pages/auth/LoginSignupPage"));
 const ForgotPasswordPage = lazy(() => import("@/pages/auth/ForgotPasswordPage"));
 const VerifyEmailPage = lazy(() => import("@/pages/auth/VerifyEmailPage"));
+const VerifyEmailTokenPage = lazy(
+  () => import("@/pages/auth/VerifyEmailTokenPage"),
+);
 const OnboardingPage = lazy(() => import("@/pages/onboarding/OnboardingPage"));
 const DashboardHomePage = lazy(() => import("@/pages/dashboard/DashboardHomePage"));
 const QuestionnairePage = lazy(() => import("@/pages/questionnaire/QuestionnairePage"));
@@ -90,17 +93,29 @@ export const routes: RouteObject[] = [
       },
       {
         path: ROUTES.FORGOT_PASSWORD,
-        element: <ForgotPasswordPage />,
+        element: (
+          <GuestRoute>
+            <ForgotPasswordPage />
+          </GuestRoute>
+        ),
       },
     ],
   },
   {
     path: ROUTES.VERIFY,
     element: (
-      <ProtectedRoute>
+      <GuestRoute>
         <VerifyEmailPage />
-      </ProtectedRoute>
+      </GuestRoute>
     ),
+  },
+  {
+    path: ROUTES.VERIFY_EMAIL,
+    element: <VerifyEmailTokenPage />,
+  },
+  {
+    path: "/verify-email/:token/",
+    element: <VerifyEmailTokenPage />,
   },
   {
     path: ROUTES.ONBOARDING,

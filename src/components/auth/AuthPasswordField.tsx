@@ -1,5 +1,11 @@
 import { Eye, EyeOff } from "lucide-react";
-import { useWatch, type Control, type FieldPath, type FieldValues } from "react-hook-form";
+import {
+  useFormState,
+  useWatch,
+  type Control,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form";
 
 import {
   authInputClass,
@@ -15,6 +21,7 @@ type AuthPasswordFieldProps<T extends FieldValues> = {
   name: FieldPath<T>;
   label?: string;
   showLabel?: boolean;
+  required?: boolean;
   showStrength?: boolean;
   showToggle?: boolean;
   showPw: boolean;
@@ -26,6 +33,7 @@ export function AuthPasswordField<T extends FieldValues>({
   name,
   label = "Password",
   showLabel = true,
+  required = false,
   showStrength = false,
   showToggle = true,
   showPw,
@@ -33,12 +41,19 @@ export function AuthPasswordField<T extends FieldValues>({
 }: AuthPasswordFieldProps<T>) {
   const pw = useWatch({ control, name }) ?? "";
   const strength = passwordStrength(pw);
+  const { errors } = useFormState({ control, name });
+  const message = errors[name]?.message;
+  const errorMessage = typeof message === "string" ? message : null;
 
   return (
     <div className="flex flex-col gap-[7px]">
       {showLabel ? (
-        <Typography variant="label" className="text-[13px] font-semibold text-[#33425f]">
+        <Typography
+          variant="label"
+          className="text-[13px] font-semibold text-[#33425f]"
+        >
           {label}
+          {required ? <span className="text-destructive"> *</span> : null}
         </Typography>
       ) : null}
       <div className="relative">
@@ -46,6 +61,7 @@ export function AuthPasswordField<T extends FieldValues>({
           control={control}
           name={name}
           type={showPw ? "text" : "password"}
+          required={required}
           showMessage={false}
           className={cn(authInputClass, showToggle && "pr-11")}
         />
@@ -77,6 +93,9 @@ export function AuthPasswordField<T extends FieldValues>({
             {STRENGTH_LABELS[strength] || "Enter a password"}
           </Typography>
         </>
+      ) : null}
+      {errorMessage ? (
+        <p className="text-sm text-destructive">{errorMessage}</p>
       ) : null}
     </div>
   );
