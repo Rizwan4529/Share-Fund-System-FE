@@ -102,7 +102,7 @@ export function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
         })}
       </nav>
 
-      {user ? (
+      {/* {user ? (
         <div className="border-t border-white/7 px-4 py-3.5">
           <div className="flex items-center gap-2.5 rounded-[7px] bg-white/4 p-2">
             <GoldAvatar initials={user.avatarInitials} size="sm" />
@@ -122,7 +122,7 @@ export function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
             </div>
           </div>
         </div>
-      ) : null}
+      ) : null} */}
     </>
   );
 }
