@@ -142,7 +142,7 @@ export function SuccessCenterProgramFormDrawer({
     });
   }, [open, mode, programQuery.data, form]);
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = async (values: SuccessCenterProgramFormValues) => {
     const activationRules = {
       activationPercentageMin:
         parseOptionalNumber(values.activationPercentageMin) ?? null,
@@ -180,7 +180,7 @@ export function SuccessCenterProgramFormDrawer({
     } catch (error) {
       toast.error(getApiErrorMessage(error, "Could not save program."));
     }
-  });
+  };
 
   const loadingEdit = mode === "edit" && programQuery.isLoading;
   const categoryOptions = categories.map((category) => ({

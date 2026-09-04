@@ -1,12 +1,9 @@
 import { NavLink, useLocation } from "react-router-dom";
 
 import { AdminNavIcon } from "@/components/admin/AdminNavIcons";
-import { Typography } from "@/components/common/Typography";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAdminShell } from "@/context/AdminShellContext";
-import { useAuth } from "@/context/AuthContext";
 import { useShellSidebar } from "@/context/ShellSidebarContext";
-import { GoldAvatar } from "@/components/member/app/GoldAvatar";
 import { ROUTES } from "@/utils/constants";
 import { ASSETS } from "@/utils/assets";
 import { cn } from "@/lib/utils";
@@ -53,7 +50,6 @@ type AdminSidebarContentProps = {
 };
 
 export function AdminSidebarContent({ onNavigate }: AdminSidebarContentProps) {
-  const { user } = useAuth();
   const { viewRole } = useAdminShell();
   const location = useLocation();
 

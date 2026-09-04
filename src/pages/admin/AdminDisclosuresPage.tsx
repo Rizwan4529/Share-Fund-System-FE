@@ -5,7 +5,6 @@ import { AlertCircle, Pencil, Plus } from "lucide-react";
 import {
   ADMIN_TABLE_SECTION,
   ADMIN_TABLE_SLOT,
-  AdminGoldButton,
   AdminPageHeader,
   AdminStatusPill,
   AdminTableIconAction,

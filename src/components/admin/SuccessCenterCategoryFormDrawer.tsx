@@ -116,7 +116,7 @@ export function SuccessCenterCategoryFormDrawer({
     }
   }, [name, open, mode, form]);
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = async (values: SuccessCenterCategoryFormValues) => {
     const order = parseOptionalNumber(values.order);
     const payload = {
       name: values.name.trim(),
@@ -141,7 +141,7 @@ export function SuccessCenterCategoryFormDrawer({
     } catch (error) {
       toast.error(getApiErrorMessage(error, "Could not save category."));
     }
-  });
+  };
 
   const loadingEdit = mode === "edit" && categoryQuery.isLoading;
 
