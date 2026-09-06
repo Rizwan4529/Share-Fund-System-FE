@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { CircleAlert } from "lucide-react";
 
 import { EmptyState } from "@/components/common/EmptyState";
@@ -44,6 +44,9 @@ function formatUpdatedAt(value?: string): string {
 
 export default function LegalPage() {
   const { kind } = useParams();
+  const location = useLocation();
+  const fromSignup =
+    (location.state as { from?: string } | null)?.from === "signup";
   const documentType = resolveDocumentType(kind);
   const { data, isLoading, isError, error } =
     useGetLegalDocumentQuery(documentType);
@@ -52,22 +55,11 @@ export default function LegalPage() {
     <div className="min-h-svh bg-app-canvas px-4 py-10 sm:px-8">
       <div className="mx-auto max-w-3xl">
         <Link
-          to={ROUTES.LOGIN}
+          to={fromSignup ? ROUTES.SIGNUP : ROUTES.LOGIN}
           className="text-sm font-semibold text-muted-foreground hover:text-foreground"
         >
-          ← Back to login
+          {fromSignup ? "← Back to signup" : "← Back to login"}
         </Link>
-        <nav className="mt-6 flex flex-wrap gap-2">
-          {LEGAL_TYPES.map((type) => (
-            <Link
-              key={type}
-              to={`/legal/${type}`}
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold capitalize"
-            >
-              {type.replaceAll("_", " ")}
-            </Link>
-          ))}
-        </nav>
         {isLoading ? (
           <div className="mt-16 flex justify-center">
             <Spinner />

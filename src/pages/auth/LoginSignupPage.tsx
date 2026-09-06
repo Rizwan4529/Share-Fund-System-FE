@@ -13,7 +13,6 @@ import {
   AuthPhoneField,
   AuthSocialButtons,
   SignupLegalStep,
-  useSignupLegalReady,
 } from "@/components/auth";
 import {
   authFieldItemClass,
@@ -52,9 +51,6 @@ export default function LoginSignupPage() {
     useState<CountryOption | null>(null);
   const [login, loginState] = useLoginMutation();
   const [registerUser, registerState] = useRegisterMutation();
-  const signupLegal = useSignupLegalReady(
-    mode !== "signup" || signupStep !== 2,
-  );
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -163,7 +159,7 @@ export default function LoginSignupPage() {
           ? "Welcome back"
           : signupStep === 1
             ? "Create your account"
-            : "Review and accept"}
+            : "Accept"}
       </Typography>
       <Typography
         variant="body-sm"
@@ -174,7 +170,7 @@ export default function LoginSignupPage() {
           ? "Log in to continue your Founding Participant account."
           : signupStep === 1
             ? "Create a participant account to start BMIS planning."
-            : "Review the documents below and accept them to finish signup."}
+            : "Check each box after reading. Tap a document name to open the full text."}
       </Typography>
 
       {error ? <AuthErrorBanner message={error} /> : null}
@@ -236,7 +232,7 @@ export default function LoginSignupPage() {
         <FormCommon
           form={signupForm}
           onSubmit={onSignup}
-          className="flex flex-col gap-4"
+          className="flex flex-col gap-2"
         >
           {signupStep === 1 ? (
             <>
@@ -308,7 +304,7 @@ export default function LoginSignupPage() {
                 type="submit"
                 size="auth"
                 className="mt-1 w-full"
-                disabled={busy || !signupLegal.isReady}
+                disabled={busy}
               >
                 {registerState.isLoading ? <ButtonSpinner /> : null}
                 Create account{" "}
