@@ -31,6 +31,7 @@ const NAV_ITEMS: Array<{
     icon: "recommendations",
   },
   { to: ROUTES.ADMIN_DISCLOSURES, label: "Disclosures", icon: "disclosures" },
+  { to: ROUTES.ADMIN_WAITLIST, label: "Waitlist", icon: "waitlist" },
   { to: ROUTES.ADMIN_AUDIT, label: "Audit log", icon: "audit" },
   {
     to: ROUTES.ADMIN_SETTINGS,

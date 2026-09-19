@@ -72,6 +72,8 @@ export const baseApi = createApi({
     "FounderPlan",
     "SuccessCenterCategory",
     "SuccessCenterProgram",
+    "WaitlistEntry",
+    "WaitlistCampaignCategory",
   ],
   endpoints: () => ({}),
 });

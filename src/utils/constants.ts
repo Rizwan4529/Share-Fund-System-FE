@@ -40,6 +40,11 @@ export const API_PATHS = {
   SUCCESS_CENTER_PROGRAMS: "/success-center-programs/",
   SUCCESS_CENTER_PROGRAM_BY_ID: (id: string) =>
     `/success-center-programs/${id}`,
+  WAITLIST: "/waitlist/",
+  WAITLIST_BY_ID: (id: string) => `/waitlist/${id}`,
+  WAITLIST_CAMPAIGN_CATEGORIES: "/waitlist/campaign-categories/",
+  WAITLIST_CAMPAIGN_CATEGORY_BY_ID: (id: string) =>
+    `/waitlist/campaign-categories/${id}`,
 } as const;
 
 export const ROUTES = {
@@ -68,6 +73,7 @@ export const ROUTES = {
   ADMIN_RULES: "/admin/rules",
   ADMIN_RECOMMENDATIONS: "/admin/recommendations",
   ADMIN_DISCLOSURES: "/admin/disclosures",
+  ADMIN_WAITLIST: "/admin/waitlist",
   ADMIN_AUDIT: "/admin/audit",
   ADMIN_SETTINGS: "/admin/settings",
   /* PHASE2_PARKED — kept for reference; routes redirect away */

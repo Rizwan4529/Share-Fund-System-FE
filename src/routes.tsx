@@ -56,6 +56,9 @@ const AdminRecommendationsPage = lazy(
 const AdminDisclosuresPage = lazy(
   () => import("@/pages/admin/AdminDisclosuresPage"),
 );
+const AdminWaitlistPage = lazy(
+  () => import("@/pages/admin/AdminWaitlistPage"),
+);
 const AdminAuditPage = lazy(() => import("@/pages/admin/AdminAuditPage"));
 const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
 
@@ -152,6 +155,7 @@ export const routes: RouteObject[] = [
         element: <AdminRecommendationsPage />,
       },
       { path: ROUTES.ADMIN_DISCLOSURES, element: <AdminDisclosuresPage /> },
+      { path: ROUTES.ADMIN_WAITLIST, element: <AdminWaitlistPage /> },
       { path: ROUTES.ADMIN_AUDIT, element: <AdminAuditPage /> },
       { path: ROUTES.ADMIN_SETTINGS, element: <AdminSettingsPage /> },
       /* PHASE2_PARKED admin deep links → overview */

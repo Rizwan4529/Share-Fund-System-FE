@@ -13,6 +13,9 @@ const STATUS_STYLES: Record<string, string> = {
   scheduled: "bg-bg-card text-muted-soft",
   in_development: "bg-bg-gold text-[#9a6a15]",
   coming_soon: "bg-info-bg text-[#2b5299]",
+  contacted: "bg-info-bg text-[#2b5299]",
+  converted: "bg-success-bg text-[#1f7a55]",
+  archived: "bg-bg-card text-muted-soft",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -28,6 +31,9 @@ const STATUS_LABELS: Record<string, string> = {
   scheduled: "Scheduled",
   in_development: "In development",
   coming_soon: "Coming soon",
+  contacted: "Contacted",
+  converted: "Converted",
+  archived: "Archived",
 };
 
 export function AdminStatusPill({

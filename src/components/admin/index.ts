@@ -42,3 +42,5 @@ export { FounderPlanFormDrawer } from "./FounderPlanFormDrawer";
 export { ProgramPickerField } from "./ProgramPickerField";
 export { SuccessCenterCategoryFormDrawer } from "./SuccessCenterCategoryFormDrawer";
 export { SuccessCenterProgramFormDrawer } from "./SuccessCenterProgramFormDrawer";
+export { WaitlistFormDrawer } from "./WaitlistFormDrawer";
+export { WaitlistCampaignCategoryFormDrawer } from "./WaitlistCampaignCategoryFormDrawer";
