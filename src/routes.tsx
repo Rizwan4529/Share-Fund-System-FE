@@ -27,6 +27,24 @@ const SuccessCentersBrowsePage = lazy(
 const SuccessCenterDetailPage = lazy(
   () => import("@/pages/success-centers/SuccessCenterDetailPage"),
 );
+const SuccessCenterProgramPage = lazy(
+  () => import("@/pages/success-centers/SuccessCenterProgramPage"),
+);
+const MySelectionsPage = lazy(
+  () => import("@/pages/success-centers/MySelectionsPage"),
+);
+const PaymentSuccessPage = lazy(
+  () => import("@/pages/payments/PaymentSuccessPage"),
+);
+const PaymentCancelPage = lazy(
+  () => import("@/pages/payments/PaymentCancelPage"),
+);
+const PaymentDetailPage = lazy(
+  () => import("@/pages/billing/PaymentDetailPage"),
+);
+const ActivationPlanPage = lazy(
+  () => import("@/pages/success-centers/ActivationPlanPage"),
+);
 const EnrollmentPage = lazy(() => import("@/pages/enrollment/EnrollmentPage"));
 const EnrollmentCheckoutPage = lazy(
   () => import("@/pages/enrollment/EnrollmentCheckoutPage"),
@@ -192,6 +210,12 @@ export const routes: RouteObject[] = [
       { path: ROUTES.DASHBOARD, element: <DashboardHomePage /> },
       { path: ROUTES.QUESTIONNAIRE, element: <QuestionnairePage /> },
       { path: ROUTES.SUCCESS_CENTERS, element: <SuccessCentersBrowsePage /> },
+      { path: ROUTES.MY_SELECTIONS, element: <MySelectionsPage /> },
+      { path: ROUTES.ACTIVATION_PLAN, element: <ActivationPlanPage /> },
+      {
+        path: ROUTES.SUCCESS_CENTER_PROGRAM,
+        element: <SuccessCenterProgramPage />,
+      },
       {
         path: ROUTES.SUCCESS_CENTER_DETAIL,
         element: <SuccessCenterDetailPage />,
@@ -199,6 +223,9 @@ export const routes: RouteObject[] = [
       { path: ROUTES.ENROLLMENT, element: <EnrollmentPage /> },
       { path: ROUTES.ENROLLMENT_CHECKOUT, element: <EnrollmentCheckoutPage /> },
       { path: ROUTES.BILLING, element: <BillingPage /> },
+      { path: ROUTES.PAYMENT_DETAIL, element: <PaymentDetailPage /> },
+      { path: ROUTES.PAYMENT_SUCCESS, element: <PaymentSuccessPage /> },
+      { path: ROUTES.PAYMENT_CANCEL, element: <PaymentCancelPage /> },
       { path: ROUTES.RECOMMENDATION, element: <RecommendationPage /> },
       { path: ROUTES.ACCOUNT, element: <Navigate to="/account/profile" replace /> },
       { path: ROUTES.ACCOUNT_SECTION, element: <AccountPage /> },

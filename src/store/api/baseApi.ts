@@ -64,6 +64,9 @@ export const baseApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithAuth,
   tagTypes: [
+    "ActivationPlan",
+    "AdminParticipant",
+    "Payment",
     "LegalDocument",
     "LegalAcceptance",
     "AuditLog",
@@ -72,6 +75,8 @@ export const baseApi = createApi({
     "FounderPlan",
     "SuccessCenterCategory",
     "SuccessCenterProgram",
+    "SuccessCenterSelection",
+    "SuccessProfile",
     "WaitlistEntry",
     "WaitlistCampaignCategory",
   ],

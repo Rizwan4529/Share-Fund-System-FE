@@ -18,6 +18,23 @@ function messageFromData(data: unknown): string | null {
   return null;
 }
 
+/** First machine-readable `errors[].code` the API sent, if any. */
+export function getApiErrorCode(error: unknown): string | undefined {
+  if (!isFetchBaseQueryError(error)) return undefined;
+  const data = error.data as { errors?: unknown } | undefined;
+  if (!Array.isArray(data?.errors)) return undefined;
+  const first = data.errors[0] as { code?: unknown } | undefined;
+  return typeof first?.code === "string" ? first.code : undefined;
+}
+
+/** 404, or 400 from a malformed id in the URL — both mean "nothing here". */
+export function isNotFoundError(error: unknown): boolean {
+  return (
+    isFetchBaseQueryError(error) &&
+    (error.status === 404 || error.status === 400)
+  );
+}
+
 export function getApiErrorMessage(
   error: unknown,
   fallback = "Something went wrong. Please try again.",

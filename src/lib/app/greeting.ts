@@ -17,8 +17,24 @@ export function getTodayLabel(): string {
   });
 }
 
-export function formatCurrency(amount: number): string {
-  return `$${amount.toLocaleString()}`;
+/**
+ * Without `currency`, keeps the original "$1,234" output. With an ISO code
+ * (e.g. a participant's preferredCurrency) formats in that currency, falling
+ * back to USD when the code isn't recognised.
+ */
+export function formatCurrency(amount: number, currency?: string): string {
+  if (!currency) return `$${amount.toLocaleString()}`;
+  const format = (code: string) =>
+    new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: code,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  try {
+    return format(currency.trim().toUpperCase());
+  } catch {
+    return format("USD");
+  }
 }
 
 export function formatTimelineLabel(months: number): string {

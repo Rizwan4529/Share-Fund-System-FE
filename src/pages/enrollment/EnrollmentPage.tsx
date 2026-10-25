@@ -20,7 +20,9 @@ import type { CheckoutPlanOption } from "@/lib/api/enrollment";
 import { toCheckoutOption } from "@/lib/founder-plans/checkout";
 import { foundingAccessState } from "@/lib/auth/roles";
 import { useListFounderPlansQuery } from "@/store/api/founderPlansApi";
-import { ROUTES } from "@/utils/constants";
+import { formatCurrency } from "@/lib/app/greeting";
+import { useListFundingAccessPlansQuery } from "@/store/api/paymentsApi";
+import { ROUTES, checkoutPath } from "@/utils/constants";
 import { cn } from "@/lib/utils";
 
 export default function EnrollmentPage() {
@@ -61,6 +63,8 @@ export default function EnrollmentPage() {
         timelines are projections only — live funding is not active.
       </InfoCallout>
 
+      <FundingAccessPlans />
+
       {plansQuery.isLoading ? (
         <div className="flex min-h-48 items-center justify-center">
           <Spinner />
@@ -100,7 +104,7 @@ export default function EnrollmentPage() {
                     key={plan.plan}
                     plan={plan}
                     onCheckout={() =>
-                      navigate(`${ROUTES.ENROLLMENT_CHECKOUT}?plan=${plan.plan}`)
+                      navigate(checkoutPath("founder_tier", plan.plan))
                     }
                   />
                 ))}
@@ -121,7 +125,7 @@ export default function EnrollmentPage() {
                     plan={plan}
                     featured
                     onCheckout={() =>
-                      navigate(`${ROUTES.ENROLLMENT_CHECKOUT}?plan=${plan.plan}`)
+                      navigate(checkoutPath("founder_tier", plan.plan))
                     }
                   />
                 ))}
@@ -147,6 +151,60 @@ export default function EnrollmentPage() {
         </Link>
       </div>
     </AppPageContainer>
+  );
+}
+
+/** Funding Access plans — prices/allowances come from the pricing settings. */
+function FundingAccessPlans() {
+  const navigate = useNavigate();
+  const fundingQuery = useListFundingAccessPlansQuery();
+  const plans = fundingQuery.data ?? [];
+
+  // Optional section: hide quietly while loading or if none are configured.
+  if (fundingQuery.isLoading || plans.length === 0) return null;
+
+  return (
+    <>
+      <div className="mb-3 flex items-center gap-2">
+        <SectionLabel tone="info">Funding Access plans</SectionLabel>
+      </div>
+      <div className="mb-8 grid gap-4 md:grid-cols-2">
+        {plans.map((plan) => (
+          <AppSurfaceCard key={plan.key} className="flex flex-col">
+            <SectionLabel tone="gold">Funding Access</SectionLabel>
+            <Typography
+              as="h2"
+              variant="h5"
+              className="mt-3 font-display text-[18px] font-bold text-ink-heading sm:text-[20px]"
+            >
+              {plan.label}
+            </Typography>
+            <div className="mt-4 flex items-baseline gap-1">
+              <span className="font-display text-[32px] font-bold tracking-tight text-ink-heading">
+                {plan.currency
+                  ? formatCurrency(plan.price, plan.currency)
+                  : formatCurrency(plan.price)}
+              </span>
+              <span className="text-sm text-muted-soft">one-time</span>
+            </div>
+            <Typography variant="body-sm" className="mt-3 flex-1 text-muted-soft">
+              Unlocks Success Center planning
+              {plan.programAllowance != null
+                ? ` for up to ${plan.programAllowance} program${plan.programAllowance === 1 ? "" : "s"}`
+                : ""}
+              . Planning and projections only — not guaranteed funding.
+            </Typography>
+            <GoldButton
+              className="mt-6 w-full"
+              onClick={() => navigate(checkoutPath("funding_access", plan.key))}
+            >
+              Continue to checkout
+              <ArrowRight className="size-4" />
+            </GoldButton>
+          </AppSurfaceCard>
+        ))}
+      </div>
+    </>
   );
 }
 

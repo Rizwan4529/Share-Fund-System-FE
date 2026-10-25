@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   ClipboardList,
-  DollarSign,
   Download,
   Sparkles,
   Users,
@@ -15,6 +14,7 @@ import {
   AdminFunnelChart,
   AdminKpiCard,
   AdminPageHeader,
+  AdminRevenueSummary,
   AdminSectionTitle,
   AdminSignupChart,
   AdminSurfaceCard,
@@ -262,7 +262,9 @@ export default function AdminOverviewPage() {
         subtitle="Founding Participant control panel — participants, enrollments, and projections."
       />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <AdminRevenueSummary />
+
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <AdminKpiCard
           label="Participants"
           value={String(stats?.participants ?? "—")}
@@ -278,14 +280,6 @@ export default function AdminOverviewPage() {
           href={ROUTES.ADMIN_ENROLLMENTS}
           icon={<ClipboardList className="size-4 text-navy" />}
           iconClassName="bg-navy/10"
-        />
-        <AdminKpiCard
-          label="Enrollment revenue"
-          value={stats ? `$${stats.revenue}` : "—"}
-          sub="Collected fees"
-          href={ROUTES.ADMIN_ENROLLMENTS}
-          icon={<DollarSign className="size-4 text-primary" />}
-          iconClassName="bg-primary/10"
         />
         <AdminKpiCard
           label="Pending projections"

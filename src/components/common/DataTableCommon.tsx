@@ -76,6 +76,10 @@ type DataTableCommonProps<TData, TValue> = {
   fillViewport?: boolean;
   className?: string;
   emptyMessage?: string;
+  /** Called with the new sort state — for server-side sorting. */
+  onSortingChange?: (sorting: SortingState) => void;
+  /** Changing this value sends the table back to the first page (e.g. on filter change). */
+  pageResetKey?: string;
 };
 
 export function DataTableCommon<TData, TValue>({
@@ -91,6 +95,8 @@ export function DataTableCommon<TData, TValue>({
   fillViewport = true,
   className,
   emptyMessage = "No results.",
+  onSortingChange,
+  pageResetKey,
 }: DataTableCommonProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -100,6 +106,11 @@ export function DataTableCommon<TData, TValue>({
     pageSize: 10,
     pageIndex: 0,
   });
+  const [prevPageResetKey, setPrevPageResetKey] = useState(pageResetKey);
+  if (pageResetKey !== prevPageResetKey) {
+    setPrevPageResetKey(pageResetKey);
+    setTablePagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }
   const { ref: viewportRef, height: viewportHeight } = useFillViewportHeight(
     20,
     fillViewport,
@@ -141,7 +152,11 @@ export function DataTableCommon<TData, TValue>({
     enableRowSelection: true,
     manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const next = typeof updater === "function" ? updater(sorting) : updater;
+      setSorting(next);
+      onSortingChange?.(next);
+    },
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),

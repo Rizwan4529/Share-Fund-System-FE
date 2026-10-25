@@ -16,6 +16,10 @@ const STATUS_STYLES: Record<string, string> = {
   contacted: "bg-info-bg text-[#2b5299]",
   converted: "bg-success-bg text-[#1f7a55]",
   archived: "bg-bg-card text-muted-soft",
+  pending_verification: "bg-bg-gold text-[#9a6a15]",
+  failed: "bg-error-bg text-[#a2453b]",
+  removed: "bg-bg-card text-muted-soft",
+  closed: "bg-bg-card text-muted-soft",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -34,6 +38,10 @@ const STATUS_LABELS: Record<string, string> = {
   contacted: "Contacted",
   converted: "Converted",
   archived: "Archived",
+  pending_verification: "Pending verification",
+  failed: "Failed",
+  removed: "Removed",
+  closed: "Closed",
 };
 
 export function AdminStatusPill({
