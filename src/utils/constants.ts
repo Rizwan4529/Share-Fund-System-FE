@@ -71,6 +71,7 @@ export const API_PATHS = {
   ADMIN_PAYMENT_BY_ID: (id: string) => `/admin/payments/${id}`,
   ADMIN_REVENUE_SUMMARY: "/admin/revenue/summary",
   ME_STATUS: "/me/status",
+  ME_DASHBOARD: "/me/dashboard",
   SUCCESS_PROFILE: "/success-profile/",
   SUCCESS_PROFILE_ME: "/success-profile/me",
   SUCCESS_PROFILE_COMPLETE: "/success-profile/me/complete",

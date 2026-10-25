@@ -1,156 +1,109 @@
-import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
-import { Target, Wallet } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 
-import { GoldButton } from "@/components/common/GoldButton";
-import { Typography } from "@/components/common/Typography";
+import { EmptyState } from "@/components/common/EmptyState";
 import {
   AppPageContainer,
-  AppSurfaceCard,
   InfoCallout,
   ParticipantPageHeader,
-  SectionLabel,
   StatusChip,
 } from "@/components/member/app";
+import {
+  EnrollmentHistoryCard,
+  RecentPaymentsCard,
+  RecommendationSummaryCard,
+  SelectedCentersCard,
+  StatusSummary,
+} from "@/components/member/dashboard/DashboardSections";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
-import { useDashboard } from "@/hooks/queries/useDashboard";
-import {
-  AccessStatusCard,
-  MyProgramsCard,
-  RecentPaymentsCard,
-} from "@/components/member/ParticipantStatusCards";
-import { foundingAccessState } from "@/lib/auth/roles";
-import { AFFORDABILITY_LABELS } from "@/lib/recommendations/engine";
+import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
 import { getFirstName, getTimeGreeting } from "@/lib/app/greeting";
-import { useGetMySuccessProfileQuery } from "@/store/api/successProfileApi";
-import { ROUTES } from "@/utils/constants";
+import { DASHBOARD_COPY } from "@/lib/dashboard/labels";
+import { useGetMyDashboardQuery } from "@/store/api/meApi";
 
+/** Participant home: one GET /me/dashboard call feeds every section. */
 export default function DashboardHomePage() {
   const { user } = useAuth();
-  const { data, isLoading } = useDashboard();
-  const { data: successProfile } = useGetMySuccessProfileQuery();
-  const profileCompletion = successProfile?.completionPercentage ?? 0;
-  const profileSubmitted = successProfile?.status === "complete";
-  const greeting = getTimeGreeting(getFirstName(user?.name ?? "there"));
-  const enrolled = (user?.foundingStatus ?? "none") !== "none";
+  // Always refetch on visit so recent payments/recalculations show up.
+  const query = useGetMyDashboardQuery(undefined, { refetchOnMountOrArgChange: true });
+  const dashboard = query.data;
+  const firstName = dashboard?.participant.firstName ?? getFirstName(user?.name ?? "there");
 
-  if (isLoading || !data) {
+  const header = (
+    <ParticipantPageHeader
+      overline="Participant dashboard"
+      title={getTimeGreeting(firstName)}
+      subtitle={DASHBOARD_COPY.intro}
+      actions={
+        dashboard ? (
+          <StatusChip tone={dashboard.participant.founder.status === "none" ? "muted" : "success"}>
+            {dashboard.participant.founder.statusLabel}
+          </StatusChip>
+        ) : null
+      }
+    />
+  );
+
+  if (query.isError && !dashboard) {
     return (
       <AppPageContainer>
-        <Skeleton className="mb-6 h-16 w-full max-w-md rounded-xl" />
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Skeleton className="h-40 rounded-panel lg:col-span-2" />
-          <Skeleton className="h-40 rounded-panel" />
-        </div>
+        {header}
+        <EmptyState
+          icon={LayoutDashboard}
+          variant="error"
+          title="We couldn't load your dashboard"
+          description={getApiErrorMessage(query.error, "Please try again in a moment.")}
+          action={
+            <Button type="button" variant="outline" onClick={() => void query.refetch()}>
+              Try again
+            </Button>
+          }
+        />
       </AppPageContainer>
     );
   }
 
-  const budget =
-    data.recommendation?.adjustedBudget ??
-    data.recommendation?.recommendedBudget;
-  const timeline =
-    data.recommendation?.adjustedTimelineMonths ??
-    data.recommendation?.projectedTimelineMonths;
-
   return (
     <AppPageContainer>
-      <ParticipantPageHeader
-        overline="Participant home"
-        title={greeting}
-        subtitle="BMIS planning dashboard — projections only in Phase 1."
-        actions={
-          <StatusChip tone={enrolled ? "success" : "muted"}>
-            {foundingAccessState(user?.foundingStatus ?? "none")}
-          </StatusChip>
-        }
-      />
+      {header}
+      <InfoCallout className="mb-6">{DASHBOARD_COPY.phase1Notice}</InfoCallout>
 
-      <InfoCallout className="mb-6">{data.projectionDisclaimer}</InfoCallout>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <MyProgramsCard className="lg:col-span-2" />
-
-        <AccessStatusCard />
-
-        <MetricCard
-          label="Projected budget"
-          value={budget != null ? `$${budget.toLocaleString()}` : "—"}
-          hint={
-            data.recommendation
-              ? AFFORDABILITY_LABELS[data.recommendation.affordability]
-              : "Simulation"
-          }
-          icon={<Wallet className="size-4 text-info" />}
-        />
-        <MetricCard
-          label="Projected timeline"
-          value={timeline != null ? `${timeline} mo` : "—"}
-          hint="Simulation"
-          icon={<Target className="size-4 text-info" />}
-        />
-        <AppSurfaceCard>
-          <SectionLabel tone="info">Success Profile</SectionLabel>
-          <Typography
-            as="p"
-            variant="h5"
-            className="mt-3 font-display text-[22px] font-bold text-ink-heading"
-          >
-            {profileCompletion}%
-          </Typography>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${profileCompletion}%` }}
-            />
+      {!dashboard ? (
+        <DashboardSkeleton />
+      ) : (
+        <div className="space-y-4">
+          <StatusSummary dashboard={dashboard} />
+          <div className="grid gap-4 lg:grid-cols-3">
+            <RecommendationSummaryCard dashboard={dashboard} className="lg:col-span-2" />
+            <SelectedCentersCard dashboard={dashboard} />
           </div>
-          <GoldButton
-            asChild
-            className="mt-4 w-full"
-            variant={profileSubmitted ? "ghost-outline" : "gold"}
-          >
-            <Link to={ROUTES.QUESTIONNAIRE}>
-              {profileSubmitted
-                ? "Review Success Profile"
-                : "Complete Success Profile"}
-            </Link>
-          </GoldButton>
-        </AppSurfaceCard>
-      </div>
-
-      <RecentPaymentsCard className="mt-4" />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <EnrollmentHistoryCard dashboard={dashboard} />
+            <RecentPaymentsCard dashboard={dashboard} />
+          </div>
+        </div>
+      )}
     </AppPageContainer>
   );
 }
 
-function MetricCard({
-  label,
-  value,
-  hint,
-  icon,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-  icon: ReactNode;
-}) {
+function DashboardSkeleton() {
   return (
-    <AppSurfaceCard>
-      <div className="mb-3 flex items-center justify-between">
-        <SectionLabel tone="info">{label}</SectionLabel>
-        {icon}
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Skeleton className="h-36 rounded-panel" />
+        <Skeleton className="h-36 rounded-panel" />
+        <Skeleton className="h-36 rounded-panel" />
       </div>
-      <Typography
-        as="p"
-        variant="h5"
-        className="font-display text-[22px] font-bold text-ink-heading"
-      >
-        {value}
-      </Typography>
-      <Typography variant="caption" className="mt-1.5 block text-muted-soft">
-        {hint}
-      </Typography>
-    </AppSurfaceCard>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Skeleton className="h-56 rounded-panel lg:col-span-2" />
+        <Skeleton className="h-56 rounded-panel" />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Skeleton className="h-40 rounded-panel" />
+        <Skeleton className="h-40 rounded-panel" />
+      </div>
+    </div>
   );
 }
