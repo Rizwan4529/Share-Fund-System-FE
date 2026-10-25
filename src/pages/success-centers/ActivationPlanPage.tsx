@@ -68,8 +68,8 @@ export default function ActivationPlanPage() {
 
   const header = (
     <ParticipantPageHeader
-      overline="Activation plan"
-      title={selection?.programId?.name ?? "Your activation plan"}
+      overline="My Recommendation & Projections"
+      title={selection?.programId?.name ?? "Your recommendation"}
       subtitle={selection?.categoryId?.name}
       actions={
         <GoldButton variant="ghost-outline" asChild>
@@ -182,8 +182,8 @@ export default function ActivationPlanPage() {
         <Spinner />
         <Typography variant="body-sm" color="muted">
           {calcState.isLoading
-            ? "Calculating your activation plan…"
-            : "Loading your activation plan…"}
+            ? "Preparing your recommendation…"
+            : "Loading your recommendation…"}
         </Typography>
       </div>
     </AppPageContainer>
@@ -215,7 +215,7 @@ function PlanView({
       setChoice(null);
       toast.success(
         result.activationRequired
-          ? "Your activation plan has been recalculated."
+          ? "Your recommendation has been recalculated."
           : "This program no longer needs activation.",
       );
     } catch (error) {

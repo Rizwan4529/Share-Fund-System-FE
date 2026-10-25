@@ -10,6 +10,7 @@ import {
 } from "@/components/member/app";
 import {
   AFFORDABILITY_MESSAGES,
+  PHASE1_PROJECTION_NOTICE,
   PLAN_LABELS,
   PROJECTION_BASIS_LABELS,
   PROJECTION_FALLBACK_NOTICE,
@@ -32,15 +33,20 @@ import type {
 export function ProjectionNotice({ projection }: { projection?: PlanProjection }) {
   return (
     <InfoCallout>
-      {PROJECTION_INTRO} {projection?.notice ?? PROJECTION_FALLBACK_NOTICE}
-      {projection?.status === "projected"
-        ? ` ${PROJECTION_BASIS_LABELS[projection.basis]} ${formatProjectionDate(projection.basisDate)}.`
-        : null}
+      <Typography as="span" variant="body-sm" className="block font-semibold text-ink-heading">
+        {PHASE1_PROJECTION_NOTICE}
+      </Typography>
+      <Typography as="span" variant="body-sm" className="mt-1 block">
+        {PROJECTION_INTRO} {projection?.notice ?? PROJECTION_FALLBACK_NOTICE}
+        {projection?.status === "projected"
+          ? ` ${PROJECTION_BASIS_LABELS[projection.basis]} ${formatProjectionDate(projection.basisDate)}.`
+          : null}
+      </Typography>
     </InfoCallout>
   );
 }
 
-/** "Activation requirement: $3,000 (10% of $30,000)". */
+/** "Recommended activation: $3,000 — based on 10% of your $30,000 goal". */
 export function ActivationSummary({
   totalActivationRequirement,
   activationPercentage,
@@ -57,8 +63,8 @@ export function ActivationSummary({
   return (
     <AppSurfaceCard>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <SectionLabel tone="info">Activation requirement</SectionLabel>
-        <StatusChip tone="muted">Estimate</StatusChip>
+        <SectionLabel tone="info">Recommended activation</SectionLabel>
+        <StatusChip tone="muted">Estimated</StatusChip>
       </div>
       <Typography
         as="p"
@@ -69,7 +75,7 @@ export function ActivationSummary({
       </Typography>
       {activationPercentage != null && goalAmount != null ? (
         <Typography variant="body-sm" className="mt-1 text-muted-soft">
-          {activationPercentage}% of your {formatCurrency(goalAmount, currency)} goal
+          Based on {activationPercentage}% of your {formatCurrency(goalAmount, currency)} goal
         </Typography>
       ) : null}
       <Typography variant="caption" color="muted" className="mt-3 block">
@@ -279,26 +285,26 @@ function ProjectionFacts({
         <Typography variant="overline" className="text-gold-deep">
           Projected timeline
         </Typography>
-        <StatusChip tone="gold">Estimate</StatusChip>
+        <StatusChip tone="gold">Estimated</StatusChip>
       </div>
       <dl className="mt-2 space-y-1.5 text-sm">
         <OptionFact
-          label="Growth period ends"
-          value={formatProjectionDate(projection.growthPeriodCompletionDate)}
+          label="Growth period"
+          value={`${formatProjectionDate(projection.growthPeriodStartDate)} → ${formatProjectionDate(projection.growthPeriodCompletionDate)}`}
         />
         <OptionFact
-          label="Projected eligibility"
+          label="Eligible from"
           value={formatProjectionDate(projection.eligibilityDate)}
         />
         {showActivationCompletion ? (
           <OptionFact
-            label="Activation complete"
+            label="Activation completes"
             value={formatProjectionDate(projection.activationCompletionDate)}
           />
         ) : null}
         {range ? (
           <OptionFact
-            label="Est. funding window"
+            label="Estimated funding range"
             value={`${formatProjectionDate(range.earliest)} – ${formatProjectionDate(range.latest)}`}
           />
         ) : null}

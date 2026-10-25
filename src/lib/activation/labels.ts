@@ -12,8 +12,13 @@ export const PLAN_LABELS: Record<PlanLabel, string> = {
   longer: "Longer",
 };
 
+/** Approved Phase 1 wording (Project Context §12). */
+export const PHASE1_PROJECTION_NOTICE =
+  "Phase 1 provides BMIS planning tools, personalized projections, and estimated timelines. Funding activation and distribution are not currently available.";
+
+// Followed by the stored projection notice ("not a guarantee…").
 export const PROJECTION_INTRO =
-  "All figures are projections based on your Success Profile and this program's current rules — estimates for planning, not guaranteed funding.";
+  "These figures are based on your Success Profile and this program's current rules.";
 
 /** Used when an older plan has no stored notice. */
 export const PROJECTION_FALLBACK_NOTICE =

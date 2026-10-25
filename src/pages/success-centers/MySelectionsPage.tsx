@@ -204,7 +204,7 @@ function SelectionCard({
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <GoldButton asChild>
-            <Link to={activationPlanPath(selection._id)}>View activation plan</Link>
+            <Link to={activationPlanPath(selection._id)}>My recommendation</Link>
           </GoldButton>
           {program ? (
             <GoldButton variant="ghost-outline" asChild>

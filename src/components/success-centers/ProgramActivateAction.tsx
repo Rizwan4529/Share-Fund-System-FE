@@ -201,9 +201,9 @@ function ActivateProgramDialog({
             </Typography>
           </div>
           <InfoCallout>
-            Next, see your activation plan — how much to activate and your
-            payment pace options. These are projections, not guaranteed
-            funding.
+            Next, see your recommendation — how much to activate, your
+            payment pace options, and a projected timeline. These are
+            estimates for planning, not guaranteed funding.
           </InfoCallout>
           <div className="flex flex-wrap justify-end gap-2">
             <Button
@@ -219,7 +219,7 @@ function ActivateProgramDialog({
             {activatedId ? (
               <GoldButton asChild>
                 <Link to={activationPlanPath(activatedId)}>
-                  View activation plan
+                  View my recommendation
                 </Link>
               </GoldButton>
             ) : null}
