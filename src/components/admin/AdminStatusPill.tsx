@@ -20,6 +20,10 @@ const STATUS_STYLES: Record<string, string> = {
   failed: "bg-error-bg text-[#a2453b]",
   removed: "bg-bg-card text-muted-soft",
   closed: "bg-bg-card text-muted-soft",
+  pending_review: "bg-bg-gold text-[#9a6a15]",
+  approved: "bg-success-bg text-[#1f7a55]",
+  adjusted: "bg-info-bg text-[#2b5299]",
+  estimate: "bg-bg-gold text-[#9a6a15]",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -42,6 +46,10 @@ const STATUS_LABELS: Record<string, string> = {
   failed: "Failed",
   removed: "Removed",
   closed: "Closed",
+  pending_review: "Pending review",
+  approved: "Approved",
+  adjusted: "Adjusted",
+  estimate: "Estimate",
 };
 
 export function AdminStatusPill({

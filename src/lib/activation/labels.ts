@@ -28,11 +28,21 @@ export const PROJECTION_BASIS_LABELS: Record<ProjectionBasis, string> = {
 export const PROJECTION_UNAVAILABLE =
   "A projected timeline isn't available for this program yet.";
 
-/** Short date for projected milestones, e.g. "Mar 18, 2026". */
+/**
+ * Short date for projected milestones, e.g. "Mar 18, 2026". Shown by UTC
+ * calendar day: admin-entered dates are stored as UTC midnight, which local
+ * time would show as the previous day west of UTC.
+ */
 export const formatProjectionDate = (value?: string) =>
   value
-    ? new Date(value).toLocaleDateString(undefined, { dateStyle: "medium" })
+    ? new Date(value).toLocaleDateString(undefined, {
+        dateStyle: "medium",
+        timeZone: "UTC",
+      })
     : "—";
+
+/** ISO date/time → "YYYY-MM-DD" (UTC day), the value date inputs use. */
+export const toDateInputValue = (value?: string) => (value ? value.slice(0, 10) : "");
 
 type StatusTone = "success" | "info" | "gold";
 

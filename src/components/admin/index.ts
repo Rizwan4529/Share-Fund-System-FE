@@ -41,6 +41,7 @@ export { LegalDocumentFormDrawer } from "./LegalDocumentFormDrawer";
 export { FounderPlanFormDrawer } from "./FounderPlanFormDrawer";
 export { ParticipantDetailDrawer } from "./ParticipantDetailDrawer";
 export { ParticipantAccessDrawer } from "./ParticipantAccessDrawer";
+export { RecommendationReviewDrawer } from "./RecommendationReviewDrawer";
 export { AdminPaymentDetailDrawer } from "./AdminPaymentDetailDrawer";
 export { AdminRevenueSummary } from "./AdminRevenueSummary";
 export { AdminFilterSelect } from "./AdminFilterSelect";

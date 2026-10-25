@@ -66,6 +66,7 @@ export const baseApi = createApi({
   tagTypes: [
     "ActivationPlan",
     "AdminParticipant",
+    "AdminRecommendation",
     "Payment",
     "LegalDocument",
     "LegalAcceptance",
