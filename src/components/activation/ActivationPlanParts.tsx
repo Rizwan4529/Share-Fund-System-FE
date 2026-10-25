@@ -2,19 +2,43 @@ import type { ReactNode } from "react";
 import { CheckCircle2, Info, Sprout } from "lucide-react";
 
 import { Typography } from "@/components/common/Typography";
-import { AppSurfaceCard, SectionLabel, StatusChip } from "@/components/member/app";
+import {
+  AppSurfaceCard,
+  InfoCallout,
+  SectionLabel,
+  StatusChip,
+} from "@/components/member/app";
 import {
   AFFORDABILITY_MESSAGES,
   PLAN_LABELS,
+  PROJECTION_BASIS_LABELS,
+  PROJECTION_FALLBACK_NOTICE,
+  PROJECTION_INTRO,
+  PROJECTION_UNAVAILABLE,
+  formatProjectionDate,
 } from "@/lib/activation/labels";
 import { formatCurrency } from "@/lib/app/greeting";
 import { cn } from "@/lib/utils";
 import type {
   ActivationOption,
   AffordabilityStatus,
+  OptionProjection,
+  PlanProjection,
 } from "@/types/activation";
 
 // Display only: every figure below comes straight from the API response.
+
+/** Plan-level projection note: what the figures are and the dates' basis. */
+export function ProjectionNotice({ projection }: { projection?: PlanProjection }) {
+  return (
+    <InfoCallout>
+      {PROJECTION_INTRO} {projection?.notice ?? PROJECTION_FALLBACK_NOTICE}
+      {projection?.status === "projected"
+        ? ` ${PROJECTION_BASIS_LABELS[projection.basis]} ${formatProjectionDate(projection.basisDate)}.`
+        : null}
+    </InfoCallout>
+  );
+}
 
 /** "Activation requirement: $3,000 (10% of $30,000)". */
 export function ActivationSummary({
@@ -185,18 +209,21 @@ export function PacedOptionCard({
           }
         />
       </dl>
+      <ProjectionFacts projection={option.projection} showActivationCompletion />
     </SelectableCard>
   );
 }
 
 export function OneTimeOptionCard({
   totalActivationRequirement,
+  projection,
   selected,
   selectable,
   onSelect,
   currency,
 }: {
   totalActivationRequirement: number;
+  projection?: OptionProjection;
   selected: boolean;
   selectable: boolean;
   onSelect: () => void;
@@ -219,7 +246,64 @@ export function OneTimeOptionCard({
           {formatCurrency(totalActivationRequirement, currency)}
         </Typography>
       </div>
+      <ProjectionFacts projection={projection} />
     </SelectableCard>
+  );
+}
+
+/**
+ * Projected milestones for one option. Always labeled as an estimate; plans
+ * calculated before projections existed have none and render nothing.
+ */
+function ProjectionFacts({
+  projection,
+  showActivationCompletion = false,
+}: {
+  projection?: OptionProjection;
+  showActivationCompletion?: boolean;
+}) {
+  if (!projection) return null;
+
+  if (projection.status !== "projected") {
+    return (
+      <Typography variant="caption" color="muted" className="mt-3 block">
+        {PROJECTION_UNAVAILABLE}
+      </Typography>
+    );
+  }
+
+  const range = projection.estimatedFundingRange;
+  return (
+    <div className="mt-3 w-full border-t border-line pt-3">
+      <div className="flex items-center justify-between gap-2">
+        <Typography variant="overline" className="text-gold-deep">
+          Projected timeline
+        </Typography>
+        <StatusChip tone="gold">Estimate</StatusChip>
+      </div>
+      <dl className="mt-2 space-y-1.5 text-sm">
+        <OptionFact
+          label="Growth period ends"
+          value={formatProjectionDate(projection.growthPeriodCompletionDate)}
+        />
+        <OptionFact
+          label="Projected eligibility"
+          value={formatProjectionDate(projection.eligibilityDate)}
+        />
+        {showActivationCompletion ? (
+          <OptionFact
+            label="Activation complete"
+            value={formatProjectionDate(projection.activationCompletionDate)}
+          />
+        ) : null}
+        {range ? (
+          <OptionFact
+            label="Est. funding window"
+            value={`${formatProjectionDate(range.earliest)} – ${formatProjectionDate(range.latest)}`}
+          />
+        ) : null}
+      </dl>
+    </div>
   );
 }
 

@@ -14,6 +14,40 @@ export type ActivationErrorCode =
   | "INCOME_REQUIRED"
   | "GOAL_AMOUNT_REQUIRED";
 
+/** Projections are estimates; "not_configured" = a projection rule is missing. */
+export type ProjectionStatus = "projected" | "not_configured";
+
+export type ProjectionBasis = "calculation_date" | "activation_paid_date";
+
+/** Timeline + funding range estimate for one option. Dates are ISO strings. */
+export type OptionProjection = {
+  isProjection: true;
+  status: ProjectionStatus;
+  growthPeriodStartDate?: string;
+  growthPeriodCompletionDate?: string;
+  eligibilityDate?: string;
+  activationMonths?: number;
+  activationCompletionDate?: string;
+  estimatedFundingRange?: {
+    earliest: string;
+    latest: string;
+    basis: "projected";
+    anchor: "eligibility_date" | "activation_completion_date";
+  };
+};
+
+/** How the option projections were produced. */
+export type PlanProjection = {
+  isProjection: true;
+  status: ProjectionStatus;
+  notice: string;
+  basis: ProjectionBasis;
+  basisDate: string;
+  goalNature?: "one_time" | "recurring";
+  /** Settings keys an admin needs to configure. */
+  missingRules?: string[];
+};
+
 export type ActivationOption = {
   _id?: string;
   label: PlanLabel;
@@ -25,6 +59,8 @@ export type ActivationOption = {
   /** The goal amount the plan was calculated from. */
   totalGoal: number;
   affordable: boolean;
+  /** Absent on plans calculated before projections existed. */
+  projection?: OptionProjection;
 };
 
 /** Stored Recommendation snapshot — every figure comes from the backend. */
@@ -32,7 +68,13 @@ export type ActivationPlan = {
   _id: string;
   selectionId: string;
   options: ActivationOption[];
-  oneTimeOption: { totalActivationRequirement: number; payFullNow: boolean };
+  oneTimeOption: {
+    totalActivationRequirement: number;
+    payFullNow: boolean;
+    projection?: OptionProjection;
+  };
+  /** Absent on plans calculated before projections existed. */
+  projection?: PlanProjection;
   affordabilityStatus: AffordabilityStatus;
   suggestedAlternatives: string[];
   selectedOption?: PlanLabel;

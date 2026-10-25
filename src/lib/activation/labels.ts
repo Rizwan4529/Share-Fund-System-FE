@@ -2,6 +2,7 @@ import type {
   ActivationErrorCode,
   AffordabilityStatus,
   PlanLabel,
+  ProjectionBasis,
 } from "@/types/activation";
 import { ROUTES } from "@/utils/constants";
 
@@ -10,6 +11,28 @@ export const PLAN_LABELS: Record<PlanLabel, string> = {
   moderate: "Moderate",
   longer: "Longer",
 };
+
+export const PROJECTION_INTRO =
+  "All figures are projections based on your Success Profile and this program's current rules — estimates for planning, not guaranteed funding.";
+
+/** Used when an older plan has no stored notice. */
+export const PROJECTION_FALLBACK_NOTICE =
+  "Projected estimate for planning only. Not a guarantee of funding, amounts, or timing.";
+
+/** What the projected dates are counted from. */
+export const PROJECTION_BASIS_LABELS: Record<ProjectionBasis, string> = {
+  calculation_date: "Projected dates assume your activation starts on",
+  activation_paid_date: "Projected dates are counted from your activation payment on",
+};
+
+export const PROJECTION_UNAVAILABLE =
+  "A projected timeline isn't available for this program yet.";
+
+/** Short date for projected milestones, e.g. "Mar 18, 2026". */
+export const formatProjectionDate = (value?: string) =>
+  value
+    ? new Date(value).toLocaleDateString(undefined, { dateStyle: "medium" })
+    : "—";
 
 type StatusTone = "success" | "info" | "gold";
 

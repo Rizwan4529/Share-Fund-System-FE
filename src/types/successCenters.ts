@@ -52,6 +52,10 @@ export type SuccessCenterProgramActivationRules = {
   activationPercentageMax?: number | null;
   defaultActivationPercentage?: number | null;
   growthPeriodDays?: number | null;
+  /** Projection overrides; null falls back to the settings value. */
+  eligibilityOffsetDays?: number | null;
+  fundingStartOffsetDays?: number | null;
+  fundingRangeDays?: number | null;
   roundingIncrement?: number | null;
   minGoalAmount?: number | null;
   maxGoalAmount?: number | null;

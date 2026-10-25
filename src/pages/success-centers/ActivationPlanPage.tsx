@@ -8,6 +8,7 @@ import {
   AffordabilityNotice,
   OneTimeOptionCard,
   PacedOptionCard,
+  ProjectionNotice,
 } from "@/components/activation/ActivationPlanParts";
 import { EmptyState } from "@/components/common/EmptyState";
 import { GoldButton } from "@/components/common/GoldButton";
@@ -17,7 +18,6 @@ import { Typography } from "@/components/common/Typography";
 import {
   AppPageContainer,
   AppSurfaceCard,
-  InfoCallout,
   ParticipantPageHeader,
   SectionLabel,
 } from "@/components/member/app";
@@ -46,9 +46,6 @@ import {
 } from "@/utils/constants";
 
 type Choice = PlanLabel | "one_time" | null;
-
-const PROJECTION_NOTE =
-  "All figures are projections based on your Success Profile and this program's current rules — estimates for planning, not guaranteed funding.";
 
 export default function ActivationPlanPage() {
   const { selectionId = "" } = useParams();
@@ -233,7 +230,7 @@ function PlanView({
 
   return (
     <div className="space-y-5">
-      <InfoCallout>{PROJECTION_NOTE}</InfoCallout>
+      <ProjectionNotice projection={plan.projection} />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
         <ActivationSummary
@@ -280,6 +277,7 @@ function PlanView({
         </div>
         <OneTimeOptionCard
           totalActivationRequirement={plan.oneTimeOption.totalActivationRequirement}
+          projection={plan.oneTimeOption.projection}
           currency={currency}
           selected={choice === "one_time"}
           selectable={canProceed}

@@ -70,6 +70,9 @@ const CREATE_DEFAULTS: SuccessCenterProgramFormValues = {
   activationPercentageMax: "",
   defaultActivationPercentage: "",
   growthPeriodDays: "",
+  eligibilityOffsetDays: "",
+  fundingStartOffsetDays: "",
+  fundingRangeDays: "",
   roundingIncrement: "",
   minGoalAmount: "",
   maxGoalAmount: "",
@@ -136,6 +139,9 @@ export function SuccessCenterProgramFormDrawer({
         rules.defaultActivationPercentage,
       ),
       growthPeriodDays: numberToInput(rules.growthPeriodDays),
+      eligibilityOffsetDays: numberToInput(rules.eligibilityOffsetDays),
+      fundingStartOffsetDays: numberToInput(rules.fundingStartOffsetDays),
+      fundingRangeDays: numberToInput(rules.fundingRangeDays),
       roundingIncrement: numberToInput(rules.roundingIncrement),
       minGoalAmount: numberToInput(rules.minGoalAmount),
       maxGoalAmount: numberToInput(rules.maxGoalAmount),
@@ -151,6 +157,11 @@ export function SuccessCenterProgramFormDrawer({
       defaultActivationPercentage:
         parseOptionalNumber(values.defaultActivationPercentage) ?? null,
       growthPeriodDays: parseOptionalNumber(values.growthPeriodDays) ?? null,
+      eligibilityOffsetDays:
+        parseOptionalNumber(values.eligibilityOffsetDays) ?? null,
+      fundingStartOffsetDays:
+        parseOptionalNumber(values.fundingStartOffsetDays) ?? null,
+      fundingRangeDays: parseOptionalNumber(values.fundingRangeDays) ?? null,
       roundingIncrement: parseOptionalNumber(values.roundingIncrement) ?? null,
       minGoalAmount: parseOptionalNumber(values.minGoalAmount) ?? null,
       maxGoalAmount: parseOptionalNumber(values.maxGoalAmount) ?? null,
@@ -302,6 +313,34 @@ export function SuccessCenterProgramFormDrawer({
                 control={form.control}
                 name="maxGoalAmount"
                 label="Max goal amount"
+                type="number"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3 border-t border-border pt-4">
+            <Typography variant="label">Projection rules</Typography>
+            <Typography variant="caption" color="muted" className="block">
+              Used for projected timelines and estimated funding ranges. Leave
+              blank to use the global settings.
+            </Typography>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input
+                control={form.control}
+                name="eligibilityOffsetDays"
+                label="Eligibility after growth period (days)"
+                type="number"
+              />
+              <Input
+                control={form.control}
+                name="fundingStartOffsetDays"
+                label="Funding estimate start (days)"
+                type="number"
+              />
+              <Input
+                control={form.control}
+                name="fundingRangeDays"
+                label="Funding range width (days)"
                 type="number"
               />
             </div>
