@@ -6,6 +6,7 @@ import type {
   BackendUser,
   ResendLinkRequest,
   VerifyEmailRequest,
+  VerifyEmailResponse,
 } from "@/types/auth";
 import { API_PATHS } from "@/utils/constants";
 
@@ -25,7 +26,11 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
-    verifyEmail: builder.mutation<void, VerifyEmailRequest>({
+    // Revokes all of the user's sessions server-side.
+    logout: builder.mutation<void, void>({
+      query: () => ({ url: API_PATHS.LOGOUT, method: "POST" }),
+    }),
+    verifyEmail: builder.mutation<VerifyEmailResponse, VerifyEmailRequest>({
       query: (body) => ({
         url: API_PATHS.VERIFY_EMAIL,
         method: "POST",
@@ -44,6 +49,7 @@ export const authApi = baseApi.injectEndpoints({
 
 export const {
   useLoginMutation,
+  useLogoutMutation,
   useRegisterMutation,
   useVerifyEmailMutation,
   useResendLinkMutation,

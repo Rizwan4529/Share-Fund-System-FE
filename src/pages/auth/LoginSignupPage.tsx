@@ -1,7 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
 
 import {
@@ -22,7 +22,7 @@ import { FormCommon, Input, Checkbox } from "@/components/common/FormCommon";
 import { GoldButton } from "@/components/common/GoldButton";
 import { ButtonSpinner } from "@/components/common/LoadingStates";
 import { Typography } from "@/components/common/Typography";
-import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
+import { getApiErrorCode, getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
 import { postLoginPath } from "@/lib/auth/sessionUser";
 import {
   loginSchema,
@@ -38,6 +38,15 @@ import type { CountryOption } from "@/utils/countries";
 import { ROUTES } from "@/utils/constants";
 
 type Mode = "login" | "signup";
+
+const STEP1_FIELDS = [
+  "firstName",
+  "lastName",
+  "email",
+  "password",
+  "phone",
+  "country",
+] as const;
 
 export default function LoginSignupPage() {
   const location = useLocation();
@@ -74,12 +83,24 @@ export default function LoginSignupPage() {
 
   const busy = loginState.isLoading || registerState.isLoading;
 
+  // Step 1 is validated with trigger(), so RHF won't re-validate on change by
+  // itself; re-check any field that currently shows an error as it's edited
+  // (and the phone when the country changes) so fixed errors clear right away.
+  const step1Values = useWatch({ control: signupForm.control, name: STEP1_FIELDS });
+  const step1Key = JSON.stringify(step1Values);
+  useEffect(() => {
+    for (const field of STEP1_FIELDS) {
+      if (signupForm.getFieldState(field).error) void signupForm.trigger(field);
+    }
+  }, [step1Key, signupForm]);
+
   const onLogin = async (data: LoginFormValues) => {
     setError("");
     try {
       const result = await login({
         email: data.email,
         password: data.password,
+        remember: Boolean(data.remember),
       }).unwrap();
       dispatch(
         setCredentials({
@@ -98,14 +119,7 @@ export default function LoginSignupPage() {
 
   const onSignupDetails = async () => {
     setError("");
-    const valid = await signupForm.trigger([
-      "firstName",
-      "lastName",
-      "email",
-      "password",
-      "phone",
-      "country",
-    ]);
+    const valid = await signupForm.trigger([...STEP1_FIELDS]);
     if (valid) setSignupStep(2);
   };
 
@@ -134,8 +148,22 @@ export default function LoginSignupPage() {
         phone: data.phone,
         country: data.country,
       }).unwrap();
-      navigate(ROUTES.VERIFY, { state: { email: data.email } });
+      navigate(ROUTES.VERIFY, {
+        state: { email: data.email, firstName: data.firstName },
+      });
     } catch (err) {
+      const code = getApiErrorCode(err);
+      const field = code === "EMAIL_TAKEN" ? "email" : code === "PHONE_TAKEN" ? "phone" : null;
+      if (field) {
+        setSignupStep(1);
+        signupForm.setError(field, {
+          message:
+            field === "email"
+              ? "An account with this email already exists. Log in instead, or use another email."
+              : "An account with this phone number already exists.",
+        });
+        return;
+      }
       setError(
         getApiErrorMessage(err, "Could not create account. Please try again."),
       );
@@ -159,7 +187,7 @@ export default function LoginSignupPage() {
           ? "Welcome back"
           : signupStep === 1
             ? "Create your account"
-            : "Accept"}
+            : "Review and accept"}
       </Typography>
       <Typography
         variant="body-sm"

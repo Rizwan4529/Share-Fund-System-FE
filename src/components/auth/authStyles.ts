@@ -27,13 +27,23 @@ export const authStepIconClass = cn(
   "mx-auto mb-5 flex size-[52px] items-center justify-center rounded-xl border",
 );
 
-export function passwordStrength(pw: string): number {
-  let score = 0;
-  if (pw.length >= 8) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  return score;
+/** The same four rules the signup schema enforces (lib/schemas/auth.ts). */
+const PASSWORD_RULES = [
+  { label: "8+ characters", test: (pw: string) => pw.length >= 8 },
+  { label: "an uppercase letter", test: (pw: string) => /[A-Z]/.test(pw) },
+  { label: "a number", test: (pw: string) => /[0-9]/.test(pw) },
+  { label: "a special character", test: (pw: string) => /[!@#$%^&*(),.?":{}|<>]/.test(pw) },
+];
+
+/** Rules met (0–4) and the ones still missing, for the strength meter. */
+export function passwordStrength(pw: string): { score: number; missing: string[] } {
+  const missing = PASSWORD_RULES.filter((rule) => !rule.test(pw)).map((rule) => rule.label);
+  return { score: PASSWORD_RULES.length - missing.length, missing };
 }
 
-export const STRENGTH_LABELS = ["", "Weak", "Fair", "Good", "Strong"];
+/** "Strong" only when every rule passes; otherwise says what's missing. */
+export function passwordStrengthLabel(pw: string): string {
+  if (!pw) return "Enter a password";
+  const { missing } = passwordStrength(pw);
+  return missing.length ? `Add ${missing.join(", ")}` : "Strong";
+}

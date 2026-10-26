@@ -46,16 +46,11 @@ export function AuthFormShell({ children }: { children: ReactNode }) {
   return (
     <AuthFormBackContext.Provider value={setBack}>
       <div className="relative flex min-h-svh flex-col bg-white px-5 py-10 sm:px-8 lg:px-10 lg:py-12">
-        {back ? (
-          <div className="absolute top-5 left-5 z-10 sm:top-8 sm:left-8 lg:top-10 lg:left-10">
-            {back}
-          </div>
-        ) : null}
-        <img
-          src={ASSETS.logo}
-          alt="SFS"
-          className="mb-8 h-9 w-auto self-start lg:hidden"
-        />
+        {/* Logo (small screens) and Back share one row so they never overlap. */}
+        <div className="mb-8 flex min-h-9 items-center justify-between gap-4">
+          <img src={ASSETS.logo} alt="SFS" className="h-9 w-auto lg:hidden" />
+          {back ? <div className="ml-auto">{back}</div> : null}
+        </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-[404px]">{children}</div>
         </div>

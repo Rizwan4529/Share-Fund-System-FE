@@ -10,7 +10,7 @@ import {
 import {
   authInputClass,
   passwordStrength,
-  STRENGTH_LABELS,
+  passwordStrengthLabel,
 } from "@/components/auth/authStyles";
 import { Input } from "@/components/common/FormCommon";
 import { Typography } from "@/components/common/Typography";
@@ -40,7 +40,7 @@ export function AuthPasswordField<T extends FieldValues>({
   onToggle,
 }: AuthPasswordFieldProps<T>) {
   const pw = useWatch({ control, name }) ?? "";
-  const strength = passwordStrength(pw);
+  const strength = passwordStrength(pw).score;
   const { errors } = useFormState({ control, name });
   const message = errors[name]?.message;
   const errorMessage = typeof message === "string" ? message : null;
@@ -90,7 +90,7 @@ export function AuthPasswordField<T extends FieldValues>({
             ))}
           </div>
           <Typography variant="caption" color="muted" className="text-[12.5px]">
-            {STRENGTH_LABELS[strength] || "Enter a password"}
+            {passwordStrengthLabel(pw)}
           </Typography>
         </>
       ) : null}

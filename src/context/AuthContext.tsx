@@ -8,6 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { toSessionUser } from "@/lib/auth/sessionUser";
+import { useLogoutMutation } from "@/store/api/authApi";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout as logoutAction } from "@/store/slices/authSlice";
 import type { AuthUser } from "@/types";
@@ -33,10 +34,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [backendUser],
   );
 
+  const [logoutRequest] = useLogoutMutation();
+
   const logout = useCallback(async () => {
+    // Revoke the session server-side first; sign out locally regardless
+    // (e.g. offline or token already expired).
+    try {
+      await logoutRequest().unwrap();
+    } catch {
+      // ignore — the local session is cleared below either way
+    }
     dispatch(logoutAction());
     navigate(ROUTES.LOGIN);
-  }, [dispatch, navigate]);
+  }, [dispatch, logoutRequest, navigate]);
 
   const refresh = useCallback(async () => {}, []);
 

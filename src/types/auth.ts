@@ -39,6 +39,8 @@ export type BackendUser = {
 export type LoginRequest = {
   email: string;
   password: string;
+  /** "Remember me" — the server issues a longer-lived session. */
+  remember?: boolean;
 };
 
 export type LoginResponse = BackendUser & { token: string };
@@ -57,6 +59,11 @@ export type RegisterRequest = {
 
 export type VerifyEmailRequest = {
   token: string;
+};
+
+export type VerifyEmailResponse = {
+  /** True when the email was already verified before this link was opened. */
+  alreadyVerified: boolean;
 };
 
 export type ResendLinkRequest = {

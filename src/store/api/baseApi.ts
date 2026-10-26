@@ -27,6 +27,15 @@ function isPublicAuthRequest(args: string | FetchArgs): boolean {
   return PUBLIC_AUTH_PATHS.some((path) => url.startsWith(path));
 }
 
+// A suspended/closed account is signed out wherever it gets a 403 for that.
+const LOCKED_ACCOUNT_CODES = ["ACCOUNT_SUSPENDED", "ACCOUNT_CLOSED"];
+
+function isAccountLockedError(error: FetchBaseQueryError): boolean {
+  if (error.status !== 403) return false;
+  const errors = (error.data as { errors?: { code?: string }[] } | undefined)?.errors;
+  return Array.isArray(errors) && errors.some((e) => LOCKED_ACCOUNT_CODES.includes(e?.code ?? ""));
+}
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
   prepareHeaders: (headers, { getState }) => {
@@ -46,7 +55,10 @@ const baseQueryWithAuth: BaseQueryFn<
   const result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error) {
-    if (result.error.status === 401 && !isPublicAuthRequest(args)) {
+    if (
+      (result.error.status === 401 || isAccountLockedError(result.error)) &&
+      !isPublicAuthRequest(args)
+    ) {
       api.dispatch(logout());
     }
     return result;

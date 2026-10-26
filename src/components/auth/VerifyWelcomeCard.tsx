@@ -18,10 +18,10 @@ import { useResendLinkMutation } from "@/store/api/authApi";
 import { ASSETS } from "@/utils/assets";
 import { ROUTES } from "@/utils/constants";
 
-function emailFromState(state: unknown): string {
-  if (state && typeof state === "object" && "email" in state) {
-    const email = (state as { email?: unknown }).email;
-    return typeof email === "string" ? email : "";
+function stringFromState(state: unknown, key: "email" | "firstName"): string {
+  if (state && typeof state === "object" && key in state) {
+    const value = (state as Record<string, unknown>)[key];
+    return typeof value === "string" ? value : "";
   }
   return "";
 }
@@ -29,8 +29,10 @@ function emailFromState(state: unknown): string {
 export function VerifyWelcomeCard() {
   const location = useLocation();
   const { user } = useAuth();
-  const firstName = user?.name?.split(" ")[0] ?? "there";
-  const initialEmail = emailFromState(location.state) || user?.email || "";
+  // Right after signup there's no session yet — the signup form passes the name.
+  const firstName =
+    stringFromState(location.state, "firstName") || user?.name?.split(" ")[0] || "there";
+  const initialEmail = stringFromState(location.state, "email") || user?.email || "";
   const showEmailField = !initialEmail;
   const [resend, { isLoading: resending }] = useResendLinkMutation();
 
@@ -49,7 +51,7 @@ export function VerifyWelcomeCard() {
     }
     try {
       await resend({ email }).unwrap();
-      toast.success("Verification email resent. Check your inbox.");
+      toast.success("If your email still needs verifying, a new link is on its way.");
     } catch (error) {
       toast.error(
         getApiErrorMessage(error, "Could not resend the verification email."),
@@ -59,13 +61,10 @@ export function VerifyWelcomeCard() {
 
   return (
     <div className="relative flex min-h-svh flex-col bg-[radial-gradient(ellipse_at_center,#eef2f8_0%,#e4e9f2_100%)] p-6">
-      <AuthBackLink
-        to={ROUTES.LOGIN}
-        className="absolute top-5 left-5 z-10 sm:top-8 sm:left-8"
-      >
-        Back
-      </AuthBackLink>
-      <img src={ASSETS.logo} alt="SFS" className="mb-6 h-9 w-auto self-start" />
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <img src={ASSETS.logo} alt="SFS" className="h-9 w-auto" />
+        <AuthBackLink to={ROUTES.LOGIN}>Back</AuthBackLink>
+      </div>
       <div className="flex flex-1 items-center justify-center">
         <div className="w-full max-w-[560px] overflow-hidden rounded-panel border border-line bg-white shadow-[0_30px_60px_-24px_rgba(12,31,68,0.4)]">
           <div className="relative overflow-hidden bg-gradient-navy-hero-card px-10 py-12 text-center">

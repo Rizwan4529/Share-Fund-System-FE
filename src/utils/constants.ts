@@ -9,6 +9,7 @@ export const API_BASE_URL =
 
 export const API_PATHS = {
   LOGIN: "/login/",
+  LOGOUT: "/logout",
   REGISTER: "/register/",
   VERIFY_EMAIL: "/verify-email",
   RESEND_LINK: "/resend-link",
