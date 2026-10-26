@@ -1,444 +1,307 @@
-import { useEffect, useMemo, useState } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
-import {
-  ClipboardList,
-  Download,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import {
+  Activity,
+  ClipboardCheck,
+  ClipboardList,
+  CreditCard,
+  DollarSign,
+  LayoutGrid,
+  UserCheck,
+  UserPlus,
+  Users,
+  X,
+} from "lucide-react";
 
 import {
-  AdminCategoryBars,
-  AdminFunnelChart,
   AdminKpiCard,
   AdminPageHeader,
-  AdminRevenueSummary,
   AdminSectionTitle,
-  AdminSignupChart,
+  AdminStatusPill,
   AdminSurfaceCard,
-  AdminTrafficDonut,
-  AdminTableToolbar,
 } from "@/components/admin";
-import { DataTableColumnHeaderCommon } from "@/components/common/DataTableColumnHeaderCommon";
-import { DataTableCommon } from "@/components/common/DataTableCommon";
+import { AdminDateRangeInputs } from "@/components/admin/AdminDateRangeInputs";
+import { EmptyState } from "@/components/common/EmptyState";
 import { GoldButton } from "@/components/common/GoldButton";
 import { Typography } from "@/components/common/Typography";
-import { filterRowsBySearch } from "@/hooks/useAdminTableSearch";
-import { useClientTablePage } from "@/hooks/useClientTablePage";
-import {
-  downloadCsv,
-  exportAdminCsv,
-  fetchAdminEnrollments,
-  fetchAdminOverview,
-  fetchAdminParticipants,
-  fetchAdminRecommendations,
-  type AdminOverviewStats,
-} from "@/lib/api/admin";
-import type { AuthUser, Enrollment, Recommendation } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { dayEndIso, dayStartIso } from "@/hooks/useServerTableState";
+import { getApiErrorMessage } from "@/lib/api/getApiErrorMessage";
+import { formatCurrency } from "@/lib/app/greeting";
+import { formatPaymentDate } from "@/lib/payments/format";
+import { PAYMENT_PURPOSE_LABELS } from "@/lib/payments/labels";
+import { useGetAdminOverviewQuery } from "@/store/api/adminReportsApi";
+import type { AdminActivity, AdminOverview } from "@/types/adminOverview";
 import { ROUTES } from "@/utils/constants";
 
-type ActivityRow = {
-  id: string;
-  kind: "enrollment" | "recommendation";
-  title: string;
-  detail: string;
-  status: string;
-  at: string;
+const ADMIN_PAYMENTS_TAB = `${ROUTES.ADMIN_ENROLLMENTS}?tab=payments`;
+
+const ACTIVITY_ICONS = {
+  signup: UserPlus,
+  selection: LayoutGrid,
+  payment: CreditCard,
+} as const;
+
+const ACTIVITY_LABELS: Record<AdminActivity["type"], string> = {
+  signup: "New participant",
+  selection: "Success Center selected",
+  payment: "Payment",
 };
 
-function buildEnrollmentTrend(enrollments: Enrollment[]): number[] {
-  const buckets = Array.from({ length: 8 }, () => 0);
-  const now = Date.now();
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
-  for (const e of enrollments) {
-    const age = now - new Date(e.createdAt).getTime();
-    const weekIndex = 7 - Math.min(7, Math.max(0, Math.floor(age / weekMs)));
-    buckets[weekIndex] += e.amount;
-  }
-  // Soften empty mock charts so the sparkline still reads
-  if (buckets.every((v) => v === 0) && enrollments.length === 0) {
-    return [12, 18, 15, 22, 28, 24, 31, 36];
-  }
-  return buckets.map((v, i) => (v === 0 && i > 0 ? buckets[i - 1] * 0.85 : v));
-}
+// Payments without a description fall back to the raw purpose on the server.
+const activityTitle = (item: AdminActivity) =>
+  item.type === "payment" && item.purpose && item.title === item.purpose
+    ? PAYMENT_PURPOSE_LABELS[item.purpose]
+    : item.title;
+
+/** "USD 150.00 · EUR 40.00" — revenue is never summed across currencies. */
+const formatRevenue = (rows: { currency: string; total: number }[]) =>
+  rows.length ? rows.map((row) => formatCurrency(row.total, row.currency)).join(" · ") : "—";
 
 export default function AdminOverviewPage() {
-  const [stats, setStats] = useState<AdminOverviewStats | null>(null);
-  const [participants, setParticipants] = useState<AuthUser[]>([]);
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [activity, setActivity] = useState<ActivityRow[]>([]);
-  const [activitySearch, setActivitySearch] = useState("");
-  const filteredActivity = useMemo(
-    () =>
-      filterRowsBySearch(
-        activity,
-        activitySearch,
-        (r) => `${r.kind} ${r.title} ${r.detail} ${r.status}`,
-      ),
-    [activity, activitySearch],
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const query = useGetAdminOverviewQuery(
+    { from: dayStartIso(from), to: dayEndIso(to) },
+    { refetchOnMountOrArgChange: true },
   );
-  const { pageRows, totalDataCount, onFetchData } =
-    useClientTablePage(filteredActivity);
-
-  useEffect(() => {
-    void fetchAdminOverview().then(setStats);
-    void Promise.all([
-      fetchAdminParticipants(),
-      fetchAdminEnrollments(),
-      fetchAdminRecommendations(),
-    ]).then(([people, enrollData, recs]) => {
-      setParticipants(people);
-      setEnrollments(enrollData.enrollments);
-
-      const enrollRows: ActivityRow[] = enrollData.enrollments.map(
-        (e: Enrollment) => ({
-          id: `enr-${e.id}`,
-          kind: "enrollment" as const,
-          title: e.userName,
-          detail: `${e.plan.replaceAll("_", " ")} · $${e.amount}`,
-          status: e.status,
-          at: e.createdAt,
-        }),
-      );
-      const recRows: ActivityRow[] = recs
-        .filter((r: Recommendation) => r.status === "pending")
-        .map((r) => ({
-          id: `rec-${r.id}`,
-          kind: "recommendation" as const,
-          title: r.userName,
-          detail: `$${r.recommendedBudget.toLocaleString()} · ${r.projectedTimelineMonths} mo`,
-          status: r.status,
-          at: r.createdAt,
-        }));
-      const merged = [...enrollRows, ...recRows].sort(
-        (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
-      );
-      setActivity(merged.slice(0, 20));
-    });
-  }, []);
-
-  const exportKind = async (
-    kind: "participants" | "enrollments" | "payments",
-  ) => {
-    const csv = await exportAdminCsv(kind);
-    downloadCsv(`sfs-${kind}.csv`, csv);
-    toast.success(`Exported ${kind}.csv`);
-  };
-
-  const revenueTrend = useMemo(
-    () => buildEnrollmentTrend(enrollments),
-    [enrollments],
-  );
-
-  const statusDonut = useMemo(() => {
-    const none = participants.filter((p) => p.foundingStatus === "none").length;
-    const founding = participants.filter(
-      (p) => p.foundingStatus === "founding_participant",
-    ).length;
-    const stack = participants.filter(
-      (p) => p.foundingStatus === "founder_stack",
-    ).length;
-    const data = [
-      { name: "Not enrolled", value: none || 0, color: "#9fb0d4" },
-      { name: "Founding", value: founding || 0, color: "#c4a33a" },
-      { name: "Founder Stack", value: stack || 0, color: "#0a1c40" },
-    ].filter((d) => d.value > 0);
-    return data.length
-      ? data
-      : [{ name: "No participants", value: 1, color: "#e4e9f2" }];
-  }, [participants]);
-
-  const funnel = useMemo(() => {
-    const total = Math.max(participants.length, 1);
-    const questionnaireDone = participants.filter(
-      (p) => p.questionnaireComplete,
-    ).length;
-    const enrolled = participants.filter(
-      (p) => p.foundingStatus !== "none",
-    ).length;
-    const pending = stats?.pendingRecs ?? 0;
-    return [
-      { label: "Participants", value: participants.length, pct: 100 },
-      {
-        label: "Questionnaire done",
-        value: questionnaireDone,
-        pct: Math.round((questionnaireDone / total) * 100),
-      },
-      {
-        label: "Enrolled",
-        value: enrolled,
-        pct: Math.round((enrolled / total) * 100),
-      },
-      {
-        label: "Pending projections",
-        value: pending,
-        pct: Math.round((pending / total) * 100),
-      },
-    ];
-  }, [participants, stats?.pendingRecs]);
-
-  const planBars = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const e of enrollments) {
-      const key = e.plan.replaceAll("_", " ");
-      counts[key] = (counts[key] ?? 0) + 1;
-    }
-    const entries = Object.entries(counts).map(([name, value], i) => ({
-      name: name.replace(/\b\w/g, (c) => c.toUpperCase()),
-      value,
-      hot: i === 0,
-    }));
-    return entries.length
-      ? entries
-      : [
-          { name: "Founding One", value: 1, hot: true },
-          { name: "Founding Bundle", value: 0 },
-          { name: "Founder Stack", value: 0 },
-        ];
-  }, [enrollments]);
-
-  const columns = useMemo<ColumnDef<ActivityRow>[]>(
-    () => [
-      {
-        accessorKey: "kind",
-        header: ({ column }) => (
-          <DataTableColumnHeaderCommon column={column} title="Type" />
-        ),
-        cell: ({ row }) => (
-          <span className="capitalize text-muted-foreground">
-            {row.original.kind}
-          </span>
-        ),
-        enableSorting: true,
-      },
-      {
-        accessorKey: "title",
-        header: ({ column }) => (
-          <DataTableColumnHeaderCommon column={column} title="Participant" />
-        ),
-        cell: ({ row }) => (
-          <span className="font-semibold text-ink-heading">
-            {row.original.title}
-          </span>
-        ),
-        enableSorting: true,
-      },
-      {
-        accessorKey: "detail",
-        header: ({ column }) => (
-          <DataTableColumnHeaderCommon column={column} title="Detail" />
-        ),
-        enableSorting: false,
-      },
-      {
-        accessorKey: "status",
-        header: ({ column }) => (
-          <DataTableColumnHeaderCommon column={column} title="Status" />
-        ),
-        cell: ({ row }) => (
-          <span className="capitalize">{row.original.status}</span>
-        ),
-        enableSorting: true,
-      },
-      {
-        accessorKey: "at",
-        header: ({ column }) => (
-          <DataTableColumnHeaderCommon column={column} title="Date" />
-        ),
-        cell: ({ row }) =>
-          new Date(row.original.at).toLocaleDateString(),
-        enableSorting: true,
-      },
-    ],
-    [],
-  );
+  const overview = query.data;
+  const ranged = Boolean(from || to);
 
   return (
     <>
       <AdminPageHeader
         title="Overview"
-        subtitle="Founding Participant control panel — participants, enrollments, and projections."
+        subtitle="Founding Participant control panel — participants, Success Centers, Funding Access and recent activity."
+        actions={
+          <GoldButton size="sm" variant="outline" onClick={() => void query.refetch()}>
+            Refresh
+          </GoldButton>
+        }
       />
 
-      <AdminRevenueSummary />
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <AdminDateRangeInputs from={from} to={to} onFromChange={setFrom} onToChange={setTo} />
+        {ranged ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11"
+            onClick={() => {
+              setFrom("");
+              setTo("");
+            }}
+          >
+            <X />
+            Clear range
+          </Button>
+        ) : null}
+        <Typography variant="caption" color="muted">
+          {ranged
+            ? "The range applies to signups, selections, purchases and revenue. Totals are all-time."
+            : "Showing all-time figures. Pick a range to filter signups, selections, purchases and revenue."}
+        </Typography>
+      </div>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {query.isError && !overview ? (
+        <EmptyState
+          icon={Activity}
+          variant="error"
+          title="Could not load the overview"
+          description={getApiErrorMessage(query.error, "Please try again in a moment.")}
+          action={
+            <Button type="button" variant="outline" onClick={() => void query.refetch()}>
+              Try again
+            </Button>
+          }
+        />
+      ) : !overview ? (
+        <OverviewSkeleton />
+      ) : (
+        <OverviewContent overview={overview} ranged={ranged} />
+      )}
+    </>
+  );
+}
+
+function OverviewContent({ overview, ranged }: { overview: AdminOverview; ranged: boolean }) {
+  const { participants, successProfiles, fundingAccess } = overview;
+  const [shortWindow, longWindow] = participants.newSignups.windows;
+  const signups = ranged ? participants.newSignups.inRange : longWindow?.count;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <AdminKpiCard
-          label="Participants"
-          value={String(stats?.participants ?? "—")}
-          sub="Registered accounts"
+          label="Total Participants"
+          value={String(participants.total)}
+          sub="Registered participant accounts"
           href={ROUTES.ADMIN_PARTICIPANTS}
           icon={<Users className="size-4 text-info" />}
           iconClassName="bg-info/10"
         />
         <AdminKpiCard
-          label="Founding / Stack"
-          value={`${stats?.foundingCount ?? 0} / ${stats?.founderStackCount ?? 0}`}
-          sub="Enrollment statuses"
+          label="New Participant Signups"
+          value={String(signups ?? 0)}
+          sub={
+            ranged
+              ? "In the selected range"
+              : `Last ${longWindow?.days ?? 30} days · ${shortWindow?.count ?? 0} in the last ${shortWindow?.days ?? 7}`
+          }
+          href={ROUTES.ADMIN_PARTICIPANTS}
+          icon={<UserPlus className="size-4 text-info" />}
+          iconClassName="bg-info/10"
+        />
+        <AdminKpiCard
+          label="Active Participants"
+          value={String(participants.active)}
+          sub="Verified, active accounts"
+          href={ROUTES.ADMIN_PARTICIPANTS}
+          icon={<UserCheck className="size-4 text-success" />}
+          iconClassName="bg-success/10"
+        />
+        <AdminKpiCard
+          label="Success Centers Selected"
+          value={String(overview.successCentersSelected)}
+          sub="Active program selections"
+          href={ROUTES.ADMIN_ENROLLMENTS}
+          icon={<LayoutGrid className="size-4 text-navy" />}
+          iconClassName="bg-navy/10"
+        />
+        <AdminKpiCard
+          label="Success Profiles Completed"
+          value={String(successProfiles.completed)}
+          sub="Confirmed and complete"
+          href={ROUTES.ADMIN_PARTICIPANTS}
+          icon={<ClipboardCheck className="size-4 text-success" />}
+          iconClassName="bg-success/10"
+        />
+        <AdminKpiCard
+          label="Success Profiles Incomplete"
+          value={String(successProfiles.incomplete)}
+          sub={`${successProfiles.notStarted} not started yet`}
+          href={ROUTES.ADMIN_PARTICIPANTS}
+          icon={<ClipboardList className="size-4 text-gold-deep" />}
+          iconClassName="bg-gold/15"
+        />
+        <AdminKpiCard
+          label="Funding Access Purchases"
+          value={String(fundingAccess.purchases)}
+          sub={`${overview.founderTierPurchases} Founder tier purchase${overview.founderTierPurchases === 1 ? "" : "s"}`}
           href={ROUTES.ADMIN_ENROLLMENTS}
           icon={<ClipboardList className="size-4 text-navy" />}
           iconClassName="bg-navy/10"
         />
         <AdminKpiCard
-          label="Pending projections"
-          value={String(stats?.pendingRecs ?? "—")}
-          sub="Awaiting review"
-          href={ROUTES.ADMIN_RECOMMENDATIONS}
-          icon={<Sparkles className="size-4 text-info" />}
-          iconClassName="bg-info/10"
+          label="Funding Access Revenue"
+          value={formatRevenue(fundingAccess.revenue)}
+          sub={`All completed payments: ${formatRevenue(overview.totalRevenue)}`}
+          href={ADMIN_PAYMENTS_TAB}
+          icon={<DollarSign className="size-4 text-success" />}
+          iconClassName="bg-success/10"
         />
       </div>
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        <AdminSurfaceCard className="p-5">
-          <AdminSectionTitle>Enrollment revenue trend</AdminSectionTitle>
-          <Typography
-            variant="body-sm"
-            className="mt-1.5 text-sm text-muted-foreground"
-          >
-            Fee volume across recent weeks (from enrollment records).
-          </Typography>
-          <div className="mt-4">
-            <AdminSignupChart data={revenueTrend} />
-          </div>
-        </AdminSurfaceCard>
-
-        <AdminSurfaceCard className="p-5">
-          <AdminSectionTitle>Founding status mix</AdminSectionTitle>
-          <Typography
-            variant="body-sm"
-            className="mt-1.5 text-sm text-muted-foreground"
-          >
-            How participants are tagged today.
-          </Typography>
-          <div className="mt-4">
-            <AdminTrafficDonut data={statusDonut} />
-          </div>
-        </AdminSurfaceCard>
-
-        <AdminSurfaceCard className="p-5">
-          <AdminSectionTitle>Conversion funnel</AdminSectionTitle>
-          <Typography
-            variant="body-sm"
-            className="mt-1.5 text-sm text-muted-foreground"
-          >
-            Progress from signup through projections.
-          </Typography>
-          <div className="mt-4">
-            <AdminFunnelChart data={funnel} />
-          </div>
-        </AdminSurfaceCard>
-
-        <AdminSurfaceCard className="p-5">
-          <AdminSectionTitle>Plans enrolled</AdminSectionTitle>
-          <Typography
-            variant="body-sm"
-            className="mt-1.5 text-sm text-muted-foreground"
-          >
-            Count of enrollment plans in the local store.
-          </Typography>
-          <div className="mt-4">
-            <AdminCategoryBars data={planBars} />
-          </div>
-        </AdminSurfaceCard>
+      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        <RecentActivity activity={overview.recentActivity} />
+        <QuickLinks />
       </div>
+    </div>
+  );
+}
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        <AdminSurfaceCard className="p-5">
-          <AdminSectionTitle>Quick links</AdminSectionTitle>
-          <Typography
-            variant="body-sm"
-            className="mt-1.5 text-sm text-muted-foreground"
-          >
-            Jump to the most-used Phase 1 admin tools.
-          </Typography>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <GoldButton size="sm" asChild>
-              <Link to={ROUTES.ADMIN_PARTICIPANTS}>Participants</Link>
-            </GoldButton>
-            <GoldButton size="sm" variant="outline" asChild>
-              <Link to={ROUTES.ADMIN_ENROLLMENTS}>Enrollments</Link>
-            </GoldButton>
-            <GoldButton size="sm" variant="outline" asChild>
-              <Link to={ROUTES.ADMIN_PRICING}>Pricing</Link>
-            </GoldButton>
-            <GoldButton size="sm" variant="outline" asChild>
-              <Link to={ROUTES.ADMIN_RECOMMENDATIONS}>Recommendations</Link>
-            </GoldButton>
-          </div>
-        </AdminSurfaceCard>
-
-        <AdminSurfaceCard className="p-5">
-          <AdminSectionTitle>Export data</AdminSectionTitle>
-          <Typography
-            variant="body-sm"
-            className="mt-1.5 text-sm text-muted-foreground"
-          >
-            Download CSV from the local store (participants, enrollments,
-            payments).
-          </Typography>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <GoldButton
-              size="sm"
-              variant="outline"
-              onClick={() => void exportKind("participants")}
-            >
-              <Download className="size-3.5" />
-              Participants
-            </GoldButton>
-            <GoldButton
-              size="sm"
-              variant="outline"
-              onClick={() => void exportKind("enrollments")}
-            >
-              <Download className="size-3.5" />
-              Enrollments
-            </GoldButton>
-            <GoldButton
-              size="sm"
-              variant="outline"
-              onClick={() => void exportKind("payments")}
-            >
-              <Download className="size-3.5" />
-              Payments
-            </GoldButton>
-          </div>
-        </AdminSurfaceCard>
-      </div>
-
-      <div className="space-y-3 pb-2">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <AdminSectionTitle>Recent activity</AdminSectionTitle>
-            <Typography
-              variant="body-sm"
-              className="mt-1 text-sm text-muted-foreground"
-            >
-              Latest enrollments and pending recommendation reviews.
-            </Typography>
-          </div>
-          <GoldButton size="sm" variant="outline" asChild>
-            <Link to={ROUTES.ADMIN_ENROLLMENTS}>View all</Link>
-          </GoldButton>
-        </div>
-        <AdminTableToolbar
-          search={activitySearch}
-          onSearchChange={setActivitySearch}
-          placeholder="Search recent activity…"
-          resultCount={filteredActivity.length}
+function RecentActivity({ activity }: { activity: AdminActivity[] }) {
+  return (
+    <AdminSurfaceCard className="p-5">
+      <AdminSectionTitle as="h3">Recent Participant Activity</AdminSectionTitle>
+      {activity.length === 0 ? (
+        <EmptyState
+          icon={Activity}
+          variant="muted"
+          size="compact"
+          title="No participant activity yet."
+          description="Signups, Success Center selections and payments will appear here."
         />
-        <DataTableCommon
-          columns={columns}
-          data={pageRows}
-          totalDataCount={totalDataCount}
-          onFetchData={onFetchData}
-          fillViewport={false}
-          className="min-h-80"
-          emptyMessage="No recent enrollments or pending projections yet."
-        />
+      ) : (
+        <ul className="mt-3 divide-y divide-line">
+          {activity.map((item) => {
+            const Icon = ACTIVITY_ICONS[item.type];
+            return (
+              <li key={`${item.type}-${item._id}`} className="flex flex-wrap items-center gap-3 py-2.5">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-bg-card">
+                  <Icon className="size-4 text-muted-soft" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <Typography as="span" variant="body-sm" className="block truncate font-semibold text-ink-heading">
+                    {item.participant?.name || item.participant?.email || "Unknown participant"}
+                  </Typography>
+                  <Typography as="span" variant="caption" color="muted" className="block truncate">
+                    {ACTIVITY_LABELS[item.type]}
+                    {item.type === "signup" ? "" : ` · ${activityTitle(item)}`}
+                    {item.amount != null ? ` · ${formatCurrency(item.amount, item.currency)}` : ""}
+                  </Typography>
+                </span>
+                <AdminStatusPill status={item.status} />
+                <Typography variant="caption" color="muted" className="w-full text-right sm:w-auto">
+                  {formatPaymentDate(item.at)}
+                </Typography>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </AdminSurfaceCard>
+  );
+}
+
+const QUICK_LINKS = [
+  { to: ROUTES.ADMIN_PARTICIPANTS, label: "Participants", hint: "Accounts, status and access", icon: Users },
+  { to: ROUTES.ADMIN_ENROLLMENTS, label: "Enrollments", hint: "Funding Access, Founder and program activations", icon: ClipboardList },
+  { to: ADMIN_PAYMENTS_TAB, label: "Payments", hint: "Payment records and status", icon: CreditCard },
+  { to: ROUTES.ADMIN_RECOMMENDATIONS, label: "Recommendations", hint: "Review and approve activation plans", icon: ClipboardCheck },
+];
+
+function QuickLinks() {
+  return (
+    <AdminSurfaceCard className="p-5">
+      <AdminSectionTitle as="h3">Quick links</AdminSectionTitle>
+      <ul className="mt-3 space-y-2">
+        {QUICK_LINKS.map(({ to, label, hint, icon: Icon }) => (
+          <li key={label}>
+            <Link
+              to={to}
+              className="flex items-center gap-3 rounded-lg border border-line px-3 py-2.5 hover:border-gold-chip"
+            >
+              <Icon className="size-4 shrink-0 text-info" />
+              <span className="min-w-0">
+                <Typography as="span" variant="body-sm" className="block font-semibold text-ink-heading">
+                  {label}
+                </Typography>
+                <Typography as="span" variant="caption" color="muted" className="block">
+                  {hint}
+                </Typography>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </AdminSurfaceCard>
+  );
+}
+
+function OverviewSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 8 }, (_, index) => (
+          <Skeleton key={index} className="h-28 rounded-lg" />
+        ))}
       </div>
-    </>
+      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        <Skeleton className="h-72 rounded-lg" />
+        <Skeleton className="h-72 rounded-lg" />
+      </div>
+    </div>
   );
 }

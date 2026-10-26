@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import {
   ADMIN_TABLE_SECTION,
   ADMIN_TABLE_SLOT,
+  AdminExportButton,
   AdminFilterSelect,
   AdminPageHeader,
   AdminStatusPill,
@@ -29,7 +30,7 @@ import { DialogCommon } from "@/components/common/DialogCommon";
 import { EmptyState } from "@/components/common/EmptyState";
 import { GoldButton } from "@/components/common/GoldButton";
 import { Button } from "@/components/ui/button";
-import { useServerTableState } from "@/hooks/useServerTableState";
+import { useServerTableState, withoutPaging } from "@/hooks/useServerTableState";
 import {
   ALL_FILTER,
   PARTICIPANT_ACCOUNT_STATUS_OPTIONS,
@@ -93,6 +94,8 @@ export default function AdminParticipantsPage() {
     sortableColumns: SORTABLE_COLUMNS,
   });
   const listQuery = useListAdminParticipantsQuery(table.args);
+  // Same filters/sort as the list, without paging.
+  const exportParams = withoutPaging(table.args);
   const { refetch } = listQuery;
   const rows = listQuery.data?.participants ?? [];
   const total = listQuery.data?.pagination.total ?? 0;
@@ -273,6 +276,7 @@ export default function AdminParticipantsPage() {
                 Clear filters
               </Button>
             ) : null}
+            <AdminExportButton dataset="participants" params={exportParams} />
           </div>
         }
       />

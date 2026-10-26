@@ -98,3 +98,11 @@ export const dayStartIso = (day?: string) =>
   day ? new Date(`${day}T00:00:00`).toISOString() : undefined;
 export const dayEndIso = (day?: string) =>
   day ? new Date(`${day}T23:59:59.999`).toISOString() : undefined;
+
+/** List args without page/limit — e.g. to export everything matching the filters. */
+export function withoutPaging<T extends object>(args: T): Omit<T, "page" | "limit"> {
+  const rest = { ...args } as Record<string, unknown>;
+  delete rest.page;
+  delete rest.limit;
+  return rest as Omit<T, "page" | "limit">;
+}

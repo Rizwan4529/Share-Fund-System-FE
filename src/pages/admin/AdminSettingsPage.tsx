@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AlertCircle, Pencil, Plus, SlidersHorizontal, Tags } from "lucide-react";
 
@@ -38,7 +39,10 @@ type CategoryFilter = "all" | string;
 type DrawerMode = "create" | "edit";
 
 export default function AdminSettingsPage() {
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [searchParams] = useSearchParams();
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>(
+    searchParams.get("category") || "all",
+  );
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("create");

@@ -24,7 +24,6 @@ const NAV_ITEMS: Array<{
     icon: "campaigns",
   },
   { to: ROUTES.ADMIN_PRICING, label: "Pricing", icon: "analytics" },
-  { to: ROUTES.ADMIN_RULES, label: "Rules", icon: "rules" },
   {
     to: ROUTES.ADMIN_RECOMMENDATIONS,
     label: "Recommendations",

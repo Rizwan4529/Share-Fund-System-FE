@@ -8,6 +8,7 @@ import {
   PowerOff,
   Wallet,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
@@ -23,6 +24,7 @@ import {
 import { DataTableColumnHeaderCommon } from "@/components/common/DataTableColumnHeaderCommon";
 import { DataTableCommon } from "@/components/common/DataTableCommon";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Typography } from "@/components/common/Typography";
 import { Spinner } from "@/components/common/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { filterRowsBySearch } from "@/hooks/useAdminTableSearch";
@@ -45,6 +47,7 @@ import {
   FOUNDER_PLAN_NAMES,
   type FounderPlan,
 } from "@/types/founderPlans";
+import { ROUTES } from "@/utils/constants";
 
 type DrawerMode = "create" | "edit";
 
@@ -275,6 +278,18 @@ export default function AdminPricingPage() {
           </AdminGoldButton>
         }
       />
+
+      <Typography variant="body-sm" color="muted" className="mb-3 block">
+        Funding Access plans (price and programs included) and the checkout
+        currency are administrator-configurable in{" "}
+        <Link
+          to={`${ROUTES.ADMIN_SETTINGS}?category=pricing`}
+          className="font-semibold text-info hover:underline"
+        >
+          Settings → Pricing
+        </Link>
+        .
+      </Typography>
 
       <AdminTableToolbar
         search={search}

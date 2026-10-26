@@ -67,7 +67,6 @@ const AdminSuccessCentersPage = lazy(
   () => import("@/pages/admin/AdminSuccessCentersPage"),
 );
 const AdminPricingPage = lazy(() => import("@/pages/admin/AdminPricingPage"));
-const AdminRulesPage = lazy(() => import("@/pages/admin/AdminRulesPage"));
 const AdminRecommendationsPage = lazy(
   () => import("@/pages/admin/AdminRecommendationsPage"),
 );
@@ -167,7 +166,8 @@ export const routes: RouteObject[] = [
         element: <AdminSuccessCentersPage />,
       },
       { path: ROUTES.ADMIN_PRICING, element: <AdminPricingPage /> },
-      { path: ROUTES.ADMIN_RULES, element: <AdminRulesPage /> },
+      // Rules are configured in Settings (the versioned settings engine).
+      { path: ROUTES.ADMIN_RULES, element: <Navigate to={ROUTES.ADMIN_SETTINGS} replace /> },
       {
         path: ROUTES.ADMIN_RECOMMENDATIONS,
         element: <AdminRecommendationsPage />,

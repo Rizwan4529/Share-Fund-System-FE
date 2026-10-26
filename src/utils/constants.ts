@@ -70,6 +70,8 @@ export const API_PATHS = {
   ADMIN_PAYMENTS: "/admin/payments",
   ADMIN_PAYMENT_BY_ID: (id: string) => `/admin/payments/${id}`,
   ADMIN_REVENUE_SUMMARY: "/admin/revenue/summary",
+  ADMIN_OVERVIEW: "/admin/overview",
+  ADMIN_EXPORT: (dataset: string) => `/admin/export/${dataset}`,
   ME_STATUS: "/me/status",
   ME_DASHBOARD: "/me/dashboard",
   SUCCESS_PROFILE: "/success-profile/",

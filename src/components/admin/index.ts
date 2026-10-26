@@ -45,6 +45,7 @@ export { RecommendationReviewDrawer } from "./RecommendationReviewDrawer";
 export { AdminPaymentDetailDrawer } from "./AdminPaymentDetailDrawer";
 export { AdminRevenueSummary } from "./AdminRevenueSummary";
 export { AdminFilterSelect } from "./AdminFilterSelect";
+export { AdminExportButton } from "./AdminExportButton";
 export { AdminDetailRow, AdminDetailSection } from "./AdminDetailRows";
 export { ProgramPickerField } from "./ProgramPickerField";
 export { SuccessCenterCategoryFormDrawer } from "./SuccessCenterCategoryFormDrawer";

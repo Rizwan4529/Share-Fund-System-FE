@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ClipboardList, Eye, X } from "lucide-react";
 
 import {
   ADMIN_TABLE_SECTION,
   ADMIN_TABLE_SLOT,
+  AdminExportButton,
   AdminFilterSelect,
   AdminPageHeader,
   AdminPaymentDetailDrawer,
@@ -23,6 +25,7 @@ import {
   dayEndIso,
   dayStartIso,
   useServerTableState,
+  withoutPaging,
 } from "@/hooks/useServerTableState";
 import { ALL_FILTER } from "@/lib/admin-participants/labels";
 import {
@@ -54,7 +57,11 @@ const TABS = [
 ];
 
 export default function AdminEnrollmentsPage() {
-  const [tab, setTab] = useState<Tab>("enrollments");
+  // ?tab=payments opens the Payments tab (used by Overview quick links).
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(
+    searchParams.get("tab") === "payments" ? "payments" : "enrollments",
+  );
 
   return (
     <section className={ADMIN_TABLE_SECTION}>
@@ -134,11 +141,9 @@ function EnrollmentsTable() {
     sortableColumns: ENROLLMENT_SORTABLE,
   });
   const { from, to, ...args } = table.args;
-  const query = useListAdminEnrollmentsQuery({
-    ...args,
-    from: dayStartIso(from),
-    to: dayEndIso(to),
-  });
+  const filters = { ...args, from: dayStartIso(from), to: dayEndIso(to) };
+  const query = useListAdminEnrollmentsQuery(filters);
+  const exportParams = withoutPaging(filters);
   const total = query.data?.pagination.total ?? 0;
 
   const columns = useMemo<ColumnDef<AdminEnrollmentRow>[]>(
@@ -246,6 +251,7 @@ function EnrollmentsTable() {
               onToChange={(value) => table.setFilter("to", value)}
             />
             <ClearFiltersButton show={table.hasFilters} onClick={table.clearFilters} />
+            <AdminExportButton dataset="enrollments" params={exportParams} />
           </div>
         }
       />
@@ -299,11 +305,9 @@ function PaymentsTable() {
     sortableColumns: PAYMENT_SORTABLE,
   });
   const { from, to, ...args } = table.args;
-  const query = useListAdminPaymentsQuery({
-    ...args,
-    from: dayStartIso(from),
-    to: dayEndIso(to),
-  });
+  const filters = { ...args, from: dayStartIso(from), to: dayEndIso(to) };
+  const query = useListAdminPaymentsQuery(filters);
+  const exportParams = withoutPaging(filters);
   const total = query.data?.pagination.total ?? 0;
   const [viewing, setViewing] = useState<AdminPaymentRow | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -433,6 +437,7 @@ function PaymentsTable() {
               onToChange={(value) => table.setFilter("to", value)}
             />
             <ClearFiltersButton show={table.hasFilters} onClick={table.clearFilters} />
+            <AdminExportButton dataset="payments" params={exportParams} />
           </div>
         }
       />
